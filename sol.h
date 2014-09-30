@@ -1,140 +1,108 @@
 #ifndef SOL_H
 #define SOL_H
 
-#define NULL 0
-
-typedef enum {
-    SOL_IDENT,
-    SOL_KEYWORD,
-    SOL_INTEGER,
-    SOL_FLOAT,
-    SOL_STRING,
-    SOL_LPAREN,
-    SOL_RPAREN,
-    SOL_LBRACKET,
-    SOL_RBRACKET,
-    SOL_PLUS,
-    SOL_MINUS,
-    SOL_STAR,
-    SOL_SLASH,
-    SOL_EQUAL,
-    SOL_LESS,
-    SOL_GREATER,
-    SOL_LESSEQ,
-    SOL_GREATEREQ,
-    SOL_LOGICAND,
-    SOL_LOGICOR,
-    SOL_LOGICNOT,
-    SOL_BITAND,
-    SOL_BITOR,
-    SOL_BITNOT,
-    SOL_ASSIGN,
-    SOL_ASSIGNADD,
-    SOL_ASSIGNSUBTRACT,
-    SOL_ASSIGNMULTIPLY,
-    SOL_ASSIGNDIVIDE,
-    SOL_ASSIGNBITAND,
-    SOL_ASSIGNBITOR,
-    SOL_ASSIGNBITNOT,
-    SOL_DOT,
-    SOL_COLON;
-} sol_toktype_t;
-
-extern const char *sol_Keywords[]={
-    "if", "else",
-    "while", "for",
-    "end",
-    "break", "continue",
-    "return",
-    "func",
-    "local",
-};
-
-typedef struct {
-    sol_toktype_t type;
-    char *data;
-} sol_token_t;
-
-typedef struct {
-    const char *p;
-    int lineno;
-} sol_tokstream_t;
+#ifndef NULL
+#define NULL ((void *) 0)
+#endif
 
 // Forward declarations:
 struct sol_tag_object_t;
 typedef struct sol_tag_object_t sol_object_t;
 
+struct sol_tag_state_t;
+typedef struct sol_tag_state_t sol_state_t;
+
 typedef sol_object_t *(*sol_cfunc_t)(sol_state_t *, sol_object_t *);
 
 typedef struct {
-    sol_cfunc_t add;
-    sol_cfunc_t sub;
-    sol_cfunc_t mul;
-    sol_cfunc_t div;
-    sol_cfunc_t band;
-    sol_cfunc_t bor;
-    sol_cfunc_t bxor;
-    sol_cfunc_t bnot;
-    sol_cfunc_t call;
-    sol_cfunc_t index;
-    sol_cfunc_t setindex;
-    sol_cfunc_t len;
-    sol_cfunc_t toint;
-    sol_cfunc_t tofloat;
-    sol_cfunc_t tostring;
-    sol_cfunc_t init;
-    sol_cfunc_t free;
+	sol_cfunc_t add;
+	sol_cfunc_t sub;
+	sol_cfunc_t mul;
+	sol_cfunc_t div;
+	sol_cfunc_t band;
+	sol_cfunc_t bor;
+	sol_cfunc_t bxor;
+	sol_cfunc_t bnot;
+	sol_cfunc_t call;
+	sol_cfunc_t index;
+	sol_cfunc_t setindex;
+	sol_cfunc_t len;
+	sol_cfunc_t toint;
+	sol_cfunc_t tofloat;
+	sol_cfunc_t tostring;
+	sol_cfunc_t init;
+	sol_cfunc_t free;
 } sol_ops_t;
 
 typedef enum {
-    SOL_SINGLET,
-    SOL_INTEGER,
-    SOL_FLOAT,
-    SOL_STRING,
-    SOL_LIST,
-    SOL_MAP,
-    SOL_FUNCTION,
+	SOL_SINGLET,
+	SOL_INTEGER,
+	SOL_FLOAT,
+	SOL_STRING,
+	SOL_LIST,
+	SOL_MAP,
+	SOL_FUNCTION,
+	SOL_CFUNCTION,
+	SOL_CDATA,
+	SOL_FRAME
 } sol_objtype_t;
 
+typedef enum {
+	FR_CALL,
+	FR_STMT
+} sol_frametype_t;
+
 typedef struct sol_tag_object_t {
-    sol_objtype_t type;
-    int refcnt;
-    sol_ops_t *ops;
-    union {
-        int ival;
-        double fval;
-        const char *str;
-        struct {
-            struct sol_tag_object_t *lvalue;
-            struct sol_tag_object_t *lnext;
-        };
-        struct {
-            struct sol_tag_object_t *mkey;
-            struct sol_tag_object_t *mval;
-            struct sol_tag_object_t *mnext;
-        };
-        sol_cfunc_t func;
-    };
+	sol_objtype_t type;
+	int refcnt;
+	sol_ops_t *ops;
+	union {
+		int ival;
+		double fval;
+		const char *str;
+		struct {
+			struct sol_tag_object_t *lvalue;
+			struct sol_tag_object_t *lnext;
+		};
+		struct {
+			struct sol_tag_object_t *mkey;
+			struct sol_tag_object_t *mval;
+			struct sol_tag_object_t *mnext;
+		};
+		struct {
+			void *func; // Actually a node *
+			sol_object_t *closure;
+		};
+		sol_cfunc_t cfunc;
+		void *cdata;
+		struct {
+			sol_frametype_t frtype;
+			void *frame; // Actually a node *
+		};
+	};
 } sol_object_t;
 
-typedef struct {
-    sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
-    sol_object_t *error; // Some arbitrary error descriptor, sol_None if no error
-    sol_object_t *None;
-    sol_object_t *OutOfMemory;
-    sol_ops_t NullOps;
-    sol_ops_t IntOps;
-    sol_ops_t FloatOps;
-    sol_ops_t StringOps;
-    sol_ops_t ListOps;
-    sol_ops_t MapOps;
-    sol_ops_t FuncOps;
+typedef struct sol_tag_state_t {
+	sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
+	sol_object_t *values; // Expression value stack (as a list)
+	sol_object_t *returns; // Return frame stack (as a list)
+	sol_object_t *error; // Some arbitrary error descriptor, sol_None if no error
+	sol_object_t *None;
+	sol_object_t *OutOfMemory;
+	sol_ops_t NullOps;
+	sol_ops_t IntOps;
+	sol_ops_t FloatOps;
+	sol_ops_t StringOps;
+	sol_ops_t ListOps;
+	sol_ops_t MapOps;
+	sol_ops_t FuncOps;
+	sol_ops_t CFuncOps;
 } sol_state_t;
 
 // state.c
 
 int sol_state_init(sol_state_t *);
-void sol_state_cleanup(sol_state_t *)
+void sol_state_cleanup(sol_state_t *);
 
 sol_object_t *sol_state_resolve(sol_state_t *, sol_object_t *);
 sol_object_t *sol_state_resolve_name(sol_state_t *, const char *);
@@ -198,8 +166,11 @@ extern sol_cfunc_t sol_f_map_setindex;
 extern sol_cfunc_t sol_f_map_len;
 extern sol_cfunc_t sol_f_map_tostring;
 
-extern sol_cfunc_t sol_f_func_call;
+extern sol_cfunc_t sol_f_func_call; // Defined in ast.c
 extern sol_cfunc_t sol_f_func_tostring;
+
+extern sol_cfunc_t sol_f_cfunc_call;
+extern sol_cfunc_t sol_f_cfunc_tostring;
 
 // object.c
 
@@ -218,6 +189,8 @@ void sol_obj_release(sol_object_t *);
 #define sol_is_list(obj) ((obj)->type == SOL_LIST)
 #define sol_is_map(obj) ((obj)->type == SOL_MAP)
 #define sol_is_func(obj) ((obj)->type == SOL_FUNCTION)
+#define sol_is_cfunc(obj) ((obj)->type == SOL_CFUNCTION)
+#define sol_is_cdata(obj) ((obj)->type == SOL_CDATA)
 
 #define sol_has_error(state) (!sol_is_none((state), (state)->error))
 
@@ -229,23 +202,28 @@ sol_object_t *sol_new_string(sol_state_t *, const char *);
 sol_object_t *sol_new_list(sol_state_t *);
 int sol_list_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_list_sublist(sol_state_t *, sol_object_t *, int);
-sol_object_t *sol_list_next(sol_state_t *, sol_object_t *);
 sol_object_t *sol_list_get_index(sol_state_t *, sol_object_t *, int);
 void sol_list_set_index(sol_state_t *, sol_object_t *, int, sol_object_t *);
-void sol_list_insert(sol_state_t *, sol_object_t *, int, sol_object_t *);
-void sol_list_remove(sol_state_t *, sol_object_t *, int);
+void sol_list_insert(sol_state_t *, sol_object_t **, int, sol_object_t *);
+sol_object_t *sol_list_remove(sol_state_t *, sol_object_t **, int);
 sol_object_t *sol_list_copy(sol_state_t *, sol_object_t *);
 void sol_list_append(sol_state_t *, sol_object_t *, sol_object_t *);
+#define sol_list_push(st, ls, obj) sol_list_insert(st, &(ls), 0, obj);
+#define sol_list_pop(st, ls) sol_list_remove(st, &(ls), 0);
 
 sol_object_t *sol_new_map(sol_state_t *);
 int sol_map_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_map_submap(sol_state_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_get(sol_state_t *, sol_object_t *, sol_object_t *);
-void sol_map_set(sol_state-t *, sol_object_t *, sol_object_t *, sol_object_t *);
+void sol_map_set(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_copy(sol_state_t *, sol_object_t *);
 void sol_map_merge(sol_state_t *, sol_object_t *, sol_object_t *);
 
-sol_object_t *sol_new_func(sol_state_t *, sol_cfunc_t);
+// Defined in ast.h
+// sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *);
+
+sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t);
+sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
 
 sol_object_t *sol_cast_int(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_float(sol_state_t *, sol_object_t *);
@@ -254,13 +232,5 @@ sol_object_t *sol_cast_string(sol_state_t *, sol_object_t *);
 extern sol_cfunc_t sol_f_str_free;
 extern sol_cfunc_t sol_f_list_free;
 extern sol_cfunc_t sol_f_map_free;
-
-// tokenizer.c
-
-sol_tokstream_t *sol_tokst_new(const char *);
-void sol_tokst_free(sol_tokstream_t *);
-
-sol_token_t *sol_tokst_peek(sol_tokstream_t *);
-sol_token_t *sol_tokst_next(sol_tokstream_t *);
 
 #endif
