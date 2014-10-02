@@ -12,7 +12,7 @@
 
 %token IF THEN ELSE
 %token WHILE FOR IN DO
-%token FUNC
+%token FUNC RETURN BREAK CONTINUE
 %token END
 %token IDENT
 %token INT FLOAT STRING
@@ -37,21 +37,16 @@ stmt:
 | IF expr THEN stmt ELSE stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
 | WHILE expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
 | FOR IDENT IN expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = strdup($2); AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
+| RETURN expr { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
+| RETURN { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
+| BREAK { $$ = NEW_ST(); AS_ST($$)->type = ST_BREAK; }
+| CONTINUE { $$ = NEW_ST(); AS_ST($$)->type = ST_CONT; }
 | stmt SEMICOLON { $$ = $1; }
 | stmt_list { $$ = $1; }
 ;
 
 stmt_list:
-  stmt stmt {
-	$$ = NEW_ST();
-	AS_ST($$)->type = ST_LIST;
-	AS_ST($$)->stmtlist = NEW(stmtlist_node);
-	AS_ST($$)->stmtlist->stmt = $1;
-	AS_ST($$)->stmtlist->next = NEW(stmtlist_node);
-	AS_ST($$)->stmtlist->next->stmt = $2;
-	AS_ST($$)->stmtlist->next->next = NULL;
-  }
-| stmt_list stmt {
+  stmt_list stmt {
 	stmtlist_node *cur = AS_ST($1)->stmtlist;
 	while(cur->next) cur = cur->next;
 	cur->next = NEW(stmtlist_node);
@@ -59,6 +54,15 @@ stmt_list:
 	cur->stmt = $2;
 	cur->next = NULL;
 	$$ = $1;
+  }
+| stmt stmt {
+	$$ = NEW_ST();
+	AS_ST($$)->type = ST_LIST;
+	AS_ST($$)->stmtlist = NEW(stmtlist_node);
+	AS_ST($$)->stmtlist->stmt = $1;
+	AS_ST($$)->stmtlist->next = NEW(stmtlist_node);
+	AS_ST($$)->stmtlist->next->stmt = $2;
+	AS_ST($$)->stmtlist->next->next = NULL;
   }
 ;
 
@@ -120,77 +124,122 @@ expr:
 	AS_EX($$)->assign->ident = $1;
 	MAKE_REF_BINOP(AS_EX($$)->assign->value, OP_BXOR, $1, $3);
   }
-| expr LBRACKET expr RBRACKET ASSIGN expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	AS_EX($$)->setindex->value = $6;
+| ex_index_expr ASSIGN expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->value = $3;
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNPLUS expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_ADD, $1, $3, $6);
+| ex_index_expr ASSIGNPLUS expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_ADD, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNMINUS expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_SUB, $1, $3, $6);
+| ex_index_expr ASSIGNMINUS expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_SUB, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNSTAR expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_MUL, $1, $3, $6);
+| ex_index_expr ASSIGNSTAR expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_MUL, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNSLASH expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_DIV, $1, $3, $6);
+| ex_index_expr ASSIGNSLASH expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_DIV, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNDSTAR expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_POW, $1, $3, $6);
+| ex_index_expr ASSIGNDSTAR expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_POW, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNBAND expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BAND, $1, $3, $6);
+| ex_index_expr ASSIGNBAND expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BAND, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNBOR expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BOR, $1, $3, $6);
+| ex_index_expr ASSIGNBOR expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BOR, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
-| expr LBRACKET expr RBRACKET ASSIGNBXOR expr {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_SETINDEX;
-	AS_EX($$)->setindex = NEW(setindex_node);
-	AS_EX($$)->setindex->expr = $1;
-	AS_EX($$)->setindex->index = $3;
-	MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BXOR, $1, $3, $6);
+| ex_index_expr ASSIGNBXOR expr {
+    if(AS_EX($1)->type != EX_INDEX) {
+        yyerror("Assigning to non-indexing expression");
+        YYABORT;
+    }
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_SETINDEX;
+    AS_EX($$)->setindex = NEW(setindex_node);
+    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
+    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BXOR, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
+    //ex_free(AS_EX($1));
 }
 | logic_expr { $$ = $1; }
 ;
@@ -266,16 +315,42 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->args = $3;
 	AS_EX($$)->funcdecl->body = $5;
 }
-| ref_expr { $$ = $1; }
-;
-
-ref_expr:
-  IDENT { $$ = NEW_EX(); AS_EX($$)->type = EX_REF; AS_EX($$)->ref = NEW(ref_node); AS_EX($$)->ref->ident = $1; }
 | index_expr { $$ = $1; }
 ;
 
 index_expr:
-  index_expr LBRACKET index_expr RBRACKET { $$ = NEW_EX(); AS_EX($$)->type = EX_INDEX; AS_EX($$)->index = NEW(index_node); AS_EX($$)->index->expr = $1; AS_EX($$)->index->index = $3; }
+  expr LBRACKET expr RBRACKET { $$ = NEW_EX(); AS_EX($$)->type = EX_INDEX; AS_EX($$)->index = NEW(index_node); AS_EX($$)->index->expr = $1; AS_EX($$)->index->index = $3; }
+| expr DOT IDENT {
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_INDEX;
+    AS_EX($$)->index = NEW(index_node);
+    AS_EX($$)->index->expr = $1;
+    AS_EX($$)->index->index = NEW_EX();
+    AS_EX($$)->index->index->type = EX_LIT;
+    AS_EX($$)->index->index->lit = NEW(lit_node);
+    AS_EX($$)->index->index->lit->type = LIT_STRING;
+    AS_EX($$)->index->index->lit->str = $3;
+}
+| ref_expr { $$ = $1; }
+;
+
+ex_index_expr:
+  expr LBRACKET expr RBRACKET { $$ = NEW_EX(); AS_EX($$)->type = EX_INDEX; AS_EX($$)->index = NEW(index_node); AS_EX($$)->index->expr = $1; AS_EX($$)->index->index = $3; }
+| expr DOT IDENT {
+    $$ = NEW_EX();
+    AS_EX($$)->type = EX_INDEX;
+    AS_EX($$)->index = NEW(index_node);
+    AS_EX($$)->index->expr = $1;
+    AS_EX($$)->index->index = NEW_EX();
+    AS_EX($$)->index->index->type = EX_LIT;
+    AS_EX($$)->index->index->lit = NEW(lit_node);
+    AS_EX($$)->index->index->lit->type = LIT_STRING;
+    AS_EX($$)->index->index->lit->str = $3;
+}
+;
+
+ref_expr:
+  IDENT { $$ = NEW_EX(); AS_EX($$)->type = EX_REF; AS_EX($$)->ref = NEW(ref_node); AS_EX($$)->ref->ident = $1; }
 | lit_expr { $$ = $1; }
 ;
 

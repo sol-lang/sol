@@ -5,7 +5,7 @@ while a < 10 do
 end
 
 func mul9(b)
-	for i in b do
+	for i in range(len(b)) do
 		b[i] *= 9
 	end
 end
@@ -25,3 +25,7 @@ d = {
 	["this time with spaces"] = 2*PI,
 	[1 + 5] = 1 + 5
 }
+
+d["integer"]
+d.integer
+d.integer += 5

@@ -78,6 +78,12 @@ do { return DO; }
 
 func { return FUNC; }
 
+return { return RETURN; }
+
+break { return BREAK; }
+
+continue { return CONTINUE; }
+
 end { return END; }
 
 "+" { return PLUS; }
@@ -166,4 +172,21 @@ int yywrap(void) {
 
 void yyerror(char *s) {
 	puts(s);
+}
+
+stmt_node *sol_compile(const char *prgstr) {
+    stmt_node *program = NULL;
+    YY_BUFFER_STATE buf = yy_scan_string(prgstr);
+    yyparse(&program);
+    yy_delete_buffer(buf);
+    return program;
+}
+
+stmt_node *sol_compile_file(FILE *prgfile) {
+    stmt_node *program = NULL;
+    YY_BUFFER_STATE buf = yy_create_buffer(prgfile, YY_BUF_SIZE);
+    yy_switch_to_buffer(buf);
+    yyparse(&program);
+    yy_delete_buffer(buf);
+    return program;
 }

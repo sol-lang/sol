@@ -19,10 +19,12 @@ typedef struct {
 	sol_cfunc_t sub;
 	sol_cfunc_t mul;
 	sol_cfunc_t div;
+	sol_cfunc_t pow;
 	sol_cfunc_t band;
 	sol_cfunc_t bor;
 	sol_cfunc_t bxor;
 	sol_cfunc_t bnot;
+	sol_cfunc_t cmp;
 	sol_cfunc_t call;
 	sol_cfunc_t index;
 	sol_cfunc_t setindex;
@@ -43,8 +45,7 @@ typedef enum {
 	SOL_MAP,
 	SOL_FUNCTION,
 	SOL_CFUNCTION,
-	SOL_CDATA,
-	SOL_FRAME
+	SOL_CDATA
 } sol_objtype_t;
 
 typedef enum {
@@ -57,9 +58,9 @@ typedef struct sol_tag_object_t {
 	int refcnt;
 	sol_ops_t *ops;
 	union {
-		int ival;
+		long ival;
 		double fval;
-		const char *str;
+		char *str;
 		struct {
 			struct sol_tag_object_t *lvalue;
 			struct sol_tag_object_t *lnext;
@@ -70,25 +71,25 @@ typedef struct sol_tag_object_t {
 			struct sol_tag_object_t *mnext;
 		};
 		struct {
-			void *func; // Actually a node *
-			sol_object_t *closure;
+			void *func; // Actually a stmt_node *
+			void *args; // Actually an identlist_node *
+			struct sol_tag_object_t *closure;
 		};
 		sol_cfunc_t cfunc;
 		void *cdata;
-		struct {
-			sol_frametype_t frtype;
-			void *frame; // Actually a node *
-		};
 	};
 } sol_object_t;
 
+typedef enum {SF_NORMAL, SF_BREAKING, SF_CONTINUING} sol_state_flag_t;
+
 typedef struct sol_tag_state_t {
 	sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
-	sol_object_t *values; // Expression value stack (as a list)
-	sol_object_t *returns; // Return frame stack (as a list)
+	sol_object_t *ret; // Return value of this function, for early return
+	sol_state_flag_t sflag; // Used to implement break/continue
 	sol_object_t *error; // Some arbitrary error descriptor, sol_None if no error
 	sol_object_t *None;
 	sol_object_t *OutOfMemory;
+	sol_object_t *StopIteration;
 	sol_ops_t NullOps;
 	sol_ops_t IntOps;
 	sol_ops_t FloatOps;
@@ -111,6 +112,9 @@ void sol_state_assign_name(sol_state_t *, const char *, sol_object_t *);
 void sol_state_assign_l(sol_state_t *, sol_object_t *, sol_object_t *);
 void sol_state_assign_l_name(sol_state_t *, const char *, sol_object_t *);
 
+void sol_state_push_scope(sol_state_t *, sol_object_t *);
+sol_object_t *sol_state_pop_scope(sol_state_t *);
+
 sol_object_t *sol_get_error(sol_state_t *);
 sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
 sol_object_t *sol_set_error_string(sol_state_t *, const char *);
@@ -118,59 +122,67 @@ void sol_clear_error(sol_state_t *);
 
 // builtins.c
 
-extern sol_cfunc_t sol_f_not_impl;
-extern sol_cfunc_t sol_f_no_op;
+sol_object_t *sol_f_not_impl(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_no_op(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_default_cmp(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_toint;
-extern sol_cfunc_t sol_f_tofloat;
-extern sol_cfunc_t sol_f_tostring;
-extern sol_cfunc_t sol_f_try;
+sol_object_t *sol_f_toint(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_tofloat(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_try(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_type(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_prepr(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_int_add;
-extern sol_cfunc_t sol_f_int_sub;
-extern sol_cfunc_t sol_f_int_mul;
-extern sol_cfunc_t sol_f_int_div;
-extern sol_cfunc_t sol_f_int_band;
-extern sol_cfunc_t sol_f_int_bor;
-extern sol_cfunc_t sol_f_int_bxor;
-extern sol_cfunc_t sol_f_int_bnot;
-extern sol_cfunc_t sol_f_int_toint;
-extern sol_cfunc_t sol_f_int_tofloat;
-extern sol_cfunc_t sol_f_int_tostring;
+sol_object_t *sol_f_int_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_sub(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_div(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_pow(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_band(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_bor(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_bxor(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_bnot(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_cmp(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_toint(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_tofloat(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_float_add;
-extern sol_cfunc_t sol_f_float_sub;
-extern sol_cfunc_t sol_f_float_mul;
-extern sol_cfunc_t sol_f_float_div;
-extern sol_cfunc_t sol_f_float_toint;
-extern sol_cfunc_t sol_f_float_tofloat;
-extern sol_cfunc_t sol_f_float_tostring;
+sol_object_t *sol_f_float_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_sub(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_div(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_pow(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_cmp(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_toint(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_tofloat(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_float_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_str_add;
-extern sol_cfunc_t sol_f_str_mul;
-extern sol_cfunc_t sol_f_str_len;
-extern sol_cfunc_t sol_f_str_toint;
-extern sol_cfunc_t sol_f_str_tofloat;
-extern sol_cfunc_t sol_f_str_tostring;
+sol_object_t *sol_f_str_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_len(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_cmp(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_toint(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_tofloat(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_list_add;
-extern sol_cfunc_t sol_f_list_mul;
-extern sol_cfunc_t sol_f_list_index;
-extern sol_cfunc_t sol_f_list_setindex;
-extern sol_cfunc_t sol_f_list_len;
-extern sol_cfunc_t sol_f_list_tostring;
+sol_object_t *sol_f_list_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_index(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_setindex(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_len(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_map_add;
-extern sol_cfunc_t sol_f_map_index;
-extern sol_cfunc_t sol_f_map_setindex;
-extern sol_cfunc_t sol_f_map_len;
-extern sol_cfunc_t sol_f_map_tostring;
+sol_object_t *sol_f_map_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_index(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_setindex(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_len(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_func_call; // Defined in ast.c
-extern sol_cfunc_t sol_f_func_tostring;
+sol_object_t *sol_f_func_call(sol_state_t *, sol_object_t *); // Defined in ast.c
+sol_object_t *sol_f_func_tostring(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_cfunc_call;
-extern sol_cfunc_t sol_f_cfunc_tostring;
+sol_object_t *sol_f_cfunc_call(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_cfunc_tostring(sol_state_t *, sol_object_t *);
 
 // object.c
 
@@ -181,8 +193,8 @@ void sol_obj_free(sol_object_t *);
 void sol_obj_release(sol_object_t *);
 
 #define sol_is_singlet(obj) ((obj)->type == SOL_SINGLET)
-#define sol_is_none(state, obj) ((obj) == state->sol_None)
-#define sol_is_oom(state, obj) ((obj) == state->sol_OutOfMemory)
+#define sol_is_none(state, obj) ((obj) == state->None)
+#define sol_is_oom(state, obj) ((obj) == state->OutOfMemory)
 #define sol_is_int(obj) ((obj)-> type == SOL_INTEGER)
 #define sol_is_float(obj) ((obj)->type == SOL_FLOAT)
 #define sol_is_string(obj) ((obj)->type == SOL_STRING)
@@ -194,8 +206,10 @@ void sol_obj_release(sol_object_t *);
 
 #define sol_has_error(state) (!sol_is_none((state), (state)->error))
 
+sol_object_t *sol_alloc_object(sol_state_t *);
+
 sol_object_t *sol_new_singlet(sol_state_t *);
-sol_object_t *sol_new_int(sol_state_t *, int);
+sol_object_t *sol_new_int(sol_state_t *, long);
 sol_object_t *sol_new_float(sol_state_t *, double);
 sol_object_t *sol_new_string(sol_state_t *, const char *);
 
@@ -216,8 +230,10 @@ int sol_map_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_map_submap(sol_state_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_get(sol_state_t *, sol_object_t *, sol_object_t *);
 void sol_map_set(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
+void sol_map_set_existing(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_copy(sol_state_t *, sol_object_t *);
 void sol_map_merge(sol_state_t *, sol_object_t *, sol_object_t *);
+void sol_map_merge_existing(sol_state_t *, sol_object_t *, sol_object_t *);
 
 // Defined in ast.h
 // sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *);
@@ -229,8 +245,8 @@ sol_object_t *sol_cast_int(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_float(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_string(sol_state_t *, sol_object_t *);
 
-extern sol_cfunc_t sol_f_str_free;
-extern sol_cfunc_t sol_f_list_free;
-extern sol_cfunc_t sol_f_map_free;
+sol_object_t *sol_f_str_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_free(sol_state_t *, sol_object_t *);
 
 #endif

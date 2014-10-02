@@ -3,6 +3,8 @@
 
 #include "sol.h"
 
+#include <stdio.h>
+
 struct tag_expr_node;
 typedef struct tag_expr_node expr_node;
 
@@ -13,7 +15,7 @@ typedef enum {LIT_INT, LIT_FLOAT, LIT_STRING} lit_t;
 typedef struct {
 	lit_t type;
 	union {
-		int ival;
+		long ival;
 		double fval;
 		char *str;
 	};
@@ -126,12 +128,16 @@ typedef struct {
 	stmt_node *loop;
 } iter_node;
 
+typedef struct {
+    expr_node *ret;
+} ret_node;
+
 typedef struct tag_stmtlist_node {
 	stmt_node *stmt;
 	struct tag_stmtlist_node *next;
 } stmtlist_node;
 
-typedef enum {ST_EXPR, ST_IFELSE, ST_LOOP, ST_ITER, ST_LIST} stmt_t;
+typedef enum {ST_EXPR, ST_IFELSE, ST_LOOP, ST_ITER, ST_LIST, ST_RET, ST_CONT, ST_BREAK} stmt_t;
 typedef struct tag_stmt_node {
 	stmt_t type;
 	union {
@@ -140,6 +146,7 @@ typedef struct tag_stmt_node {
 		loop_node *loop;
 		iter_node *iter;
 		stmtlist_node *stmtlist;
+		ret_node *ret;
 	};
 } stmt_node;
 
@@ -168,7 +175,24 @@ typedef struct tag_stmt_node {
 	nd->binop->left->index->expr = obj; \
 	nd->binop->left->index->index = idx; \
 	nd->binop->right = val
+#define BOOL_TO_INT(cond) ((cond)?1:0)
 
 sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *);
+
+// runtime.c
+
+stmt_node *sol_compile(const char *);
+stmt_node *sol_compile_file(FILE *);
+expr_node *sol_comp_as_expr(stmt_node *);
+void sol_compile_free(stmt_node *);
+
+void st_free(stmt_node *);
+void ex_free(expr_node *);
+
+void st_print(stmt_node *);
+void ex_print(expr_node *);
+
+sol_object_t *sol_eval(sol_state_t *, expr_node *);
+void sol_exec(sol_state_t *, stmt_node *);
 
 #endif
