@@ -1,19 +1,19 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
 /* Bison interface for Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
-
+   
+      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,13 +26,13 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
 #ifndef YY_YY_PARSER_TAB_H_INCLUDED
 # define YY_YY_PARSER_TAB_H_INCLUDED
-/* Debug traces.  */
+/* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 1
 #endif
@@ -40,76 +40,91 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-  enum yytokentype
-  {
-    IF = 258,
-    THEN = 259,
-    ELSE = 260,
-    WHILE = 261,
-    FOR = 262,
-    IN = 263,
-    DO = 264,
-    FUNC = 265,
-    RETURN = 266,
-    BREAK = 267,
-    CONTINUE = 268,
-    END = 269,
-    IDENT = 270,
-    INT = 271,
-    FLOAT = 272,
-    STRING = 273,
-    PLUS = 274,
-    MINUS = 275,
-    STAR = 276,
-    SLASH = 277,
-    DSTAR = 278,
-    BAND = 279,
-    BOR = 280,
-    BXOR = 281,
-    BNOT = 282,
-    LAND = 283,
-    LOR = 284,
-    LNOT = 285,
-    ASSIGN = 286,
-    ASSIGNPLUS = 287,
-    ASSIGNMINUS = 288,
-    ASSIGNSTAR = 289,
-    ASSIGNSLASH = 290,
-    ASSIGNDSTAR = 291,
-    ASSIGNBAND = 292,
-    ASSIGNBOR = 293,
-    ASSIGNBXOR = 294,
-    EQUAL = 295,
-    LESS = 296,
-    GREATER = 297,
-    LESSEQ = 298,
-    GREATEREQ = 299,
-    LBRACE = 300,
-    RBRACE = 301,
-    LPAREN = 302,
-    RPAREN = 303,
-    LBRACKET = 304,
-    RBRACKET = 305,
-    DOT = 306,
-    COLON = 307,
-    SEMICOLON = 308,
-    COMMA = 309
-  };
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     IF = 258,
+     THEN = 259,
+     ELSE = 260,
+     WHILE = 261,
+     FOR = 262,
+     IN = 263,
+     DO = 264,
+     FUNC = 265,
+     RETURN = 266,
+     BREAK = 267,
+     CONTINUE = 268,
+     END = 269,
+     NONE = 270,
+     IDENT = 271,
+     INT = 272,
+     FLOAT = 273,
+     STRING = 274,
+     PLUS = 275,
+     MINUS = 276,
+     STAR = 277,
+     SLASH = 278,
+     DSTAR = 279,
+     BAND = 280,
+     BOR = 281,
+     BXOR = 282,
+     BNOT = 283,
+     LAND = 284,
+     LOR = 285,
+     LNOT = 286,
+     ASSIGN = 287,
+     ASSIGNPLUS = 288,
+     ASSIGNMINUS = 289,
+     ASSIGNSTAR = 290,
+     ASSIGNSLASH = 291,
+     ASSIGNDSTAR = 292,
+     ASSIGNBAND = 293,
+     ASSIGNBOR = 294,
+     ASSIGNBXOR = 295,
+     EQUAL = 296,
+     LESS = 297,
+     GREATER = 298,
+     LESSEQ = 299,
+     GREATEREQ = 300,
+     LBRACE = 301,
+     RBRACE = 302,
+     LPAREN = 303,
+     RPAREN = 304,
+     LBRACKET = 305,
+     RBRACKET = 306,
+     DOT = 307,
+     COLON = 308,
+     SEMICOLON = 309,
+     COMMA = 310,
+     POUND = 311
+   };
 #endif
 
-/* Value type.  */
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
-
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
 int yyparse (stmt_node **program);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 #endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */

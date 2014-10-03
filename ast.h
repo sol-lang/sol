@@ -11,7 +11,7 @@ typedef struct tag_expr_node expr_node;
 struct tag_stmt_node;
 typedef struct tag_stmt_node stmt_node;
 
-typedef enum {LIT_INT, LIT_FLOAT, LIT_STRING} lit_t;
+typedef enum {LIT_INT, LIT_FLOAT, LIT_STRING, LIT_NONE} lit_t;
 typedef struct {
 	lit_t type;
 	union {
@@ -28,7 +28,7 @@ typedef struct {
 	expr_node *right;
 } binop_node;
 
-typedef enum {OP_NEG, OP_BNOT, OP_LNOT} unop_t;
+typedef enum {OP_NEG, OP_BNOT, OP_LNOT, OP_LEN} unop_t;
 typedef struct {
 	unop_t type;
 	expr_node *expr;
@@ -177,7 +177,7 @@ typedef struct tag_stmt_node {
 	nd->binop->right = val
 #define BOOL_TO_INT(cond) ((cond)?1:0)
 
-sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *);
+sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
 
 // runtime.c
 
@@ -191,6 +191,7 @@ void ex_free(expr_node *);
 
 void st_print(stmt_node *);
 void ex_print(expr_node *);
+void ob_print(sol_object_t *);
 
 sol_object_t *sol_eval(sol_state_t *, expr_node *);
 void sol_exec(sol_state_t *, stmt_node *);

@@ -106,6 +106,10 @@ void prex(expr_node *node, int lev) {
 				case LIT_STRING:
 					prlev(lev, "String: %s", node->lit->str);
 					break;
+					
+				case LIT_NONE:
+					prlev(lev, "None");
+					break;
 			}
 			break;
 
@@ -215,6 +219,10 @@ void prex(expr_node *node, int lev) {
 
 				case OP_LNOT:
 					prlev(lev, "Op: !");
+					break;
+					
+				case OP_LEN:
+					prlev(lev, "Op: #");
 					break;
 			}
 			prlev(lev, "Expr:");

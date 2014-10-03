@@ -74,6 +74,7 @@ typedef struct sol_tag_object_t {
 			void *func; // Actually a stmt_node *
 			void *args; // Actually an identlist_node *
 			struct sol_tag_object_t *closure;
+			char *fname;
 		};
 		sol_cfunc_t cfunc;
 		void *cdata;
@@ -86,7 +87,7 @@ typedef struct sol_tag_state_t {
 	sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
 	sol_object_t *ret; // Return value of this function, for early return
 	sol_state_flag_t sflag; // Used to implement break/continue
-	sol_object_t *error; // Some arbitrary error descriptor, sol_None if no error
+	sol_object_t *error; // Some arbitrary error descriptor, None if no error
 	sol_object_t *None;
 	sol_object_t *OutOfMemory;
 	sol_object_t *StopIteration;
@@ -236,7 +237,7 @@ void sol_map_merge(sol_state_t *, sol_object_t *, sol_object_t *);
 void sol_map_merge_existing(sol_state_t *, sol_object_t *, sol_object_t *);
 
 // Defined in ast.h
-// sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *);
+// sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
 
 sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t);
 sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
@@ -248,5 +249,8 @@ sol_object_t *sol_cast_string(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_free(sol_state_t *, sol_object_t *);
+
+int sol_validate_list(sol_state_t *, sol_object_t *);
+int sol_validate_map(sol_state_t *, sol_object_t *);
 
 #endif

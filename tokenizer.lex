@@ -62,6 +62,8 @@ IDENT [a-zA-Z_][a-zA-Z0-9_]*
 
 \"[^"]*\" { yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
 
+\'[^']*\' { yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
+
 if { return IF; }
 
 then { return THEN; }
@@ -85,6 +87,8 @@ break { return BREAK; }
 continue { return CONTINUE; }
 
 end { return END; }
+
+None { return NONE; }
 
 "+" { return PLUS; }
 
@@ -158,9 +162,11 @@ end { return END; }
 
 "," { return COMMA; }
 
+"#" { return POUND; }
+
 {IDENT} { yylval = strdup(yytext); return IDENT; }
 
-#[^\n]*\n /* Skip comments */
+--[^\n]*\n /* Skip comments */
 
 [ \t\n]+ /* Skip whitespace */
 

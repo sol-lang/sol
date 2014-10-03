@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 
 expr_node *sol_comp_as_expr(stmt_node *stmt) {
@@ -178,6 +179,10 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                 case LIT_STRING:
                     return sol_new_string(state, expr->lit->str);
                     break;
+					
+				case LIT_NONE:
+					return sol_incref(state->None);
+					break;
             }
             break;
 
@@ -257,23 +262,23 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     break;
 
                 case OP_EQUAL:
-                    res = sol_new_int(state, BOOL_TO_INT(left->ops->cmp(state, list)==0));
+                    res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival==0));
                     break;
 
                 case OP_LESS:
-                    res = sol_new_int(state, BOOL_TO_INT(left->ops->cmp(state, list)<0));
+                    res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival<0));
                     break;
 
                 case OP_GREATER:
-                    res = sol_new_int(state, BOOL_TO_INT(left->ops->cmp(state, list)>0));
+                    res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>0));
                     break;
 
                 case OP_LESSEQ:
-                    res = sol_new_int(state, BOOL_TO_INT(left->ops->cmp(state, list)<=0));
+                    res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival<=0));
                     break;
 
                 case OP_GREATEREQ:
-                    res = sol_new_int(state, BOOL_TO_INT(left->ops->cmp(state, list)>=0));
+                    res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>=0));
                     break;
             }
             sol_obj_free(left);
@@ -303,6 +308,10 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     res = sol_new_int(state, BOOL_TO_INT(!lint->ival));
                     sol_obj_free(lint);
                     break;
+					
+				case OP_LEN:
+					res = left->ops->len(state, list);
+					break;
             }
             sol_obj_free(left);
             sol_obj_free(list);
@@ -364,7 +373,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             break;
 
         case EX_FUNCDECL:
-            res = sol_new_func(state, expr->funcdecl->args, expr->funcdecl->body);
+            res = sol_new_func(state, expr->funcdecl->args, expr->funcdecl->body, expr->funcdecl->name);
             if(expr->funcdecl->name) {
                 sol_state_assign_l_name(state, expr->funcdecl->name, res);
             }
@@ -389,12 +398,12 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             value = sol_eval(state, stmt->ifelse->cond);
             vint = sol_cast_int(state, value);
             if(vint->ival) {
-                sol_exec(state, stmt->ifelse->iftrue);
+                if(stmt->ifelse->iftrue) sol_exec(state, stmt->ifelse->iftrue);
             } else {
-                sol_exec(state, stmt->ifelse->iffalse);
+                if(stmt->ifelse->iffalse) sol_exec(state, stmt->ifelse->iffalse);
             }
+            if(vint != value) sol_obj_free(value);
             sol_obj_free(vint);
-            sol_obj_free(value);
             break;
 
         case ST_LOOP:
@@ -404,7 +413,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 sol_obj_free(value);
                 sol_obj_free(vint);
                 sol_exec(state, stmt->loop->loop);
-                if(state->ret || state->sflag == SF_BREAKING) break;
+                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
                 value = sol_eval(state, stmt->loop->cond);
                 vint = sol_cast_int(state, value);
             }
@@ -417,7 +426,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 sol_state_assign_l_name(state, stmt->iter->var, value);
                 sol_obj_free(value);
                 sol_exec(state, stmt->loop->loop);
-                if(state->ret || state->sflag == SF_BREAKING) break;
+                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
                 value = sol_eval(state, stmt->iter->iter);
             }
             state->sflag = SF_NORMAL;
@@ -425,7 +434,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 
         case ST_LIST:
             curs = stmt->stmtlist;
-            while(curs && state->sflag == SF_NORMAL) {
+            while(curs && state->sflag == SF_NORMAL && !sol_has_error(state) && !state->ret) {
                 if(curs->stmt) sol_exec(state, curs->stmt);
                 curs = curs->next;
             }
@@ -453,6 +462,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
     sol_object_t *res, *scope, *value, *curo = args, *key;
     identlist_node *curi;
     value = curo->lvalue;
+	if(!value->func) return sol_incref(state->None);
     curo = curo->lnext;
     scope = sol_map_copy(state, value->closure);
     curi = AS(value->args, identlist_node);
@@ -469,6 +479,11 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
             curi = curi->next;
         }
     }
+    if(value->fname) {
+		key = sol_new_string(state, value->fname);
+		sol_map_set(state, scope, key, value);
+		sol_obj_free(key);
+	}
     sol_state_push_scope(state, scope);
     sol_exec(state, AS(value->func, stmt_node));
     sol_state_pop_scope(state);
@@ -483,11 +498,12 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
     return res;
 }
 
-sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body) {
+sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name) {
     sol_object_t *obj = sol_alloc_object(state);
     if(sol_has_error(state)) return sol_incref(state->None);
     obj->func = body;
     obj->args = identlist;
+	obj->fname = (name?strdup(name):NULL);
     obj->closure = sol_new_map(state);
     obj->type = SOL_FUNCTION;
     obj->ops = &(state->FuncOps);

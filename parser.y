@@ -13,13 +13,13 @@
 %token IF THEN ELSE
 %token WHILE FOR IN DO
 %token FUNC RETURN BREAK CONTINUE
-%token END
+%token END NONE
 %token IDENT
 %token INT FLOAT STRING
 %token PLUS MINUS STAR SLASH DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
 %token EQUAL LESS GREATER LESSEQ GREATEREQ
-%token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA
+%token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
 
 %parse-param {stmt_node **program}
 
@@ -289,7 +289,12 @@ binary_expr:
 ;
 
 ubinary_expr:
-  BNOT call_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->unop = NEW(unop_node); AS_EX($$)->unop->type = OP_BNOT; AS_EX($$)->unop->expr = $2; }
+  BNOT ubinary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_UNOP; AS_EX($$)->unop = NEW(unop_node); AS_EX($$)->unop->type = OP_BNOT; AS_EX($$)->unop->expr = $2; }
+| ulen_expr { $$ = $1; }
+;
+
+ulen_expr:
+  POUND ulen_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_UNOP; AS_EX($$)->unop = NEW(unop_node); AS_EX($$)->unop->type = OP_LEN; AS_EX($$)->unop->expr = $2; }
 | call_expr { $$ = $1; }
 ;
 
@@ -299,7 +304,7 @@ call_expr:
 ;
 
 funcdecl_expr:
-  FUNC IDENT LPAREN ident_list RPAREN stmt END {
+  FUNC IDENT LPAREN ident_list RPAREN opt_stmt END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
@@ -307,7 +312,7 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->args = $4;
 	AS_EX($$)->funcdecl->body = $6;
 }
-| FUNC LPAREN ident_list RPAREN stmt END {
+| FUNC LPAREN ident_list RPAREN opt_stmt END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
@@ -316,6 +321,11 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->body = $5;
 }
 | index_expr { $$ = $1; }
+;
+
+opt_stmt:
+  stmt { $$ = $1; }
+| /* empty */ { $$ = NULL; }
 ;
 
 index_expr:
@@ -356,8 +366,10 @@ ref_expr:
 
 lit_expr:
   INT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_INT; AS_EX($$)->lit->ival = *AS($1, long); free($1); }
+| MINUS INT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_INT; AS_EX($$)->lit->ival = -(*AS($2, long)); free($2); }
 | FLOAT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_FLOAT; AS_EX($$)->lit->fval = *AS($1, double); free($1); }
 | STRING { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_STRING; AS_EX($$)->lit->str = $1; }
+| NONE { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_NONE; }
 | gen_expr { $$ = $1; }
 ;
 

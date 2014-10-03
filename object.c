@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
@@ -156,31 +157,39 @@ int sol_list_len(sol_state_t *state, sol_object_t *list) {
 sol_object_t *sol_list_sublist(sol_state_t *state, sol_object_t *list, int idx) {
 	int i = 0;
 	sol_object_t *cur = list;
-	sol_object_t *copy;
+	sol_object_t *copy, *res;
 	if(idx < 0) {
 		return sol_set_error_string(state, "Create sublist at negative index");
 	}
-	while(cur && cur->lvalue && i < idx) {
-		i++;
+	while(cur && i < idx) {
+		if(cur->lvalue) i++;
 		cur = cur->lnext;
 	}
 	copy = sol_new_list(state);
-	while(cur && cur->lvalue) {
-		copy->lvalue = sol_incref(cur->lvalue);
-		if(cur->lnext) {
-			copy->lnext = sol_alloc_object(state);
-			copy = copy->lnext;
-			copy->type = SOL_LIST;
-			copy->ops = &(state->ListOps);
+	res = copy;
+	while(cur) {
+		if(cur->lvalue) {
+			copy->lvalue = sol_incref(cur->lvalue);
+			if(cur->lnext) {
+				copy->lnext = sol_alloc_object(state);
+				copy = copy->lnext;
+				copy->type = SOL_LIST;
+				copy->ops = &(state->ListOps);
+				copy->lnext = NULL;
+				copy->lvalue = NULL;
+			}
 		}
 		cur = cur->lnext;
 	}
-	return copy;
+	return res;
 }
 
 sol_object_t *sol_list_get_index(sol_state_t *state, sol_object_t *list, int idx) {
 	sol_object_t *cur = list;
 	int i = 0;
+	if(!sol_is_list(list)) {
+		return sol_set_error_string(state, "Get index of non-list");
+	}
 	if(idx < 0) {
 		return sol_set_error_string(state, "Get negative index");
 	}
@@ -188,7 +197,7 @@ sol_object_t *sol_list_get_index(sol_state_t *state, sol_object_t *list, int idx
 		i++;
 		cur = cur->lnext;
 	}
-	if(cur) {
+	if(cur && cur->lvalue) {
 		return sol_incref(cur->lvalue);
 	} else {
 		return sol_set_error_string(state, "Get out-of-bounds index");
@@ -198,6 +207,10 @@ sol_object_t *sol_list_get_index(sol_state_t *state, sol_object_t *list, int idx
 void sol_list_set_index(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
 	sol_object_t *cur = list;
 	int i = 0;
+	if(!sol_is_list(list)) {
+		sol_obj_free(sol_set_error_string(state, "Set index of non-list"));
+		return;
+	}
 	if(idx < 0) {
 		sol_obj_free(sol_set_error_string(state, "Set negative index"));
 		return;
@@ -219,6 +232,10 @@ void sol_list_insert(sol_state_t *state, sol_object_t **list, int idx, sol_objec
 	sol_object_t *next = *list, *prev = NULL, *temp = sol_alloc_object(state);
 	int i = 0;
 	if(sol_has_error(state)) return;
+	if(!sol_is_list(*list)) {
+		sol_obj_free(sol_set_error_string(state, "Insert into non-list"));
+		return;
+	}
 	if(idx < 0) {
 		sol_obj_free(sol_set_error_string(state, "Insert at negative index"));
 		return;
@@ -236,7 +253,6 @@ void sol_list_insert(sol_state_t *state, sol_object_t **list, int idx, sol_objec
 		if(prev) {
 			prev->lnext = temp;
 		} else {
-			free(*list);
 			*list = temp;
 			temp->lnext = next;
 		}
@@ -323,6 +339,51 @@ sol_object_t *sol_f_list_free(sol_state_t *state, sol_object_t *list) {
     }
 }
 
+int sol_test_cycle(sol_state_t *state, sol_object_t *seq) {
+	sol_object_t *seen[1024]={};
+	sol_object_t *cur = seq, **item;
+	while(cur) {
+		item = seen;
+		while(*item) {
+			if(*item == cur) return 1;
+			item++;
+		}
+		*item = cur;
+		if(sol_is_list(seq)) {
+			cur = cur->lnext;
+		} else {
+			cur = cur->mnext;
+		}
+	}
+	return 0;
+}
+
+int sol_validate_list(sol_state_t *state, sol_object_t *list) {
+	sol_object_t *cur = list;
+	int i = 0;
+	char msg[128];
+	while(cur) {
+		if(!sol_is_list(cur)) {
+			snprintf(msg, 128, "Node at index %d not a list node", i);
+			//sol_obj_free(sol_set_error_string(state, msg));
+			return 1;
+		}
+		if(cur->lnext && !cur->lvalue) {
+			snprintf(msg, 128, "Node at index %d has a next node but NULL value", i);
+			//sol_obj_free(sol_set_error_string(state, msg));
+			return 1;
+		}
+		cur = cur->lnext;
+		i++;
+	}
+	if(sol_test_cycle(state, list)) {
+		snprintf(msg, 128, "Cycle detected");
+		//sol_obj_free(sol_set_error_string(state, msg));
+		return 1;
+	}
+	return 0;
+}
+
 sol_object_t *sol_new_map(sol_state_t *state) {
     sol_object_t *map = sol_alloc_object(state);
     if(sol_has_error(state)) return sol_incref(state->None);
@@ -350,8 +411,8 @@ sol_object_t *sol_map_submap(sol_state_t *state, sol_object_t *map, sol_object_t
         if(cur->mkey) {
             sol_list_insert(state, &list, 1, cur->mkey);
             cmp = sol_cast_int(state, key->ops->cmp(state, list));
-            sol_obj_free(sol_list_remove(state, &list, 1));
-            if(cmp->ival) {
+            sol_list_remove(state, &list, 1);
+            if(cmp->ival == 0) {
                 res = cur;
                 break;
             }
@@ -370,7 +431,6 @@ sol_object_t *sol_map_get(sol_state_t *state, sol_object_t *map, sol_object_t *k
     sol_object_t *res;
     if(sol_is_map(submap)) {
         res = sol_incref(submap->mval);
-        sol_obj_free(submap);
         return res;
     } else {
         return sol_incref(state->None);
@@ -384,23 +444,22 @@ void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_o
         if(cur->mkey) {
             sol_list_insert(state, &list, 1, cur->mkey);
             cmp = sol_cast_int(state, key->ops->cmp(state, list));
-            sol_obj_free(sol_list_remove(state, &list, 1));
-            if(cmp->ival) {
+            sol_list_remove(state, &list, 1);
+            if(cmp->ival == 0) {
                 sol_obj_free(cur->mval);
                 if(sol_is_none(state, val)) {
                     if(prev) {
                         prev->mnext = cur->mnext;
                         sol_obj_free(cur->mkey);
-                        sol_obj_free(cur->mval);
-                        sol_obj_free(cur);
+                        free(cur);
                     } else {
                         sol_obj_free(cur->mkey);
-                        sol_obj_free(cur->mval);
                         cur->mkey = NULL;
                         cur->mval = NULL;
                     }
-                }
-                cur->mval = sol_incref(val);
+                } else {
+					cur->mval = sol_incref(val);
+				}
                 return;
             }
         }
@@ -426,22 +485,21 @@ void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *k
             sol_list_insert(state, &list, 1, cur->mkey);
             cmp = sol_cast_int(state, key->ops->cmp(state, list));
             sol_obj_free(sol_list_remove(state, &list, 1));
-            if(cmp->ival) {
+            if(cmp->ival == 0) {
                 sol_obj_free(cur->mval);
                 if(sol_is_none(state, val)) {
                     if(prev) {
                         prev->mnext = cur->mnext;
                         sol_obj_free(cur->mkey);
-                        sol_obj_free(cur->mval);
-                        sol_obj_free(cur);
+                        free(cur);
                     } else {
                         sol_obj_free(cur->mkey);
-                        sol_obj_free(cur->mval);
                         cur->mkey = NULL;
                         cur->mval = NULL;
                     }
-                }
-                cur->mval = sol_incref(val);
+                } else {
+					cur->mval = sol_incref(val);
+				}
                 return;
             }
         }
@@ -501,6 +559,27 @@ sol_object_t *sol_f_map_free(sol_state_t *state, sol_object_t *map) {
         if(prev!=map) free(prev);
     }
     return map;
+}
+
+int sol_validate_map(sol_state_t *state, sol_object_t *map) {
+	sol_object_t *cur = map;
+	int i = 0;
+	char msg[128];
+	while(cur) {
+		if(!sol_is_map(cur)) {
+			snprintf(msg, 128, "Node at index %d not a map node", i);
+			sol_obj_free(sol_set_error_string(state, msg));
+			return 1;
+		}
+		if(cur->mnext && (!cur->mkey || !cur->mval)) {
+			snprintf(msg, 128, "Node at index %d has a next node but NULL key or value", i);
+			sol_obj_free(sol_set_error_string(state, msg));
+			return 1;
+		}
+		cur = cur->mnext;
+		i++;
+	}
+	return 0;
 }
 
 sol_object_t *sol_new_cfunc(sol_state_t *state, sol_cfunc_t cfunc) {

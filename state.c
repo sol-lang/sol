@@ -180,7 +180,6 @@ int sol_state_init(sol_state_t *state) {
 	sol_list_insert(state, &(state->scopes), 0, globals);
 	if(sol_has_error(state)) goto cleanup;
 	// I'm going to buffer all of these together because I can.
-	sol_map_set(state, globals, sol_new_string(state, "None"), state->None);
 	sol_map_set(state, globals, sol_new_string(state, "OutOfMemory"), state->OutOfMemory);
 	sol_map_set(state, globals, sol_new_string(state, "StopIteration"), state->StopIteration);
 	sol_map_set(state, globals, sol_new_string(state, "toint"), sol_new_cfunc(state, sol_f_toint));
@@ -204,9 +203,10 @@ int sol_state_init(sol_state_t *state) {
 sol_object_t *sol_state_resolve(sol_state_t *state, sol_object_t *key) {
 	sol_object_t *cur = state->scopes, *temp;
 	while(cur) {
-        if(!cur->lvalue) continue;
-		temp = sol_map_get(state, cur->lvalue, key);
-		if(!sol_is_none(state, temp)) return sol_incref(temp);
+        if(cur->lvalue) {
+			temp = sol_map_get(state, cur->lvalue, key);
+			if(!sol_is_none(state, temp)) return sol_incref(temp);
+		}
 		cur = cur->lnext;
 	}
 

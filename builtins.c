@@ -143,7 +143,11 @@ void ob_print(sol_object_t *obj) {
             break;
 
         case SOL_FUNCTION:
-            printf("<Function>");
+			if(obj->fname) {
+				printf("<Function %s>", obj->fname);
+			} else {
+				printf("<Function>");
+			}
             break;
 
         case SOL_CFUNCTION:
