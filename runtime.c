@@ -190,7 +190,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             res = sol_new_list(state);
             cure = expr->listgen->list;
             while(cure) {
-                if(cure->expr) sol_list_insert(state, &res, sol_list_len(state, res), sol_eval(state, cure->expr));
+                if(cure->expr) sol_list_insert(state, res, sol_list_len(state, res), sol_eval(state, cure->expr));
                 cure = cure->next;
             }
             return res;
@@ -210,8 +210,8 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             list = sol_new_list(state);
             left = sol_eval(state, expr->binop->left);
             right = sol_eval(state, expr->binop->right);
-            sol_list_insert(state, &list, 0, left);
-            sol_list_insert(state, &list, 1, right);
+            sol_list_insert(state, list, 0, left);
+            sol_list_insert(state, list, 1, right);
             switch(expr->binop->type) {
                 case OP_ADD:
                     res = left->ops->add(state, list);
@@ -238,7 +238,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     break;
 
                 case OP_BOR:
-                    res = left->ops->bor(state, list);
+                    res = left->ops->bor(state, list);			printf("BINOP\n"); ob_print(list); printf("\n");
                     break;
 
                 case OP_BXOR:
@@ -249,16 +249,16 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     lint = sol_cast_int(state, left);
                     rint = sol_cast_int(state, right);
                     res = sol_new_int(state, BOOL_TO_INT(lint && rint));
-                    sol_obj_free(lint);
-                    sol_obj_free(rint);
+                    if(lint != left) sol_obj_free(lint);
+                    if(rint != right) sol_obj_free(rint);
                     break;
 
                 case OP_LOR:
                     lint = sol_cast_int(state, left);
                     rint = sol_cast_int(state, right);
                     res = sol_new_int(state, BOOL_TO_INT(lint || rint));
-                    sol_obj_free(lint);
-                    sol_obj_free(rint);
+                    if(lint != left) sol_obj_free(lint);
+                    if(rint != right) sol_obj_free(rint);
                     break;
 
                 case OP_EQUAL:
@@ -280,21 +280,29 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                 case OP_GREATEREQ:
                     res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>=0));
                     break;
+					
+				case OP_LSHIFT:
+					res = left->ops->blsh(state, list);
+					break;
+					
+				case OP_RSHIFT:
+					res = left->ops->brsh(state, list);
+					break;
             }
+            sol_obj_free(list);
             sol_obj_free(left);
             sol_obj_free(right);
-            sol_obj_free(list);
             return res;
             break;
 
         case EX_UNOP:
             left = sol_eval(state, expr->unop->expr);
             list = sol_new_list(state);
-            sol_list_insert(state, &list, 0, left);
+            sol_list_insert(state, list, 0, left);
             switch(expr->unop->type) {
                 case OP_NEG:
                     right = sol_new_int(state, -1);
-                    sol_list_insert(state, &list, 1, right);
+                    sol_list_insert(state, list, 1, right);
                     res = left->ops->mul(state, list);
                     sol_obj_free(right);
                     break;
@@ -322,8 +330,8 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             left = sol_eval(state, expr->index->expr);
             right = sol_eval(state, expr->index->index);
             list = sol_new_list(state);
-            sol_list_insert(state, &list, 0, left);
-            sol_list_insert(state, &list, 1, right);
+            sol_list_insert(state, list, 0, left);
+            sol_list_insert(state, list, 1, right);
             res = left->ops->index(state, list);
             sol_obj_free(left);
             sol_obj_free(right);
@@ -336,9 +344,9 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             right = sol_eval(state, expr->setindex->index);
             value = sol_eval(state, expr->setindex->value);
             list = sol_new_list(state);
-            sol_list_insert(state, &list, 0, left);
-            sol_list_insert(state, &list, 1, right);
-            sol_list_insert(state, &list, 2, value);
+            sol_list_insert(state, list, 0, left);
+            sol_list_insert(state, list, 1, right);
+            sol_list_insert(state, list, 2, value);
             res = left->ops->setindex(state, list);
             sol_obj_free(left);
             sol_obj_free(right);
@@ -360,10 +368,10 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
         case EX_CALL:
             value = sol_eval(state, expr->call->expr);
             list = sol_new_list(state);
-            sol_list_insert(state, &list, 0, value);
+            sol_list_insert(state, list, 0, value);
             cure = expr->call->args;
             while(cure) {
-                if(cure->expr) sol_list_insert(state, &list, sol_list_len(state, list), sol_eval(state, cure->expr));
+                if(cure->expr) sol_list_insert(state, list, sol_list_len(state, list), sol_eval(state, cure->expr));
                 cure = cure->next;
             }
             res = value->ops->call(state, list);
@@ -383,7 +391,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 }
 
 void sol_exec(sol_state_t *state, stmt_node *stmt) {
-    sol_object_t *value, *vint;
+    sol_object_t *value, *vint, *list, *iter, *item;
     stmtlist_node *curs;
     if(!stmt) {
         sol_obj_free(sol_set_error_string(state, "Execute NULL statement"));
@@ -410,7 +418,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             value = sol_eval(state, stmt->loop->cond);
             vint = sol_cast_int(state, value);
             while(vint->ival) {
-                sol_obj_free(value);
+                if(value != vint) sol_obj_free(value);
                 sol_obj_free(vint);
                 sol_exec(state, stmt->loop->loop);
                 if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
@@ -418,18 +426,40 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 vint = sol_cast_int(state, value);
             }
             state->sflag = SF_NORMAL;
+			if(vint != value) sol_obj_free(value);
+			if(vint) sol_obj_free(vint);
             break;
 
         case ST_ITER:
             value = sol_eval(state, stmt->iter->iter);
-            while(value != state->StopIteration) {
-                sol_state_assign_l_name(state, stmt->iter->var, value);
-                sol_obj_free(value);
-                sol_exec(state, stmt->loop->loop);
+			if(value->ops->iter && value->ops->iter != sol_f_not_impl) {
+				list = sol_new_list(state);
+				sol_list_insert(state, list, 0, value);
+				iter = value->ops->iter(state, list);
+				sol_obj_free(list);
+			} else {
+				iter = value;
+			}
+			if(!iter->ops->call || iter->ops->call==sol_f_not_impl) {
+				sol_obj_free(sol_set_error_string(state, "Iterate over non-iterable"));
+				return;
+			}
+			list = sol_new_list(state);
+			sol_list_insert(state, list, 0, iter);
+			sol_list_insert(state, list, 1, value);
+			sol_list_insert(state, list, 2, sol_new_map(state));
+			item = iter->ops->call(state, list);
+            while(item != state->StopIteration) {
+                sol_state_assign_l_name(state, stmt->iter->var, item);
+                sol_exec(state, stmt->iter->loop);
+				sol_obj_free(item);
                 if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
-                value = sol_eval(state, stmt->iter->iter);
+                item = iter->ops->call(state, list);
             }
             state->sflag = SF_NORMAL;
+			sol_obj_free(list);
+			sol_obj_free(iter);
+			sol_obj_free(value);
             break;
 
         case ST_LIST:
@@ -461,9 +491,12 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
     sol_object_t *res, *scope, *value, *curo = args, *key;
     identlist_node *curi;
+	while(curo && !curo->lvalue) curo = curo->lnext;
+	if(!curo) return sol_incref(state->None);
     value = curo->lvalue;
-	if(!value->func) return sol_incref(state->None);
+	if(!value || !value->func) return sol_incref(state->None);
     curo = curo->lnext;
+	while(curo && !curo->lvalue) curo = curo->lnext;
     scope = sol_map_copy(state, value->closure);
     curi = AS(value->args, identlist_node);
     while(curi) {
@@ -474,6 +507,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
             } else {
                 sol_map_set(state, scope, key, curo->lvalue);
                 curo = curo->lnext;
+				while(curo && !curo->lvalue) curo = curo->lnext;
             }
             sol_obj_free(key);
             curi = curi->next;

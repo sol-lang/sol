@@ -5,14 +5,16 @@ while a < 10 do
 end
 
 func mul9(b)
-	for i in range(len(b)) do
+	for i in range(#b) do
 		b[i] *= 9
 	end
 end
 
 l = [1 2 3 4 5]
 mul9(l)
-for i in iter(l) do print(i) end
+for i in l do print(i) end
+
+PI = 3.14159265358979
 
 d = {
 	integer = 1
@@ -22,10 +24,23 @@ d = {
 		health = 42.0
 	}
 	sublist = [1 1 2 3 5 8],
-	["this time with spaces"] = 2*PI,
+	["this time with spaces"] = PI*2,
 	[1 + 5] = 1 + 5
 }
 
-d["integer"]
-d.integer
+print(d)
+
+func bad(x)
+	x.c()
+end
+
+test1 = {c = func() end}
+test2 = {}
+
+print(try(bad, test1))
+print(try(bad, test2))
+
+print(d["integer"])
+print(d.integer)
 d.integer += 5
+print(d.integer)

@@ -21,7 +21,7 @@ typedef struct {
 	};
 } lit_node;
 
-typedef enum {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_POW, OP_BAND, OP_BOR, OP_BXOR, OP_LAND, OP_LOR, OP_EQUAL, OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ} binop_t;
+typedef enum {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_POW, OP_BAND, OP_BOR, OP_BXOR, OP_LAND, OP_LOR, OP_EQUAL, OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ, OP_LSHIFT, OP_RSHIFT} binop_t;
 typedef struct {
 	binop_t type;
 	expr_node *left;

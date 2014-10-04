@@ -142,6 +142,10 @@ None { return NONE; }
 
 ">=" { return GREATEREQ; }
 
+">>" { return RSHIFT; }
+
+"<<" { return LSHIFT; }
+
 "{" { return LBRACE; }
 
 "}" { return RBRACE; }

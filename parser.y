@@ -18,7 +18,7 @@
 %token INT FLOAT STRING
 %token PLUS MINUS STAR SLASH DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
-%token EQUAL LESS GREATER LESSEQ GREATEREQ
+%token EQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
 %token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
 
 %parse-param {stmt_node **program}
@@ -36,7 +36,7 @@ stmt:
 | IF expr THEN stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
 | IF expr THEN stmt ELSE stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
 | WHILE expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
-| FOR IDENT IN expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = strdup($2); AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
+| FOR IDENT IN expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
 | RETURN expr { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
 | RETURN { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
 | BREAK { $$ = NEW_ST(); AS_ST($$)->type = ST_BREAK; }
@@ -282,9 +282,11 @@ power_expr:
 ;
 
 binary_expr:
-  ubinary_expr BAND ubinary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BAND; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| ubinary_expr BOR ubinary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| ubinary_expr BXOR ubinary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BXOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  binary_expr BAND binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BAND; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| binary_expr BOR binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| binary_expr BXOR binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BXOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| binary_expr LSHIFT binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LSHIFT; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| binary_expr RSHIFT binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_RSHIFT; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | ubinary_expr { $$ = $1; }
 ;
 
@@ -300,6 +302,23 @@ ulen_expr:
 
 call_expr:
   call_expr LPAREN expr_list RPAREN { $$ = NEW_EX(); AS_EX($$)->type = EX_CALL; AS_EX($$)->call = NEW(call_node); AS_EX($$)->call->expr = $1; AS_EX($$)->call->args = $3; }
+| call_expr COLON IDENT LPAREN expr_list RPAREN {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_CALL;
+	AS_EX($$)->call = NEW(call_node);
+	AS_EX($$)->call->expr = NEW_EX();
+	AS_EX($$)->call->expr->type = EX_INDEX;
+	AS_EX($$)->call->expr->index = NEW(index_node);
+	AS_EX($$)->call->expr->index->expr = $1;
+	AS_EX($$)->call->expr->index->index = NEW_EX();
+	AS_EX($$)->call->expr->index->index->type = EX_LIT;
+	AS_EX($$)->call->expr->index->index->lit = NEW(lit_node);
+	AS_EX($$)->call->expr->index->index->lit->type = LIT_STRING;
+	AS_EX($$)->call->expr->index->index->lit->str = $3;
+	AS_EX($$)->call->args = NEW(exprlist_node);
+	AS_EX($$)->call->args->expr = $1;
+	AS_EX($$)->call->args->next = $5;
+}
 | funcdecl_expr { $$ = $1; }
 ;
 

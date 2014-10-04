@@ -89,17 +89,19 @@ extern int yydebug;
      GREATER = 298,
      LESSEQ = 299,
      GREATEREQ = 300,
-     LBRACE = 301,
-     RBRACE = 302,
-     LPAREN = 303,
-     RPAREN = 304,
-     LBRACKET = 305,
-     RBRACKET = 306,
-     DOT = 307,
-     COLON = 308,
-     SEMICOLON = 309,
-     COMMA = 310,
-     POUND = 311
+     RSHIFT = 301,
+     LSHIFT = 302,
+     LBRACE = 303,
+     RBRACE = 304,
+     LPAREN = 305,
+     RPAREN = 306,
+     LBRACKET = 307,
+     RBRACKET = 308,
+     DOT = 309,
+     COLON = 310,
+     SEMICOLON = 311,
+     COMMA = 312,
+     POUND = 313
    };
 #endif
 

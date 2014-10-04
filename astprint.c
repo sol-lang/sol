@@ -198,6 +198,14 @@ void prex(expr_node *node, int lev) {
 				case OP_GREATEREQ:
 					prlev(lev, "Op: >=");
 					break;
+					
+				case OP_LSHIFT:
+					prlev(lev, "Op: <<");
+					break;
+					
+				case OP_RSHIFT:
+					prlev(lev, "Op: >>");
+					break;
 			}
 			prlev(lev, "Left:");
 			prex(node->binop->left, lev+1);
