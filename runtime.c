@@ -179,7 +179,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                 case LIT_STRING:
                     return sol_new_string(state, expr->lit->str);
                     break;
-					
+
 				case LIT_NONE:
 					return sol_incref(state->None);
 					break;
@@ -280,11 +280,11 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                 case OP_GREATEREQ:
                     res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>=0));
                     break;
-					
+
 				case OP_LSHIFT:
 					res = left->ops->blsh(state, list);
 					break;
-					
+
 				case OP_RSHIFT:
 					res = left->ops->brsh(state, list);
 					break;
@@ -316,7 +316,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     res = sol_new_int(state, BOOL_TO_INT(!lint->ival));
                     sol_obj_free(lint);
                     break;
-					
+
 				case OP_LEN:
 					res = left->ops->len(state, list);
 					break;
@@ -492,9 +492,16 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
     sol_object_t *res, *scope, *value, *curo = args, *key;
     identlist_node *curi;
 	while(curo && !curo->lvalue) curo = curo->lnext;
-	if(!curo) return sol_incref(state->None);
+	if(!curo) {
+        printf("WARNING: No parameters to function call (expecting function)\n");
+        return sol_incref(state->None);
+    }
     value = curo->lvalue;
-	if(!value || !value->func) return sol_incref(state->None);
+	if(!value || !sol_is_func(value)) {
+        printf("WARNING: Function call without function as first parameter\n");
+        return sol_incref(state->None);
+    }
+    if(!value->func) return sol_incref(state->None);
     curo = curo->lnext;
 	while(curo && !curo->lvalue) curo = curo->lnext;
     scope = sol_map_copy(state, value->closure);

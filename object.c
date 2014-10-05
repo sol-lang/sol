@@ -229,10 +229,11 @@ void sol_list_set_index(sol_state_t *state, sol_object_t *list, int idx, sol_obj
 		if(cur->lvalue) i++;
 		cur = cur->lnext;
 	}
+	while(!cur->lvalue) cur = cur->lnext;
 	if(cur) {
 		temp = cur->lvalue;
 		cur->lvalue = sol_incref(obj);
-		sol_obj_free(temp);
+		if(temp) sol_obj_free(temp);
 	} else {
 		sol_obj_free(sol_set_error_string(state, "Set out-of-bounds index"));
 		return;
@@ -490,6 +491,7 @@ void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_o
                         cur->mval = NULL;
                     }
                 } else {
+                    sol_obj_free(cur->mval);
 					cur->mval = sol_incref(val);
 				}
                 return;
@@ -522,7 +524,7 @@ void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *k
         if(cur->mkey) {
             sol_list_insert(state, list, 1, cur->mkey);
             cmp = sol_cast_int(state, key->ops->cmp(state, list));
-            sol_obj_free(sol_list_remove(state, list, 1));
+            sol_list_remove(state, list, 1);
             if(cmp->ival == 0) {
                 if(sol_is_none(state, val)) {
                     if(prev) {
@@ -535,6 +537,7 @@ void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *k
                         cur->mval = NULL;
                     }
                 } else {
+                    sol_obj_free(cur->mval);
 					cur->mval = sol_incref(val);
 				}
                 return;

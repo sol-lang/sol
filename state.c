@@ -20,28 +20,8 @@ int sol_state_init(sol_state_t *state) {
 
 	//Initialize all of the builtin operations
 	//(these ones are technically already pointed to by None/OOM)
-	state->NullOps.add = sol_f_not_impl;
-	state->NullOps.sub = sol_f_not_impl;
-	state->NullOps.mul = sol_f_not_impl;
-	state->NullOps.div = sol_f_not_impl;
-	state->NullOps.band = sol_f_not_impl;
-	state->NullOps.bor = sol_f_not_impl;
-	state->NullOps.bxor = sol_f_not_impl;
-	state->NullOps.blsh = sol_f_not_impl;
-	state->NullOps.brsh = sol_f_not_impl;
-	state->NullOps.bnot = sol_f_not_impl;
-	state->NullOps.cmp = sol_f_default_cmp;
-	state->NullOps.call = sol_f_not_impl;
-	state->NullOps.index = sol_f_not_impl;
-	state->NullOps.setindex = sol_f_not_impl;
-	state->NullOps.len = sol_f_not_impl;
-	state->NullOps.iter = sol_f_not_impl;
-	state->NullOps.toint = sol_f_not_impl;
-	state->NullOps.tofloat = sol_f_not_impl;
-	state->NullOps.tostring = sol_f_not_impl;
-	state->NullOps.init = sol_f_no_op;
-	state->NullOps.free = sol_f_no_op;
-	
+	sol_ops_init(&(state->NullOps));
+
 	state->IntOps = state->NullOps;
 	state->FloatOps = state->NullOps;
 	state->StringOps = state->NullOps;
@@ -95,7 +75,7 @@ int sol_state_init(sol_state_t *state) {
 	state->ListOps.iter = sol_f_list_iter;
 	state->ListOps.tostring = sol_f_list_tostring;
 	state->ListOps.free = sol_f_list_free;
-	
+
 	state->LCellOps = state->ListOps;
 	state->LCellOps.free = sol_f_lcell_free;
 
@@ -107,7 +87,7 @@ int sol_state_init(sol_state_t *state) {
 	state->MapOps.iter = sol_f_map_iter;
 	state->MapOps.tostring = sol_f_map_tostring;
 	state->MapOps.free = sol_f_map_free;
-	
+
 	state->MCellOps = state->MapOps;
 	state->MCellOps.free = sol_f_mcell_free;
 
@@ -141,7 +121,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, globals, "rawget", sol_new_cfunc(state, sol_f_rawget));
 	sol_map_set_name(state, globals, "rawset", sol_new_cfunc(state, sol_f_rawset));
 	sol_map_set_name(state, globals, "range", sol_new_cfunc(state, sol_f_range));
-	
+
 	sol_map_set_name(state, debug, "getref", sol_new_cfunc(state, sol_f_debug_getref));
 	sol_map_set_name(state, debug, "setref", sol_new_cfunc(state, sol_f_debug_setref));
 	sol_map_set_name(state, debug, "closure", sol_new_cfunc(state, sol_f_debug_closure));
@@ -149,7 +129,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, debug, "locals", sol_new_cfunc(state, sol_f_debug_locals));
 	sol_map_set_name(state, globals, "debug", debug);
 	sol_obj_free(debug);
-	
+
 	sol_map_set_name(state, iter, "str", sol_new_cfunc(state, sol_f_iter_str));
 	sol_map_set_name(state, iter, "list", sol_new_cfunc(state, sol_f_iter_list));
 	sol_map_set_name(state, iter, "map", sol_new_cfunc(state, sol_f_iter_map));
@@ -204,7 +184,7 @@ void sol_state_assign(sol_state_t *state, sol_object_t *key, sol_object_t *val) 
 		if(cur->lvalue) active = cur;
 		next = cur->lnext;
 	}
-	
+
 	if(!active) {
 		sol_set_error_string(state, "No scopes exist");
 		return;
@@ -224,7 +204,7 @@ void sol_state_assign_name(sol_state_t *state, const char *name, sol_object_t *v
 
 void sol_state_assign_l(sol_state_t *state, sol_object_t *key, sol_object_t *val) {
 	sol_object_t *cur = state->scopes;
-	
+
 	while(cur && !cur->lvalue) cur = cur->lnext;
 
 	if(!cur) {
@@ -277,4 +257,28 @@ void sol_clear_error(sol_state_t *state) {
 	sol_object_t *olderr = state->error;
 	state->error = sol_incref(state->None);
 	sol_obj_free(olderr);
+}
+
+void sol_ops_init(sol_ops_t *ops) {
+    ops->add = sol_f_not_impl;
+	ops->sub = sol_f_not_impl;
+	ops->mul = sol_f_not_impl;
+	ops->div = sol_f_not_impl;
+	ops->band = sol_f_not_impl;
+	ops->bor = sol_f_not_impl;
+	ops->bxor = sol_f_not_impl;
+	ops->blsh = sol_f_not_impl;
+	ops->brsh = sol_f_not_impl;
+	ops->bnot = sol_f_not_impl;
+	ops->cmp = sol_f_default_cmp;
+	ops->call = sol_f_not_impl;
+	ops->index = sol_f_not_impl;
+	ops->setindex = sol_f_not_impl;
+	ops->len = sol_f_not_impl;
+	ops->iter = sol_f_not_impl;
+	ops->toint = sol_f_not_impl;
+	ops->tofloat = sol_f_not_impl;
+	ops->tostring = sol_f_not_impl;
+	ops->init = sol_f_no_op;
+	ops->free = sol_f_no_op;
 }

@@ -128,6 +128,8 @@ sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
 sol_object_t *sol_set_error_string(sol_state_t *, const char *);
 void sol_clear_error(sol_state_t *);
 
+void sol_ops_init(sol_ops_t *);
+
 // builtins.c
 
 sol_object_t *sol_f_not_impl(sol_state_t *, sol_object_t *);

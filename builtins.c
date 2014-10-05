@@ -61,7 +61,9 @@ sol_object_t *sol_f_tostring(sol_state_t *state, sol_object_t *args) {
 sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *func = sol_list_get_index(state, args, 0), *fargs = sol_list_sublist(state, args, 1);
 	sol_object_t *ls = sol_new_list(state), *one = sol_new_int(state, 1);
-	sol_object_t *res = func->ops->call(state, fargs);
+	sol_object_t *res;
+	sol_list_insert(state, fargs, 0, func);
+	res = func->ops->call(state, fargs);
 	sol_obj_free(func);
 	sol_obj_free(fargs);
 	if(sol_has_error(state)) {
@@ -123,7 +125,7 @@ void ob_print(sol_object_t *obj) {
         case SOL_STRING:
             printf("\"%s\"", obj->str);
             break;
-			
+
 		case SOL_LCELL:
 			printf("<<");
 			/* fall through */
@@ -142,7 +144,7 @@ void ob_print(sol_object_t *obj) {
             }
             printf("]");
             break;
-			
+
 		case SOL_MCELL:
 			printf("<<");
 			/* fall through */
@@ -330,15 +332,16 @@ sol_object_t *sol_f_iter_map(sol_state_t *state, sol_object_t *args) {
 		index = obj;
 		sol_map_set_name(state, local, "idx", index);
 	}
-	while(index && !index->mkey) index = index->mnext;
-	if(!index || !index->mnext) {
+	if(!index || index == state->StopIteration) {
 		sol_obj_free(index);
 		sol_obj_free(obj);
 		sol_obj_free(local);
 		return sol_incref(state->StopIteration);
 	}
+	while(index && !index->mkey) index = index->mnext;
 	res = sol_incref(index->mkey);
 	index = index->mnext;
+	if(!index) index = state->StopIteration;
 	sol_map_set_name(state, local, "idx", index);
 	sol_obj_free(index);
 	sol_obj_free(local);

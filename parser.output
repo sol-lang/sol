@@ -145,7 +145,7 @@ Grammar
    68              | index_expr
 
    69 opt_stmt: stmt
-   70         | /* empty */
+   70         | %empty
 
    71 index_expr: expr LBRACKET expr RBRACKET
    72           | expr DOT IDENT
@@ -170,17 +170,17 @@ Grammar
 
    87 paren_expr: LPAREN expr RPAREN
 
-   88 expr_list: /* empty */
+   88 expr_list: %empty
    89          | expr
    90          | expr_list expr
    91          | expr_list COMMA expr
 
-   92 ident_list: /* empty */
+   92 ident_list: %empty
    93           | IDENT
    94           | ident_list IDENT
    95           | ident_list COMMA IDENT
 
-   96 assoc_list: /* empty */
+   96 assoc_list: %empty
    97           | assoc_item
    98           | assoc_list assoc_item
    99           | assoc_list COMMA assoc_item
@@ -1100,7 +1100,7 @@ State 15
 State 16
 
    85 gen_expr: LBRACE . assoc_list RBRACE
-   96 assoc_list: .  [IDENT, RBRACE, LBRACKET, COMMA]
+   96 assoc_list: . %empty  [IDENT, RBRACE, LBRACKET, COMMA]
    97           | . assoc_item
    98           | . assoc_list assoc_item
    99           | . assoc_list COMMA assoc_item
@@ -1301,7 +1301,7 @@ State 18
    85         | . LBRACE assoc_list RBRACE
    86         | . paren_expr
    87 paren_expr: . LPAREN expr RPAREN
-   88 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, LBRACKET, RBRACKET, COMMA, POUND]
+   88 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, LBRACKET, RBRACKET, COMMA, POUND]
    89          | . expr
    90          | . expr_list expr
    91          | . expr_list COMMA expr
@@ -2000,7 +2000,7 @@ State 44
 State 45
 
    67 funcdecl_expr: FUNC LPAREN . ident_list RPAREN opt_stmt END
-   92 ident_list: .  [IDENT, RPAREN, COMMA]
+   92 ident_list: . %empty  [IDENT, RPAREN, COMMA]
    93           | . IDENT
    94           | . ident_list IDENT
    95           | . ident_list COMMA IDENT
@@ -5784,7 +5784,7 @@ State 91
    85         | . LBRACE assoc_list RBRACE
    86         | . paren_expr
    87 paren_expr: . LPAREN expr RPAREN
-   88 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
+   88 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
    89          | . expr
    90          | . expr_list expr
    91          | . expr_list COMMA expr
@@ -7200,7 +7200,7 @@ State 104
 State 105
 
    66 funcdecl_expr: FUNC IDENT LPAREN . ident_list RPAREN opt_stmt END
-   92 ident_list: .  [IDENT, RPAREN, COMMA]
+   92 ident_list: . %empty  [IDENT, RPAREN, COMMA]
    93           | . IDENT
    94           | . ident_list IDENT
    95           | . ident_list COMMA IDENT
@@ -8964,7 +8964,7 @@ State 161
    67              | FUNC LPAREN ident_list RPAREN . opt_stmt END
    68              | . index_expr
    69 opt_stmt: . stmt
-   70         | .  [END]
+   70         | . %empty  [END]
    71 index_expr: . expr LBRACKET expr RBRACKET
    72           | . expr DOT IDENT
    73           | . ref_expr
@@ -9177,7 +9177,7 @@ State 169
    85         | . LBRACE assoc_list RBRACE
    86         | . paren_expr
    87 paren_expr: . LPAREN expr RPAREN
-   88 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
+   88 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
    89          | . expr
    90          | . expr_list expr
    91          | . expr_list COMMA expr
@@ -9577,7 +9577,7 @@ State 174
    67              | . FUNC LPAREN ident_list RPAREN opt_stmt END
    68              | . index_expr
    69 opt_stmt: . stmt
-   70         | .  [END]
+   70         | . %empty  [END]
    71 index_expr: . expr LBRACKET expr RBRACKET
    72           | . expr DOT IDENT
    73           | . ref_expr
