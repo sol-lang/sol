@@ -67,11 +67,11 @@ sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(func);
 	sol_obj_free(fargs);
 	if(sol_has_error(state)) {
+        sol_clear_error(state);
 		sol_object_t *err = sol_get_error(state);
 		sol_object_t *zero = sol_new_int(state, 0);
 		sol_obj_free(res);
 		sol_obj_free(one);
-		sol_clear_error(state);
 		sol_list_insert(state, ls, 0, err);
 		sol_obj_free(err);
 		sol_list_insert(state, ls, 0, zero);

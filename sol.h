@@ -297,4 +297,8 @@ sol_object_t *sol_f_mcell_free(sol_state_t *, sol_object_t *);
 int sol_validate_list(sol_state_t *, sol_object_t *);
 int sol_validate_map(sol_state_t *, sol_object_t *);
 
+// util.c
+
+sol_object_t *sol_util_call(sol_state_t *, sol_object_t *, int, ...)
+
 #endif
