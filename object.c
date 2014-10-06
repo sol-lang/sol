@@ -7,7 +7,7 @@
 
 sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_int(obj)) return obj;
+	if(sol_is_int(obj)) return sol_incref(obj);
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->toint(state, ls);
@@ -18,7 +18,7 @@ sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 
 sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_float(obj)) return obj;
+	if(sol_is_float(obj)) return sol_incref(obj);
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->tofloat(state, ls);
@@ -29,7 +29,7 @@ sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 
 sol_object_t *sol_cast_string(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_string(obj)) return obj;
+	if(sol_is_string(obj)) return sol_incref(obj);
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->tostring(state, ls);

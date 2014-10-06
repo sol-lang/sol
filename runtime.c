@@ -249,16 +249,16 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     lint = sol_cast_int(state, left);
                     rint = sol_cast_int(state, right);
                     res = sol_new_int(state, BOOL_TO_INT(lint && rint));
-                    if(lint != left) sol_obj_free(lint);
-                    if(rint != right) sol_obj_free(rint);
+                    sol_obj_free(lint);
+                    sol_obj_free(rint);
                     break;
 
                 case OP_LOR:
                     lint = sol_cast_int(state, left);
                     rint = sol_cast_int(state, right);
                     res = sol_new_int(state, BOOL_TO_INT(lint || rint));
-                    if(lint != left) sol_obj_free(lint);
-                    if(rint != right) sol_obj_free(rint);
+                    sol_obj_free(lint);
+                    sol_obj_free(rint);
                     break;
 
                 case OP_EQUAL:
@@ -410,7 +410,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             } else {
                 if(stmt->ifelse->iffalse) sol_exec(state, stmt->ifelse->iffalse);
             }
-            if(vint != value) sol_obj_free(value);
+            sol_obj_free(value);
             sol_obj_free(vint);
             break;
 
@@ -418,7 +418,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             value = sol_eval(state, stmt->loop->cond);
             vint = sol_cast_int(state, value);
             while(vint->ival) {
-                if(value != vint) sol_obj_free(value);
+                sol_obj_free(value);
                 sol_obj_free(vint);
                 sol_exec(state, stmt->loop->loop);
                 if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
@@ -426,8 +426,8 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 vint = sol_cast_int(state, value);
             }
             state->sflag = SF_NORMAL;
-			if(vint != value) sol_obj_free(value);
-			if(vint) sol_obj_free(vint);
+			sol_obj_free(value);
+			sol_obj_free(vint);
             break;
 
         case ST_ITER:

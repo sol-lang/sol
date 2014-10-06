@@ -299,6 +299,6 @@ int sol_validate_map(sol_state_t *, sol_object_t *);
 
 // util.c
 
-sol_object_t *sol_util_call(sol_state_t *, sol_object_t *, int, ...)
+sol_object_t *sol_util_call(sol_state_t *, sol_object_t *, int, ...);
 
 #endif

@@ -67,8 +67,8 @@ sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(func);
 	sol_obj_free(fargs);
 	if(sol_has_error(state)) {
-        sol_clear_error(state);
 		sol_object_t *err = sol_get_error(state);
+		sol_clear_error(state);
 		sol_object_t *zero = sol_new_int(state, 0);
 		sol_obj_free(res);
 		sol_obj_free(one);
@@ -653,7 +653,7 @@ sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
 	} else {
         ival = sol_cast_int(state, b);
         res = sol_list_get_index(state, ls, ival->ival);
-        if(ival!=b) sol_obj_free(ival);
+        sol_obj_free(ival);
 	}
 	sol_obj_free(ls);
 	sol_obj_free(b);
@@ -752,7 +752,7 @@ sol_object_t *sol_f_list_filter(sol_state_t *state, sol_object_t *args) {
             sol_list_remove(state, list, idx);
             len--;
         }
-        if(ival!=item) sol_obj_free(item);
+        sol_obj_free(item);
         sol_obj_free(ival);
     }
     sol_obj_free(fargs);
