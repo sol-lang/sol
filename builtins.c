@@ -292,12 +292,13 @@ sol_object_t *sol_f_execfile(sol_state_t *state, sol_object_t *args) {
     fseek(f, 0, SEEK_END);
     sz = ftell(f);
     fseek(f, 0, SEEK_SET);
-    s = malloc(sz);
+    s = malloc(sz+1);
     if(!s) {
         fclose(f);
         return sol_set_error_string(state, "File memory allocation failure");
     }
-    fread(s, sz, 1, f);
+    fread(s, 1, sz, f);
+    s[sz]=0;
     fclose(f);
 
     program = sol_compile(s);
