@@ -28,42 +28,41 @@
 %%
 
 program:
-  stmt { *program = AS_ST($1); }
-;
-
-stmt:
-  expr { $$ = NEW_ST(); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
-| IF expr THEN stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
-| IF expr THEN stmt ELSE stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
-| WHILE expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
-| FOR IDENT IN expr DO stmt END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
-| RETURN expr { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
-| RETURN { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
-| BREAK { $$ = NEW_ST(); AS_ST($$)->type = ST_BREAK; }
-| CONTINUE { $$ = NEW_ST(); AS_ST($$)->type = ST_CONT; }
-| stmt SEMICOLON { $$ = $1; }
-| stmt_list { $$ = $1; }
+  stmt_list { *program = AS_ST($1); }
 ;
 
 stmt_list:
   stmt_list stmt {
 	stmtlist_node *cur = AS_ST($1)->stmtlist;
 	while(cur->next) cur = cur->next;
-	cur->next = NEW(stmtlist_node);
-	cur = cur->next;
-	cur->stmt = $2;
-	cur->next = NULL;
-	$$ = $1;
+	if(cur->stmt) {
+        cur->next = NEW(stmtlist_node);
+        cur = cur->next;
+	}
+    cur->stmt = $2;
+    cur->next = NULL;
+    $$ = $1;
   }
-| stmt stmt {
-	$$ = NEW_ST();
-	AS_ST($$)->type = ST_LIST;
-	AS_ST($$)->stmtlist = NEW(stmtlist_node);
-	AS_ST($$)->stmtlist->stmt = $1;
-	AS_ST($$)->stmtlist->next = NEW(stmtlist_node);
-	AS_ST($$)->stmtlist->next->stmt = $2;
-	AS_ST($$)->stmtlist->next->next = NULL;
-  }
+| /* empty */ {
+    $$ = NEW_ST();
+    AS_ST($$)->type = ST_LIST;
+    AS_ST($$)->stmtlist = NEW(stmtlist_node);
+    AS_ST($$)->stmtlist->stmt = NULL;
+    AS_ST($$)->stmtlist->next = NULL;
+}
+;
+
+stmt:
+  expr { $$ = NEW_ST(); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
+| IF expr THEN stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
+| IF expr THEN stmt_list ELSE stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
+| WHILE expr DO stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
+| FOR IDENT IN expr DO stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
+| RETURN expr { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
+| RETURN { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
+| BREAK { $$ = NEW_ST(); AS_ST($$)->type = ST_BREAK; }
+| CONTINUE { $$ = NEW_ST(); AS_ST($$)->type = ST_CONT; }
+| stmt SEMICOLON { $$ = $1; }
 ;
 
 expr:
@@ -323,7 +322,7 @@ call_expr:
 ;
 
 funcdecl_expr:
-  FUNC IDENT LPAREN ident_list RPAREN opt_stmt END {
+  FUNC IDENT LPAREN ident_list RPAREN stmt_list END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
@@ -331,7 +330,7 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->args = $4;
 	AS_EX($$)->funcdecl->body = $6;
 }
-| FUNC LPAREN ident_list RPAREN opt_stmt END {
+| FUNC LPAREN ident_list RPAREN stmt_list END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
@@ -340,11 +339,6 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->body = $5;
 }
 | index_expr { $$ = $1; }
-;
-
-opt_stmt:
-  stmt { $$ = $1; }
-| /* empty */ { $$ = NULL; }
 ;
 
 index_expr:

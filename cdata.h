@@ -19,12 +19,20 @@ typedef enum {
     SOL_CHAR,
     SOL_CSTR,
     SOL_CFUNC
-} sol_memtype_t
+} sol_memtype_t;
+
+typedef enum {
+    SOL_CS_MEMBER,
+    SOL_CS_CFUNC
+} sol_spec_t;
 
 typedef struct {
-    sol_memtype_t type;
+    sol_spec_t type;
     union {
-        int offset;
+        struct {
+            sol_memtype_t memtype;
+            int offset;
+        };
         sol_cfunc_t cfunc;
     };
 } sol_memspec_t;
@@ -35,13 +43,14 @@ typedef struct {
 } sol_cstruct_t;
 
 sol_object_t *sol_new_cstruct_specs(sol_state_t *);
-void sol_cstruct_add_member(sol_state_t *, sol_object_t *, sol_object_t *, sol_memspec_t, int);
-void sol_cstruct_add_member_name(sol_state_t *, sol_object_t *, char *, sol_memspec_t, int);
+void sol_cstruct_add_member(sol_state_t *, sol_object_t *, sol_object_t *, sol_memtype_t, int);
+void sol_cstruct_add_member_name(sol_state_t *, sol_object_t *, char *, sol_memtype_t, int);
 void sol_cstruct_add_func(sol_state_t *, sol_object_t *, sol_object_t *, sol_cfunc_t);
 void sol_cstruct_add_func_name(sol_state_t *, sol_object_t *, char *, sol_cfunc_t);
 
 sol_object_t *sol_new_cstruct(sol_state_t *, void *, sol_object_t *);
 
+extern sol_ops_t sol_cstruct_spec_ops;
 extern sol_ops_t sol_cstruct_ops;
 
 sol_object_t *sol_f_cstruct_index(sol_state_t *, sol_object_t *);

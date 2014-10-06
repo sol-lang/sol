@@ -135,6 +135,14 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, iter, "map", sol_new_cfunc(state, sol_f_iter_map));
 	sol_map_set_name(state, globals, "iter", iter);
 	sol_obj_free(iter);
+
+	state->ListFuncs = sol_new_map(state);
+	sol_map_set_name(state, state->ListFuncs, "copy", sol_new_cfunc(state, sol_f_list_copy));
+	sol_map_set_name(state, state->ListFuncs, "insert", sol_new_cfunc(state, sol_f_list_insert));
+	sol_map_set_name(state, state->ListFuncs, "remove", sol_new_cfunc(state, sol_f_list_remove));
+	sol_map_set_name(state, state->ListFuncs, "truncate", sol_new_cfunc(state, sol_f_list_truncate));
+	sol_map_set_name(state, state->ListFuncs, "map", sol_new_cfunc(state, sol_f_list_map));
+	sol_map_set_name(state, state->ListFuncs, "filter", sol_new_cfunc(state, sol_f_list_filter));
 	if(sol_has_error(state)) goto cleanup;
 
 	// We're all set!

@@ -646,8 +646,15 @@ sol_object_t *sol_f_list_mul(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_list_get_index(state, ls, b->ival);
+	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *ival;
+	sol_object_t *res;
+	if(sol_is_string(b)) {
+        res = sol_map_get(state, state->ListFuncs, b);
+	} else {
+        ival = sol_cast_int(state, b);
+        res = sol_list_get_index(state, ls, ival->ival);
+        if(ival!=b) sol_obj_free(ival);
+	}
 	sol_obj_free(ls);
 	sol_obj_free(b);
 	return res;
@@ -678,6 +685,81 @@ sol_object_t *sol_f_list_tostring(sol_state_t *state, sol_object_t *args) {
 	return sol_new_string(state, "<List>");
 }
 
+sol_object_t *sol_f_list_copy(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0);
+    sol_object_t *res = sol_list_copy(state, list);
+    sol_obj_free(list);
+    return res;
+}
+
+sol_object_t *sol_f_list_insert(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1)), *obj = sol_list_get_index(state, args, 2);
+    sol_list_insert(state, list, idx->ival, obj);
+    sol_obj_free(list);
+    return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_list_remove(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1));
+    sol_list_remove(state, list, idx->ival);
+    sol_obj_free(list);
+    return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_list_truncate(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1);
+    sol_object_t *res = sol_list_truncate(state, list, idx->ival);
+    sol_obj_free(list);
+    return res;
+}
+
+sol_object_t *sol_f_list_map(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+    sol_object_t *fargs = sol_new_list(state), *item;
+    int idx=0, len = sol_list_len(state, list);
+    sol_list_insert(state, fargs, 0, func);
+    while(idx<len) {
+        item = sol_list_get_index(state, list, idx);
+        sol_list_insert(state, fargs, 1, item);
+        sol_obj_free(item);
+        item = func->ops->call(state, fargs);
+        if(sol_has_error(state)) return list;
+        sol_list_remove(state, fargs, 1);
+        sol_list_set_index(state, list, idx, item);
+        sol_obj_free(item);
+        idx++;
+    }
+    sol_obj_free(fargs);
+    sol_obj_free(func);
+    return list;
+}
+
+sol_object_t *sol_f_list_filter(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+    sol_object_t *fargs = sol_new_list(state), *item, *ival;
+    int idx=0, len = sol_list_len(state, list);
+    sol_list_insert(state, fargs, 0, func);
+    while(idx<len) {
+        item = sol_list_get_index(state, list, idx);
+        sol_list_insert(state, fargs, 1, item);
+        sol_obj_free(item);
+        item = func->ops->call(state, fargs);
+        if(sol_has_error(state)) return list;
+        ival = sol_cast_int(state, item);
+        if(ival->ival) {
+            idx++;
+        } else {
+            sol_list_remove(state, list, idx);
+            len--;
+        }
+        if(ival!=item) sol_obj_free(item);
+        sol_obj_free(ival);
+    }
+    sol_obj_free(fargs);
+    sol_obj_free(func);
+    return list;
+}
+
 sol_object_t *sol_f_map_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *map;
 	if(!sol_is_map(b)) {
@@ -697,14 +779,18 @@ sol_object_t *sol_f_map_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *indexf = sol_map_get_name(state, map, "__index");
 	sol_object_t *res = NULL, *newls;
 	if(!sol_is_none(state, indexf)) {
-		if(indexf->ops->call && indexf->ops->call != sol_f_not_impl) {
+		if(indexf->ops->call && (sol_is_func(indexf) || sol_is_cfunc(indexf)) && indexf->ops->call != sol_f_not_impl) {
 			newls = sol_new_list(state);
 			sol_list_insert(state, newls, 0, indexf);
 			sol_list_append(state, newls, args);
 			res = indexf->ops->call(state, newls);
 			sol_obj_free(newls);
 		} else if(indexf->ops->index && indexf->ops->index != sol_f_not_impl) {
-			res = indexf->ops->index(state, args);
+            newls = sol_new_list(state);
+            sol_list_insert(state, newls, 0, indexf);
+            sol_list_insert(state, newls, 1, b);
+			res = indexf->ops->index(state, newls);
+			sol_obj_free(newls);
 		}
 	}
 	if(!res) res = sol_map_get(state, map, b);
@@ -719,7 +805,7 @@ sol_object_t *sol_f_map_setindex(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *val = sol_list_get_index(state, args, 2);
 	sol_object_t *setindexf = sol_map_get_name(state, map, "__setindex"), *newls;
 	if(!sol_is_none(state, setindexf)) {
-		if(setindexf->ops->call && setindexf->ops->call != sol_f_not_impl) {
+		if(setindexf->ops->call && (sol_is_func(setindexf) || sol_is_cfunc(setindexf)) && setindexf->ops->call != sol_f_not_impl) {
 			newls = sol_new_list(state);
 			sol_list_insert(state, newls, 0, setindexf);
 			sol_list_append(state, newls, args);
@@ -727,7 +813,12 @@ sol_object_t *sol_f_map_setindex(sol_state_t *state, sol_object_t *args) {
 			sol_obj_free(newls);
 			return sol_incref(state->None);
 		} else if(setindexf->ops->setindex && setindexf->ops->setindex != sol_f_not_impl) {
-			setindexf->ops->setindex(state, args);
+			newls = sol_new_list(state);
+            sol_list_insert(state, newls, 0, setindexf);
+            sol_list_insert(state, newls, 1, b);
+            sol_list_insert(state, newls, 2, val);
+			sol_obj_free(setindexf->ops->index(state, newls));
+			sol_obj_free(newls);
 			return sol_incref(state->None);
 		}
 	}

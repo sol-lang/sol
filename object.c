@@ -319,14 +319,37 @@ sol_object_t *sol_list_remove(sol_state_t *state, sol_object_t *list, int idx) {
 sol_object_t *sol_list_copy(sol_state_t *state, sol_object_t *list) {
 	sol_object_t *newls = sol_new_list(state), *cur = list;
 	sol_object_t *res = newls;
-	while(cur->lvalue) {
-		newls->lvalue = sol_incref(cur->lvalue);
-		if(cur->lnext) {
+	while(cur) {
+		if(cur->lvalue) {
+            newls->lvalue = sol_incref(cur->lvalue);
 			newls->lnext = sol_alloc_object(state);
 			if(sol_has_error(state)) return sol_incref(state->None);
 			newls = newls->lnext;
 			newls->type = SOL_LCELL;
 			newls->ops = &(state->LCellOps);
+			newls->lvalue = NULL;
+			newls->lnext = NULL;
+		}
+		cur = cur->lnext;
+	}
+	return res;
+}
+
+sol_object_t *sol_list_truncate(sol_state_t *state, sol_object_t *list, int len) {
+	sol_object_t *newls = sol_new_list(state), *cur = list;
+	sol_object_t *res = newls;
+	int i = 0;
+	while(cur && i<len) {
+		if(cur->lvalue) {
+            newls->lvalue = sol_incref(cur->lvalue);
+			newls->lnext = sol_alloc_object(state);
+			if(sol_has_error(state)) return sol_incref(state->None);
+			newls = newls->lnext;
+			newls->type = SOL_LCELL;
+			newls->ops = &(state->LCellOps);
+			newls->lvalue = NULL;
+			newls->lnext = NULL;
+			i++;
 		}
 		cur = cur->lnext;
 	}
@@ -431,7 +454,7 @@ int sol_map_len(sol_state_t *state, sol_object_t *map) {
     return i;
 }
 
-sol_object_t *sol_map_submap(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
+sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
     sol_object_t *list = sol_new_list(state), *res = NULL, *cur = map, *cmp;
     sol_list_insert(state, list, 0, key);
     while(cur) {
@@ -454,7 +477,7 @@ sol_object_t *sol_map_submap(sol_state_t *state, sol_object_t *map, sol_object_t
 }
 
 sol_object_t *sol_map_get(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
-    sol_object_t *submap = sol_map_submap(state, map, key);
+    sol_object_t *submap = sol_map_mcell(state, map, key);
     sol_object_t *res;
     if(sol_is_map(submap)) {
         res = sol_incref(submap->mval);

@@ -106,6 +106,7 @@ typedef struct sol_tag_state_t {
 	sol_ops_t MCellOps;
 	sol_ops_t FuncOps;
 	sol_ops_t CFuncOps;
+	sol_object_t *ListFuncs;
 } sol_state_t;
 
 // state.c
@@ -200,6 +201,13 @@ sol_object_t *sol_f_list_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_iter(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_tostring(sol_state_t *, sol_object_t *);
 
+sol_object_t *sol_f_list_copy(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_insert(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_remove(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_truncate(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_map(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_filter(sol_state_t *, sol_object_t *);
+
 sol_object_t *sol_f_map_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_setindex(sol_state_t *, sol_object_t *);
@@ -253,13 +261,14 @@ void sol_list_set_index(sol_state_t *, sol_object_t *, int, sol_object_t *);
 void sol_list_insert(sol_state_t *, sol_object_t *, int, sol_object_t *);
 sol_object_t *sol_list_remove(sol_state_t *, sol_object_t *, int);
 sol_object_t *sol_list_copy(sol_state_t *, sol_object_t *);
+sol_object_t *sol_list_truncate(sol_state_t *, sol_object_t *, int);
 void sol_list_append(sol_state_t *, sol_object_t *, sol_object_t *);
 #define sol_list_push(st, ls, obj) sol_list_insert(st, ls, 0, obj);
 #define sol_list_pop(st, ls) sol_list_remove(st, ls, 0);
 
 sol_object_t *sol_new_map(sol_state_t *);
 int sol_map_len(sol_state_t *, sol_object_t *);
-sol_object_t *sol_map_submap(sol_state_t *, sol_object_t *, sol_object_t *);
+sol_object_t *sol_map_mcell(sol_state_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_get(sol_state_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_get_name(sol_state_t *, sol_object_t *, char *);
 void sol_map_set(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);

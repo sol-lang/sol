@@ -1,3 +1,9 @@
+print('--- Empty functions')
+
+func f() end
+
+print(f())
+
 print('--- While loop')
 a = 1
 while a < 10 do
@@ -94,3 +100,73 @@ end
 myiter.i = 1
 
 for i in myiter do print(i) end
+
+print('--- Method calls')
+
+d = {a = func(a, b) print(a, b) end}
+
+d.a(1, 2)
+d:a(3)
+
+print('--- Special methods')
+
+d = {__index = func(obj, key) print('Index', obj, key) return key end,
+     __setindex = func(obj, key, val) print('SetIndex', obj, key, val) end,
+     __call = func(obj, arg1, arg2) print('Call', obj, arg1, arg2) return arg1 end}
+
+print(d[3], d[5])
+
+d.a = 7
+
+print(d("q", "r"))
+
+e = {a=1, b=2}
+d = {__index = e, __setindex = e}
+
+print(d, d.a, d.b)
+
+d.c = 5
+d.b = 7
+
+print(d, e)
+
+print('--- Data sharing')
+
+d = {}
+e = [1 2 3 4 5]
+d.a = e
+d.b = e
+
+print(d)
+
+e[2]=7
+e[3]="c"
+
+print(d)
+
+d.a:insert(#(d.a), "q")
+d.b:remove(1)
+d.a[3]="f"
+
+print(d)
+
+print('--- Arithmetic structure operations')
+
+print([1 2 3]+[4 5])
+print([1 2 3]*5)
+print({a=1 b=2}+{c=3})
+
+print('--- Map/filter')
+
+l = [1 2 3 4 5]
+print(l)
+
+l:map(func (i) return i*3 end)
+print(l)
+
+l:filter(func (i) return i & 1 end)
+print(l)
+
+print('--- Map/filter chain')
+
+print([1 2 3 4 5]:map(func (i) return i * 3 end):filter(func (i) return i & 1 end))
