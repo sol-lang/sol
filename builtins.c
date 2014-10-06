@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "sol.h"
+#include "ast.h"
 
 // XXX hardcoded buffer sizes
 
@@ -246,6 +246,66 @@ sol_object_t *sol_f_range(sol_state_t *state, sol_object_t *args) {
 	}
 	sol_obj_free(bound);
 	return res;
+}
+
+sol_object_t *sol_f_exec(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
+    stmt_node *program;
+
+    program = sol_compile(prgstr->str);
+    if(!program) {
+        return sol_set_error_string(state, "Compilation failure"));
+    }
+
+    sol_exec(state, program);
+    return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_eval(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
+    stmt_node *program;
+
+    program = sol_compile(prgstr->str);
+    if(!program) {
+        return sol_set_error_string(state, "Compilation failure");
+    }
+    if(program->type != ST_EXPR) {
+        return sol_set_error_string(state, "Not an expression");
+    }
+
+    return sol_eval(state, program->expr);
+}
+
+sol_object_t *sol_f_execfile(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
+    stmt_node *program;
+    FILE *f = fopen(prgstr->str, "r");
+    char *s;
+    long sz;
+
+    if(!f) {
+        return sol_set_error_string(state, "File open failure");
+    }
+
+    fseek(f, 0, SEEK_END);
+    sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    s = malloc(sz);
+    if(!s) {
+        fclose(f);
+        return sol_set_error_string(state, "File memory allocation failure");
+    }
+    fread(s, sz, 1, f);
+    fclose(f);
+
+    program = sol_compile(s);
+    free(s);
+    if(!program) {
+        return sol_set_error_string(state, "Compilation failure");
+    }
+
+    sol_exec(state, program);
+    return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_debug_getref(sol_state_t *state, sol_object_t *args) {

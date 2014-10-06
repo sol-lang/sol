@@ -48,6 +48,24 @@ void sol_cstruct_add_member_name(sol_state_t *state, sol_object_t *specs, char *
     sol_obj_free(spec);
 }
 
+void sol_cstruct_add_pointer(sol_state_t *state, sol_object_t *specs, sol_object_t *key, sol_object_t *specs, int offset) {
+    sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_MEMBER);
+    AS(spec->data, sol_memspec_t)->memtype = SOL_PTR;
+    AS(spec->data, sol_memspec_t)->offset = offset;
+    AS(spec->data, sol_memspec_t)->specs = specs;
+    sol_map_set(state, spec, key, spec);
+    sol_obj_free(spec);
+}
+
+void sol_cstruct_add_pointer_name(sol_state_t *state, sol_object_t *specs, char *name, sol_object_t *specs, int offset) {
+    sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_MEMBER);
+    AS(spec->data, sol_memspec_t)->memtype = SOL_PTR;
+    AS(spec->data, sol_memspec_t)->offset = offset;
+    AS(spec->data, sol_memspec_t)->specs = specs;
+    sol_map_set_name(state, spec, name, spec);
+    sol_obj_free(spec);
+}
+
 void sol_cstruct_add_func(sol_state_t *state, sol_object_t *specs, sol_object_t *key, sol_cfunc_t cfunc) {
     sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_CFUNC);
     AS(spec->data, sol_memspec_t)->cfunc = cfunc;
@@ -145,6 +163,10 @@ sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
                 case SOL_CFUNC:
                     res = sol_new_cfunc(state, AT(cstruct->data, sol_cfunc_t, spec->offset));
                     break;
+
+                case SOL_PTR:
+                    res = sol_new_cstruct(state, AT(cstruct->data, void *, spec->offset), spec->specs);
+                    break;
             }
             break;
 
@@ -231,6 +253,11 @@ sol_object_t *sol_f_cstruct_setindex(sol_state_t *state, sol_object_t *args) {
                 case SOL_CFUNC:
                     return sol_set_error_string(state, "Can't assign CFunc members");
                     break;
+
+                case SOL_PTR:
+                    if(!sol_is_cdata(val) || spec->specs != AS(val->data, sol_cstruct_t)->specs)
+                        return sol_set_error_string(state, "Invalid type for PTR assignment");
+                    AS(cstruct->data, void *, spec->offset) = AS(val->data, sol_cstruct_t)->data;
             }
             break;
 

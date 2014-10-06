@@ -18,7 +18,8 @@ typedef enum {
     SOL_DOUBLE,
     SOL_CHAR,
     SOL_CSTR,
-    SOL_CFUNC
+    SOL_CFUNC,
+    SOL_PTR // Don't use this in add_member--use add_pointer
 } sol_memtype_t;
 
 typedef enum {
@@ -32,6 +33,7 @@ typedef struct {
         struct {
             sol_memtype_t memtype;
             int offset;
+            sol_object_t *specs;
         };
         sol_cfunc_t cfunc;
     };
@@ -45,6 +47,8 @@ typedef struct {
 sol_object_t *sol_new_cstruct_specs(sol_state_t *);
 void sol_cstruct_add_member(sol_state_t *, sol_object_t *, sol_object_t *, sol_memtype_t, int);
 void sol_cstruct_add_member_name(sol_state_t *, sol_object_t *, char *, sol_memtype_t, int);
+void sol_cstruct_add_pointer(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *, int);
+void sol_cstruct_add_pointer_name(sol_state_t *, sol_object_t *, char *, sol_object_t *, int);
 void sol_cstruct_add_func(sol_state_t *, sol_object_t *, sol_object_t *, sol_cfunc_t);
 void sol_cstruct_add_func_name(sol_state_t *, sol_object_t *, char *, sol_cfunc_t);
 
