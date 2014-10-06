@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    printf("NULL program (probably a syntax error)");
+    printf("NULL program (probably a syntax error)\n");
 
     return 1;
 }

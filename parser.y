@@ -403,21 +403,13 @@ expr_list:
 	AS($$, exprlist_node)->expr = $1;
 	AS($$, exprlist_node)->next = NULL;
 }
+| expr_list COMMA { $$ = $1; }
 | expr_list expr {
 	exprlist_node *cur = $1;
 	while(cur->next) cur = cur->next;
 	cur->next = NEW(exprlist_node);
 	cur = cur->next;
 	cur->expr = $2;
-	cur->next = NULL;
-	$$ = $1;
-}
-| expr_list COMMA expr {
-	exprlist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(exprlist_node);
-	cur = cur->next;
-	cur->expr = $3;
 	cur->next = NULL;
 	$$ = $1;
 }
@@ -430,21 +422,13 @@ ident_list:
 	AS($$, identlist_node)->ident = $1;
 	AS($$, identlist_node)->next = NULL;
 }
+| ident_list COMMA { $$ = $1; }
 | ident_list IDENT {
 	identlist_node *cur = $1;
 	while(cur->next) cur = cur->next;
 	cur->next = NEW(identlist_node);
 	cur = cur->next;
 	cur->ident = $2;
-	cur->next = NULL;
-	$$ = $1;
-}
-| ident_list COMMA IDENT {
-	identlist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(identlist_node);
-	cur = cur->next;
-	cur->ident = $3;
 	cur->next = NULL;
 	$$ = $1;
 }
@@ -457,21 +441,13 @@ assoc_list:
 	AS($$, assoclist_node)->item = $1;
 	AS($$, assoclist_node)->next = NULL;
 }
+| assoc_list COMMA { $$ = $1; }
 | assoc_list assoc_item {
 	assoclist_node *cur = $1;
 	while(cur->next) cur = cur->next;
 	cur->next = NEW(assoclist_node);
 	cur = cur->next;
 	cur->item = $2;
-	cur->next = NULL;
-	$$ = $1;
-}
-| assoc_list COMMA assoc_item {
-	assoclist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(assoclist_node);
-	cur = cur->next;
-	cur->item = $3;
 	cur->next = NULL;
 	$$ = $1;
 }
