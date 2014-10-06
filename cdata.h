@@ -4,22 +4,22 @@
 #include "sol.h"
 
 typedef enum {
-    SOL_INT,
-    SOL_INT8,
-    SOL_INT16,
-    SOL_INT32,
-    SOL_INT64,
-    SOL_UINT,
-    SOL_UINT8,
-    SOL_UINT16,
-    SOL_UINT32,
-//    SOL_UINT64, TODO: Not yet supported
-    SOL_FLOAT,
-    SOL_DOUBLE,
-    SOL_CHAR,
-    SOL_CSTR,
-    SOL_CFUNC,
-    SOL_PTR // Don't use this in add_member--use add_pointer
+    SOL_MT_INT,
+    SOL_MT_INT8,
+    SOL_MT_INT16,
+    SOL_MT_INT32,
+    SOL_MT_INT64,
+    SOL_MT_UINT,
+    SOL_MT_UINT8,
+    SOL_MT_UINT16,
+    SOL_MT_UINT32,
+//    SOL_MT_UINT64, TODO: Not yet supported
+    SOL_MT_FLOAT,
+    SOL_MT_DOUBLE,
+    SOL_MT_CHAR,
+    SOL_MT_CSTR,
+    SOL_MT_CFUNC,
+    SOL_MT_PTR // Don't use this in add_member--use add_pointer
 } sol_memtype_t;
 
 typedef enum {
@@ -58,6 +58,6 @@ extern sol_ops_t sol_cstruct_spec_ops;
 extern sol_ops_t sol_cstruct_ops;
 
 sol_object_t *sol_f_cstruct_index(sol_state_t *, sol_object_t *);
-sol_object_t *sol_f_cstruct_setindex(sol_state_t *, sol_object_t *)
+sol_object_t *sol_f_cstruct_setindex(sol_state_t *, sol_object_t *);
 
 #endif

@@ -222,7 +222,7 @@ sol_object_t *sol_f_rawget(sol_state_t *state, sol_object_t *args) {
 	res = sol_map_get(state, obj, key);
 	sol_obj_free(key);
 	sol_obj_free(obj);
-	return sol_incref(state->None);
+	return res;
 }
 
 

@@ -55,6 +55,9 @@ void st_free(stmt_node *stmt) {
             ex_free(stmt->ret->ret);
             free(stmt->ret);
             break;
+
+        case ST_CONT: case ST_BREAK:
+            break; // Make the compiler happy :D
     }
     free(stmt);
 }
@@ -160,10 +163,9 @@ void ex_free(expr_node *expr) {
 }
 
 sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
-    sol_object_t *res, *args, *left, *right, *lint, *rint, *value, *scope, *key, *list;
+    sol_object_t *res, *left, *right, *lint, *rint, *value, *list;
     exprlist_node *cure;
     assoclist_node *cura;
-    identlist_node *curi;
     if(!expr) return sol_set_error_string(state, "Evaluate NULL expression");
     switch(expr->type) {
         case EX_LIT:
@@ -388,6 +390,8 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             return res;
             break;
     }
+    printf("WARNING: Unhandled expression returning None");
+    return sol_incref(state->None);
 }
 
 void sol_exec(sol_state_t *state, stmt_node *stmt) {

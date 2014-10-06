@@ -289,7 +289,7 @@ void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object
 }
 
 sol_object_t *sol_list_remove(sol_state_t *state, sol_object_t *list, int idx) {
-	sol_object_t *next = list, *prev = NULL, *res, *temp;
+	sol_object_t *next = list, *prev = NULL, *res;
 	int i = 0;
 	if(sol_has_error(state)) return sol_incref(state->None);
 	if(idx < 0) {
@@ -442,6 +442,7 @@ sol_object_t *sol_new_map(sol_state_t *state) {
     map->mkey = NULL;
     map->mval = NULL;
     map->mnext = NULL;
+    return map;
 }
 
 int sol_map_len(sol_state_t *state, sol_object_t *map) {
