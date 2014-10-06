@@ -249,35 +249,37 @@ sol_object_t *sol_f_range(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_exec(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
-    stmt_node *program;
-
-    program = sol_compile(prgstr->str);
-    if(!program) {
-        return sol_set_error_string(state, "Compilation failure"));
-    }
-
-    sol_exec(state, program);
-    return sol_incref(state->None);
-}
-
-sol_object_t *sol_f_eval(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
+    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
     stmt_node *program;
 
     program = sol_compile(prgstr->str);
     if(!program) {
         return sol_set_error_string(state, "Compilation failure");
     }
-    if(program->type != ST_EXPR) {
+    // XXX should st_free(program);
+
+    sol_exec(state, program);
+    return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_eval(sol_state_t *state, sol_object_t *args) {
+    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
+    stmt_node *program;
+
+    program = sol_compile(prgstr->str);
+    if(!program) {
+        return sol_set_error_string(state, "Compilation failure");
+    }
+    if(program->type != ST_LIST || program->stmtlist->stmt->type != ST_EXPR) {
         return sol_set_error_string(state, "Not an expression");
     }
+    // XXX should st_free(program);
 
-    return sol_eval(state, program->expr);
+    return sol_eval(state, program->stmtlist->stmt->expr);
 }
 
 sol_object_t *sol_f_execfile(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), prgstr = sol_cast_string(state, prg);
+    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
     stmt_node *program;
     FILE *f = fopen(prgstr->str, "r");
     char *s;
@@ -303,6 +305,7 @@ sol_object_t *sol_f_execfile(sol_state_t *state, sol_object_t *args) {
     if(!program) {
         return sol_set_error_string(state, "Compilation failure");
     }
+    // XXX should st_free(program);
 
     sol_exec(state, program);
     return sol_incref(state->None);

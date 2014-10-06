@@ -148,7 +148,7 @@ sol_object_t *sol_f_rawget(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_rawset(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_range(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_exec(sol_state_t *, sol_object_t *);
-sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *;)
+sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *;);
 sol_object_t *sol_f_execfile(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_debug_getref(sol_state_t *, sol_object_t *);

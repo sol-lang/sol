@@ -170,3 +170,11 @@ print(l)
 print('--- Map/filter chain')
 
 print([1 2 3 4 5]:map(func (i) return i * 3 end):filter(func (i) return i & 1 end))
+
+print('--- Exec/eval')
+
+exec('print("Hello from exec!")')
+print(eval('5 + 3'))
+execfile('subtest.sol')
+
+print('--- All done!')

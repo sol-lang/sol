@@ -121,6 +121,9 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, globals, "rawget", sol_new_cfunc(state, sol_f_rawget));
 	sol_map_set_name(state, globals, "rawset", sol_new_cfunc(state, sol_f_rawset));
 	sol_map_set_name(state, globals, "range", sol_new_cfunc(state, sol_f_range));
+	sol_map_set_name(state, globals, "exec", sol_new_cfunc(state, sol_f_exec));
+	sol_map_set_name(state, globals, "eval", sol_new_cfunc(state, sol_f_eval));
+	sol_map_set_name(state, globals, "execfile", sol_new_cfunc(state, sol_f_execfile));
 
 	sol_map_set_name(state, debug, "getref", sol_new_cfunc(state, sol_f_debug_getref));
 	sol_map_set_name(state, debug, "setref", sol_new_cfunc(state, sol_f_debug_setref));
