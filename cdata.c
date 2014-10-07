@@ -37,7 +37,7 @@ void sol_cstruct_add_member(sol_state_t *state, sol_object_t *specs, sol_object_
     sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_MEMBER);
     AS(spec->cdata, sol_memspec_t)->memtype = memtype;
     AS(spec->cdata, sol_memspec_t)->offset = offset;
-    sol_map_set(state, spec, key, spec);
+    sol_map_set(state, specs, key, spec);
     sol_obj_free(spec);
 }
 
@@ -45,7 +45,7 @@ void sol_cstruct_add_member_name(sol_state_t *state, sol_object_t *specs, char *
     sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_MEMBER);
     AS(spec->cdata, sol_memspec_t)->memtype = memtype;
     AS(spec->cdata, sol_memspec_t)->offset = offset;
-    sol_map_set_name(state, spec, name, spec);
+    sol_map_set_name(state, specs, name, spec);
     sol_obj_free(spec);
 }
 
@@ -54,7 +54,7 @@ void sol_cstruct_add_pointer(sol_state_t *state, sol_object_t *pspecs, sol_objec
     AS(spec->cdata, sol_memspec_t)->memtype = SOL_MT_PTR;
     AS(spec->cdata, sol_memspec_t)->offset = offset;
     AS(spec->cdata, sol_memspec_t)->specs = pspecs;
-    sol_map_set(state, spec, key, spec);
+    sol_map_set(state, specs, key, spec);
     sol_obj_free(spec);
 }
 
@@ -63,21 +63,21 @@ void sol_cstruct_add_pointer_name(sol_state_t *state, sol_object_t *pspecs, char
     AS(spec->cdata, sol_memspec_t)->memtype = SOL_MT_PTR;
     AS(spec->cdata, sol_memspec_t)->offset = offset;
     AS(spec->cdata, sol_memspec_t)->specs = pspecs;
-    sol_map_set_name(state, spec, name, spec);
+    sol_map_set_name(state, specs, name, spec);
     sol_obj_free(spec);
 }
 
 void sol_cstruct_add_func(sol_state_t *state, sol_object_t *specs, sol_object_t *key, sol_cfunc_t cfunc) {
     sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_CFUNC);
     AS(spec->cdata, sol_memspec_t)->cfunc = cfunc;
-    sol_map_set(state, spec, key, spec);
+    sol_map_set(state, specs, key, spec);
     sol_obj_free(spec);
 }
 
 void sol_cstruct_add_func_name(sol_state_t *state, sol_object_t *specs, char *name, sol_cfunc_t cfunc) {
     sol_object_t *spec = sol_new_cstruct_spec(state, SOL_CS_CFUNC);
     AS(spec->cdata, sol_memspec_t)->cfunc = cfunc;
-    sol_map_set_name(state, spec, name, spec);
+    sol_map_set_name(state, specs, name, spec);
     sol_obj_free(spec);
 }
 
@@ -91,7 +91,7 @@ sol_object_t *sol_new_cstruct(sol_state_t *state, void *data, sol_object_t *spec
 sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
     sol_object_t *cstructobj = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1);
     sol_cstruct_t *cstruct = cstructobj->cdata;
-    sol_object_t *specobj = sol_map_get(state, AS(cstruct->data, sol_cstruct_t)->specs, idx), *res = NULL;
+    sol_object_t *specobj = sol_map_get(state, cstruct->specs, idx), *res = NULL;
     sol_memspec_t *spec;
     char cbuf[2] = {0, 0};
     if(sol_is_none(state, specobj)) {
@@ -182,7 +182,7 @@ sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
 sol_object_t *sol_f_cstruct_setindex(sol_state_t *state, sol_object_t *args) {
     sol_object_t *cstructobj = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1), *val = sol_list_get_index(state, args, 2);
     sol_cstruct_t *cstruct = cstructobj->cdata;
-    sol_object_t *specobj = sol_map_get(state, AS(cstruct->data, sol_cstruct_t)->specs, idx);
+    sol_object_t *specobj = sol_map_get(state, cstruct->specs, idx);
     sol_memspec_t *spec;
     char cbuf[2] = {0, 0};
     if(sol_is_none(state, specobj)) {

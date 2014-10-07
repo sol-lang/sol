@@ -2,12 +2,13 @@
 
 #include <stdarg.h>
 
-sol_object_t *sol_util_call(sol_state_t *state, sol_object_t *func, int elems, ...) {
+sol_object_t *sol_util_call(sol_state_t *state, sol_object_t *func, int *error, int elems, ...) {
     va_list va;
     sol_object_t *args = sol_new_list(state), *res = NULL;
     int i;
 
     if(sol_has_error(state)) return sol_incref(state->None);
+    if(error) *error = 0;
 
     sol_list_insert(state, args, 0, func);
 
@@ -21,9 +22,11 @@ sol_object_t *sol_util_call(sol_state_t *state, sol_object_t *func, int elems, .
     res = func->ops->call(state, args);
     if(!res) res = sol_incref(state->None);
     if(sol_has_error(state)) {
+        sol_object_t *err = sol_get_error(state);
         sol_clear_error(state);
         sol_obj_free(res);
-        res = sol_incref(state->None);
+        if(error) *error = 1;
+        res = err;
     }
 
     return res;
