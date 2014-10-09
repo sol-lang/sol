@@ -36,6 +36,7 @@ int sol_state_init(sol_state_t *state) {
 	state->IntOps.sub = sol_f_int_sub;
 	state->IntOps.mul = sol_f_int_mul;
 	state->IntOps.div = sol_f_int_div;
+	state->IntOps.mod = sol_f_int_mod;
 	state->IntOps.band = sol_f_int_band;
 	state->IntOps.bor = sol_f_int_bor;
 	state->IntOps.bxor = sol_f_int_bxor;
@@ -275,6 +276,7 @@ void sol_ops_init(sol_ops_t *ops) {
 	ops->sub = sol_f_not_impl;
 	ops->mul = sol_f_not_impl;
 	ops->div = sol_f_not_impl;
+	ops->mod = sol_f_not_impl;
 	ops->band = sol_f_not_impl;
 	ops->bor = sol_f_not_impl;
 	ops->bxor = sol_f_not_impl;

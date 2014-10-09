@@ -152,6 +152,8 @@ print(d)
 
 print('--- Arithmetic structure operations')
 
+print('ab'+'cd')
+print('l'+'ol'*32)
 print([1 2 3]+[4 5])
 print([1 2 3]*5)
 print({a=1 b=2}+{c=3})
@@ -176,5 +178,11 @@ print('--- Exec/eval')
 exec('print("Hello from exec!")')
 print(eval('5 + 3'))
 execfile('subtest.sol')
+
+print('--- Modulus')
+
+print(5%3)
+print(13%5)
+print(15%15)
 
 print('--- All done!')

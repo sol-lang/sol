@@ -98,6 +98,8 @@ None { return NONE; }
 
 "/" { return SLASH; }
 
+"%" { return PERCENT; }
+
 "**" { return DSTAR; }
 
 "&" { return BAND; }

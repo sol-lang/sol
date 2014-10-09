@@ -19,6 +19,7 @@ typedef struct {
 	sol_cfunc_t sub;
 	sol_cfunc_t mul;
 	sol_cfunc_t div;
+	sol_cfunc_t mod;
 	sol_cfunc_t pow;
 	sol_cfunc_t band;
 	sol_cfunc_t bor;
@@ -165,6 +166,7 @@ sol_object_t *sol_f_int_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_sub(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_mul(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_div(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_int_mod(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_pow(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_band(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_bor(sol_state_t *, sol_object_t *);

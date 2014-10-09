@@ -231,6 +231,10 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
                     res = left->ops->div(state, list);
                     break;
 
+                case OP_MOD:
+                    res = left->ops->mod(state, list);
+                    break;
+
                 case OP_POW:
                     res = left->ops->pow(state, list);
                     break;

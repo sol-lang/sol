@@ -449,6 +449,15 @@ sol_object_t *sol_f_int_div(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
+sol_object_t *sol_f_int_mod(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
+	sol_object_t *res = sol_new_int(state, a->ival % b->ival);
+	sol_obj_free(a);
+	sol_obj_free(b);
+	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	return res;
+}
+
 sol_object_t *sol_f_int_pow(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
 	sol_object_t *res = sol_new_int(state, (long) pow((double) a->ival, b->ival));

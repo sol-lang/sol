@@ -16,7 +16,7 @@
 %token END NONE
 %token IDENT
 %token INT FLOAT STRING
-%token PLUS MINUS STAR SLASH DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
+%token PLUS MINUS STAR SLASH PERCENT DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
 %token EQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
 %token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
@@ -272,6 +272,7 @@ term_expr:
 factor_expr:
   factor_expr STAR factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MUL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | factor_expr SLASH factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_DIV; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| factor_expr PERCENT factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MOD; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | power_expr { $$ = $1; }
 ;
 

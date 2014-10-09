@@ -106,7 +106,7 @@ void prex(expr_node *node, int lev) {
 				case LIT_STRING:
 					prlev(lev, "String: %s", node->lit->str);
 					break;
-					
+
 				case LIT_NONE:
 					prlev(lev, "None");
 					break;
@@ -155,6 +155,10 @@ void prex(expr_node *node, int lev) {
 					prlev(lev, "Op: /");
 					break;
 
+                case OP_MOD:
+					prlev(lev, "Op: %");
+					break;
+
 				case OP_POW:
 					prlev(lev, "Op: **");
 					break;
@@ -198,11 +202,11 @@ void prex(expr_node *node, int lev) {
 				case OP_GREATEREQ:
 					prlev(lev, "Op: >=");
 					break;
-					
+
 				case OP_LSHIFT:
 					prlev(lev, "Op: <<");
 					break;
-					
+
 				case OP_RSHIFT:
 					prlev(lev, "Op: >>");
 					break;
@@ -228,7 +232,7 @@ void prex(expr_node *node, int lev) {
 				case OP_LNOT:
 					prlev(lev, "Op: !");
 					break;
-					
+
 				case OP_LEN:
 					prlev(lev, "Op: #");
 					break;
