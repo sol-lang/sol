@@ -9,6 +9,7 @@
 %}
 
 %define lr.type ielr
+%define api.pure full
 
 %token IF THEN ELSE
 %token WHILE FOR IN DO
@@ -24,6 +25,7 @@
 %parse-param {stmt_node **program}
 
 %debug
+%locations
 
 %%
 

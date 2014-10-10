@@ -541,7 +541,7 @@ char *yytext;
 #include <string.h>
 #include <stdio.h>
 
-void yyerror(char *);
+void yyerror(YYLTYPE *, char *);
 int yywrap(void);
 
 char *str, *curptr;
@@ -564,6 +564,32 @@ void str_putc(char c) {
 		cursz += SZMUL;
 	}
 }
+
+/* http://stackoverflow.com/questions/656703/how-does-flex-support-bison-location-exactly */
+/* Many thanks to hugomg and David Elson! */
+
+static void update_loc(YYLTYPE *yylloc, char *yytext){
+  static int curr_line = 1;
+  static int curr_col  = 1;
+
+  yylloc->first_line   = curr_line;
+  yylloc->first_column = curr_col;
+
+  {char * s; for(s = yytext; *s != '\0'; s++){
+    if(*s == '\n'){
+      curr_line++;
+      curr_col = 1;
+    }else{
+      curr_col++;
+    }
+  }}
+
+  yylloc->last_line   = curr_line;
+  yylloc->last_column = curr_col-1;
+}
+
+#define YY_USER_ACTION update_loc(yylloc, yytext);
+
 /* This is the right way to do it, but it keeps generating token $undefined.
 
 %x STRING
@@ -579,7 +605,7 @@ void str_putc(char c) {
 <STRING>. { str_putc(*yytext); }
 
 */
-#line 583 "lex.yy.c"
+#line 609 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -626,6 +652,14 @@ int yyget_lineno (void );
 
 void yyset_lineno (int line_number  );
 
+YYSTYPE * yyget_lval (void );
+
+void yyset_lval (YYSTYPE * yylval_param  );
+
+       YYLTYPE *yyget_lloc (void );
+    
+        void yyset_lloc (YYLTYPE * yylloc_param  );
+    
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
  */
@@ -738,9 +772,11 @@ static int input (void );
 #ifndef YY_DECL
 #define YY_DECL_IS_OURS 1
 
-extern int yylex (void);
+extern int yylex \
+               (YYSTYPE * yylval_param,YYLTYPE * yylloc_param );
 
-#define YY_DECL int yylex (void)
+#define YY_DECL int yylex \
+               (YYSTYPE * yylval_param, YYLTYPE * yylloc_param )
 #endif /* !YY_DECL */
 
 /* Code executed at the beginning of each rule, after yytext and yyleng
@@ -766,6 +802,14 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
+        YYSTYPE * yylval;
+    
+        YYLTYPE * yylloc;
+    
+    yylval = yylval_param;
+
+    yylloc = yylloc_param;
+
 	if ( !(yy_init) )
 		{
 		(yy_init) = 1;
@@ -793,10 +837,10 @@ YY_DECL
 		}
 
 	{
-#line 57 "tokenizer.lex"
+#line 85 "tokenizer.lex"
 
 
-#line 800 "lex.yy.c"
+#line 844 "lex.yy.c"
 
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
@@ -855,314 +899,314 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 59 "tokenizer.lex"
-{ yylval = malloc(sizeof(double)); *((double *) yylval) = atof(yytext); return FLOAT; }
+#line 87 "tokenizer.lex"
+{ *yylval = malloc(sizeof(double)); *((double *) *yylval) = atof(yytext); return FLOAT; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 61 "tokenizer.lex"
-{ yylval = malloc(sizeof(long)); *((long *) yylval) = atol(yytext); return INT; }
+#line 89 "tokenizer.lex"
+{ *yylval = malloc(sizeof(long)); *((long *) *yylval) = atol(yytext); return INT; }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 63 "tokenizer.lex"
-{ yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
+#line 91 "tokenizer.lex"
+{ *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 65 "tokenizer.lex"
-{ yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
+#line 93 "tokenizer.lex"
+{ *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 67 "tokenizer.lex"
+#line 95 "tokenizer.lex"
 { return IF; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 69 "tokenizer.lex"
+#line 97 "tokenizer.lex"
 { return THEN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 71 "tokenizer.lex"
+#line 99 "tokenizer.lex"
 { return ELSE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 73 "tokenizer.lex"
+#line 101 "tokenizer.lex"
 { return WHILE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 75 "tokenizer.lex"
+#line 103 "tokenizer.lex"
 { return FOR; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 77 "tokenizer.lex"
+#line 105 "tokenizer.lex"
 { return IN; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 79 "tokenizer.lex"
+#line 107 "tokenizer.lex"
 { return DO; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 81 "tokenizer.lex"
+#line 109 "tokenizer.lex"
 { return FUNC; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 83 "tokenizer.lex"
+#line 111 "tokenizer.lex"
 { return RETURN; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 85 "tokenizer.lex"
+#line 113 "tokenizer.lex"
 { return BREAK; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 87 "tokenizer.lex"
+#line 115 "tokenizer.lex"
 { return CONTINUE; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 89 "tokenizer.lex"
+#line 117 "tokenizer.lex"
 { return END; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 91 "tokenizer.lex"
+#line 119 "tokenizer.lex"
 { return NONE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 93 "tokenizer.lex"
+#line 121 "tokenizer.lex"
 { return PLUS; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 95 "tokenizer.lex"
+#line 123 "tokenizer.lex"
 { return MINUS; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 97 "tokenizer.lex"
+#line 125 "tokenizer.lex"
 { return STAR; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 99 "tokenizer.lex"
+#line 127 "tokenizer.lex"
 { return SLASH; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 101 "tokenizer.lex"
+#line 129 "tokenizer.lex"
 { return PERCENT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 103 "tokenizer.lex"
+#line 131 "tokenizer.lex"
 { return DSTAR; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 105 "tokenizer.lex"
+#line 133 "tokenizer.lex"
 { return BAND; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 107 "tokenizer.lex"
+#line 135 "tokenizer.lex"
 { return BOR; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 109 "tokenizer.lex"
+#line 137 "tokenizer.lex"
 { return BXOR; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 111 "tokenizer.lex"
+#line 139 "tokenizer.lex"
 { return BNOT; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 113 "tokenizer.lex"
+#line 141 "tokenizer.lex"
 { return LAND; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 115 "tokenizer.lex"
+#line 143 "tokenizer.lex"
 { return LOR; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 117 "tokenizer.lex"
+#line 145 "tokenizer.lex"
 { return LNOT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 119 "tokenizer.lex"
+#line 147 "tokenizer.lex"
 { return ASSIGN; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 121 "tokenizer.lex"
+#line 149 "tokenizer.lex"
 { return ASSIGNPLUS; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 123 "tokenizer.lex"
+#line 151 "tokenizer.lex"
 { return ASSIGNMINUS; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 125 "tokenizer.lex"
+#line 153 "tokenizer.lex"
 { return ASSIGNSTAR; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 127 "tokenizer.lex"
+#line 155 "tokenizer.lex"
 { return ASSIGNSLASH; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 129 "tokenizer.lex"
+#line 157 "tokenizer.lex"
 { return ASSIGNDSTAR; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 131 "tokenizer.lex"
+#line 159 "tokenizer.lex"
 { return ASSIGNBAND; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 133 "tokenizer.lex"
+#line 161 "tokenizer.lex"
 { return ASSIGNBOR; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 135 "tokenizer.lex"
+#line 163 "tokenizer.lex"
 { return ASSIGNBXOR; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 137 "tokenizer.lex"
+#line 165 "tokenizer.lex"
 { return EQUAL; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 139 "tokenizer.lex"
+#line 167 "tokenizer.lex"
 { return LESS; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 141 "tokenizer.lex"
+#line 169 "tokenizer.lex"
 { return GREATER; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 143 "tokenizer.lex"
+#line 171 "tokenizer.lex"
 { return LESSEQ; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 145 "tokenizer.lex"
+#line 173 "tokenizer.lex"
 { return GREATEREQ; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 147 "tokenizer.lex"
+#line 175 "tokenizer.lex"
 { return RSHIFT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 149 "tokenizer.lex"
+#line 177 "tokenizer.lex"
 { return LSHIFT; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 151 "tokenizer.lex"
+#line 179 "tokenizer.lex"
 { return LBRACE; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 153 "tokenizer.lex"
+#line 181 "tokenizer.lex"
 { return RBRACE; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 155 "tokenizer.lex"
+#line 183 "tokenizer.lex"
 { return LBRACKET; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 157 "tokenizer.lex"
+#line 185 "tokenizer.lex"
 { return RBRACKET; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 159 "tokenizer.lex"
+#line 187 "tokenizer.lex"
 { return LPAREN; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 161 "tokenizer.lex"
+#line 189 "tokenizer.lex"
 { return RPAREN; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 163 "tokenizer.lex"
+#line 191 "tokenizer.lex"
 { return DOT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 165 "tokenizer.lex"
+#line 193 "tokenizer.lex"
 { return COLON; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 167 "tokenizer.lex"
+#line 195 "tokenizer.lex"
 { return SEMICOLON; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 169 "tokenizer.lex"
+#line 197 "tokenizer.lex"
 { return COMMA; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 171 "tokenizer.lex"
+#line 199 "tokenizer.lex"
 { return POUND; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 173 "tokenizer.lex"
-{ yylval = strdup(yytext); return IDENT; }
+#line 201 "tokenizer.lex"
+{ *yylval = (void *) strdup(yytext); return IDENT; }
 	YY_BREAK
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 175 "tokenizer.lex"
+#line 203 "tokenizer.lex"
 /* Skip comments */
 	YY_BREAK
 case 60:
 /* rule 60 can match eol */
 YY_RULE_SETUP
-#line 177 "tokenizer.lex"
+#line 205 "tokenizer.lex"
 /* Skip whitespace */
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 179 "tokenizer.lex"
+#line 207 "tokenizer.lex"
 ECHO;
 	YY_BREAK
-#line 1166 "lex.yy.c"
+#line 1210 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2157,7 +2201,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 178 "tokenizer.lex"
+#line 206 "tokenizer.lex"
 
 
 
@@ -2165,8 +2209,9 @@ int yywrap(void) {
 	return 1;
 }
 
-void yyerror(char *s) {
-	puts(s);
+void yyerror(YYLTYPE *locp, char *err) {
+	puts(err);
+	printf("(at lines %d-%d, cols %d-%d)\n", locp->first_line, locp->last_line, locp->first_column, locp->last_column);
 }
 
 stmt_node *sol_compile(const char *prgstr) {

@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 
-void yyerror(char *);
+void yyerror(YYLTYPE *, char *);
 int yywrap(void);
 
 char *str, *curptr;
@@ -31,6 +31,32 @@ void str_putc(char c) {
 		cursz += SZMUL;
 	}
 }
+
+/* http://stackoverflow.com/questions/656703/how-does-flex-support-bison-location-exactly */
+/* Many thanks to hugomg and David Elson! */
+
+static void update_loc(YYLTYPE *yylloc, char *yytext){
+  static int curr_line = 1;
+  static int curr_col  = 1;
+
+  yylloc->first_line   = curr_line;
+  yylloc->first_column = curr_col;
+
+  {char * s; for(s = yytext; *s != '\0'; s++){
+    if(*s == '\n'){
+      curr_line++;
+      curr_col = 1;
+    }else{
+      curr_col++;
+    }
+  }}
+
+  yylloc->last_line   = curr_line;
+  yylloc->last_column = curr_col-1;
+}
+
+#define YY_USER_ACTION update_loc(yylloc, yytext);
+
 %}
 
 DIGIT [0-9]
@@ -54,15 +80,17 @@ IDENT [a-zA-Z_][a-zA-Z0-9_]*
 
 */
 
+%option bison-bridge bison-locations
+
 %%
 
-{DIGIT}+"."{DIGIT}* { yylval = malloc(sizeof(double)); *((double *) yylval) = atof(yytext); return FLOAT; }
+{DIGIT}+"."{DIGIT}* { *yylval = malloc(sizeof(double)); *((double *) *yylval) = atof(yytext); return FLOAT; }
 
-{DIGIT}+ { yylval = malloc(sizeof(long)); *((long *) yylval) = atol(yytext); return INT; }
+{DIGIT}+ { *yylval = malloc(sizeof(long)); *((long *) *yylval) = atol(yytext); return INT; }
 
-\"[^"]*\" { yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
+\"[^"]*\" { *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
 
-\'[^']*\' { yylval = strdup(yytext+1); ((char *) yylval)[yyleng-2] = 0; return STRING; }
+\'[^']*\' { *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
 
 if { return IF; }
 
@@ -170,7 +198,7 @@ None { return NONE; }
 
 "#" { return POUND; }
 
-{IDENT} { yylval = strdup(yytext); return IDENT; }
+{IDENT} { *yylval = (void *) strdup(yytext); return IDENT; }
 
 --[^\n]*\n /* Skip comments */
 
@@ -182,8 +210,9 @@ int yywrap(void) {
 	return 1;
 }
 
-void yyerror(char *s) {
-	puts(s);
+void yyerror(YYLTYPE *locp, char *err) {
+	puts(err);
+	printf("(at lines %d-%d, cols %d-%d)\n", locp->first_line, locp->last_line, locp->first_column, locp->last_column);
 }
 
 stmt_node *sol_compile(const char *prgstr) {
