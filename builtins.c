@@ -342,6 +342,10 @@ sol_object_t *sol_f_debug_locals(sol_state_t *state, sol_object_t *args) {
 	return sol_list_get_index(state, state->scopes, 0);
 }
 
+sol_object_t *sol_f_debug_scopes(sol_state_t *state, sol_object_t *args) {
+    return sol_incref(state->scopes);
+}
+
 sol_object_t *sol_f_iter_str(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *local = sol_list_get_index(state, args, 1);
 	sol_object_t *index = sol_map_get_name(state, local, "idx"), *res;

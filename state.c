@@ -131,6 +131,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, debug, "closure", sol_new_cfunc(state, sol_f_debug_closure));
 	sol_map_set_name(state, debug, "globals", sol_new_cfunc(state, sol_f_debug_globals));
 	sol_map_set_name(state, debug, "locals", sol_new_cfunc(state, sol_f_debug_locals));
+	sol_map_set_name(state, debug, "scopes", sol_new_cfunc(state, sol_f_debug_scopes));
 	sol_map_set_name(state, globals, "debug", debug);
 	sol_obj_free(debug);
 

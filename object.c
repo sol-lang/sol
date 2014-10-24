@@ -242,7 +242,7 @@ void sol_list_set_index(sol_state_t *state, sol_object_t *list, int idx, sol_obj
 
 void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
 	sol_object_t *next = list, *prev = NULL, *temp = sol_alloc_object(state);
-	int i = 0;
+	int i = -1;
 	if(sol_has_error(state)) return;
 	if(!sol_is_list(list)) {
 		sol_obj_free(sol_set_error_string(state, "Insert into non-list"));
@@ -255,8 +255,9 @@ void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object
 	temp->type = SOL_LCELL;
 	temp->ops = &(state->LCellOps);
 	temp->lvalue = sol_incref(obj);
-	while(next && i < idx) {
+	while(next) {
 		if(next->lvalue) i++;
+		if(i >= idx) break;
 		prev = next;
 		next = next->lnext;
 	}
@@ -290,23 +291,24 @@ void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object
 
 sol_object_t *sol_list_remove(sol_state_t *state, sol_object_t *list, int idx) {
 	sol_object_t *next = list, *prev = NULL, *res;
-	int i = 0;
+	int i = -1;
 	if(sol_has_error(state)) return sol_incref(state->None);
 	if(idx < 0) {
 		return sol_set_error_string(state, "Remove from negative index");
 	}
-	while(next && i < idx) {
+	while(next) {
 		if(next->lvalue) i++;
+		if(i >= idx) break;
 		prev = next;
 		next = next->lnext;
 	}
 	if(next) {
 		if(prev) {
-            res = next->lvalue;
+            res = sol_incref(next->lvalue);
 			prev->lnext = next->lnext;
 			sol_obj_free(next);
 		} else {
-            res = list->lvalue;
+            res = sol_incref(list->lvalue);
 			list->lvalue = NULL;
 		}
 		assert(!sol_validate_list(state, list));

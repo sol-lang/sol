@@ -157,6 +157,7 @@ sol_object_t *sol_f_debug_setref(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_closure(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_globals(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_locals(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_list(sol_state_t *, sol_object_t *);

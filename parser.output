@@ -22,18 +22,18 @@ State 113 conflicts: 2 shift/reduce
 State 114 conflicts: 2 shift/reduce
 State 115 conflicts: 2 shift/reduce
 State 124 conflicts: 1 shift/reduce
-State 127 conflicts: 2 shift/reduce, 2 reduce/reduce
-State 128 conflicts: 2 shift/reduce, 2 reduce/reduce
-State 129 conflicts: 5 shift/reduce, 4 reduce/reduce
-State 130 conflicts: 5 shift/reduce, 4 reduce/reduce
-State 131 conflicts: 5 shift/reduce, 4 reduce/reduce
-State 132 conflicts: 5 shift/reduce, 4 reduce/reduce
-State 133 conflicts: 5 shift/reduce, 4 reduce/reduce
-State 134 conflicts: 2 shift/reduce, 9 reduce/reduce
-State 135 conflicts: 2 shift/reduce, 9 reduce/reduce
-State 136 conflicts: 3 shift/reduce, 11 reduce/reduce
-State 137 conflicts: 3 shift/reduce, 11 reduce/reduce
-State 138 conflicts: 3 shift/reduce, 11 reduce/reduce
+State 127 conflicts: 4 reduce/reduce
+State 128 conflicts: 4 reduce/reduce
+State 129 conflicts: 11 reduce/reduce
+State 130 conflicts: 11 reduce/reduce
+State 131 conflicts: 4 reduce/reduce
+State 132 conflicts: 4 reduce/reduce
+State 133 conflicts: 4 reduce/reduce
+State 134 conflicts: 4 reduce/reduce
+State 135 conflicts: 4 reduce/reduce
+State 136 conflicts: 14 reduce/reduce
+State 137 conflicts: 14 reduce/reduce
+State 138 conflicts: 14 reduce/reduce
 State 139 conflicts: 1 shift/reduce, 14 reduce/reduce
 State 140 conflicts: 5 shift/reduce, 15 reduce/reduce
 State 141 conflicts: 5 shift/reduce, 15 reduce/reduce
@@ -94,27 +94,27 @@ Grammar
    31     | ex_index_expr ASSIGNBXOR expr
    32     | logic_expr
 
-   33 logic_expr: logic_expr LAND logic_expr
-   34           | logic_expr LOR logic_expr
+   33 logic_expr: logic_expr LAND ulogic_expr
+   34           | logic_expr LOR ulogic_expr
    35           | ulogic_expr
 
    36 ulogic_expr: LNOT ulogic_expr
    37            | rel_expr
 
-   38 rel_expr: rel_expr EQUAL rel_expr
-   39         | rel_expr LESS rel_expr
-   40         | rel_expr GREATER rel_expr
-   41         | rel_expr LESSEQ rel_expr
-   42         | rel_expr GREATEREQ rel_expr
+   38 rel_expr: term_expr EQUAL rel_expr
+   39         | term_expr LESS rel_expr
+   40         | term_expr GREATER rel_expr
+   41         | term_expr LESSEQ rel_expr
+   42         | term_expr GREATEREQ rel_expr
    43         | term_expr
 
-   44 term_expr: term_expr PLUS term_expr
-   45          | term_expr MINUS term_expr
+   44 term_expr: term_expr PLUS factor_expr
+   45          | term_expr MINUS factor_expr
    46          | factor_expr
 
-   47 factor_expr: factor_expr STAR factor_expr
-   48            | factor_expr SLASH factor_expr
-   49            | factor_expr PERCENT factor_expr
+   47 factor_expr: factor_expr STAR power_expr
+   48            | factor_expr SLASH power_expr
+   49            | factor_expr PERCENT power_expr
    50            | power_expr
 
    51 power_expr: power_expr DSTAR power_expr
@@ -263,15 +263,15 @@ expr (64)
 logic_expr (65)
     on left: 33 34 35, on right: 32 33 34
 ulogic_expr (66)
-    on left: 36 37, on right: 35 36
+    on left: 36 37, on right: 33 34 35 36
 rel_expr (67)
     on left: 38 39 40 41 42 43, on right: 37 38 39 40 41 42
 term_expr (68)
-    on left: 44 45 46, on right: 43 44 45
+    on left: 44 45 46, on right: 38 39 40 41 42 43 44 45
 factor_expr (69)
-    on left: 47 48 49 50, on right: 46 47 48 49
+    on left: 47 48 49 50, on right: 44 45 46 47 48 49
 power_expr (70)
-    on left: 51 52, on right: 50 51
+    on left: 51 52, on right: 47 48 49 50 51
 binary_expr (71)
     on left: 53 54 55 56 57 58, on right: 52 53 54 55 56 57
 ubinary_expr (72)
@@ -357,23 +357,23 @@ State 2
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -484,23 +484,23 @@ State 4
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -594,23 +594,23 @@ State 5
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -721,23 +721,23 @@ State 8
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -920,23 +920,23 @@ State 17
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1030,24 +1030,24 @@ State 18
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    36            | LNOT . ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1161,23 +1161,23 @@ State 20
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1271,23 +1271,23 @@ State 21
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1401,23 +1401,23 @@ State 22
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1518,8 +1518,8 @@ State 24
 State 25
 
    32 expr: logic_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   33 logic_expr: logic_expr . LAND logic_expr
-   34           | logic_expr . LOR logic_expr
+   33 logic_expr: logic_expr . LAND ulogic_expr
+   34           | logic_expr . LOR ulogic_expr
 
     LAND  shift, and go to state 72
     LOR   shift, and go to state 73
@@ -1536,30 +1536,29 @@ State 26
 
 State 27
 
-   37 ulogic_expr: rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   39         | rel_expr . LESS rel_expr
-   40         | rel_expr . GREATER rel_expr
-   41         | rel_expr . LESSEQ rel_expr
-   42         | rel_expr . GREATEREQ rel_expr
-
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
+   37 ulogic_expr: rel_expr .
 
     $default  reduce using rule 37 (ulogic_expr)
 
 
 State 28
 
-   43 rel_expr: term_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   44 term_expr: term_expr . PLUS term_expr
-   45          | term_expr . MINUS term_expr
+   38 rel_expr: term_expr . EQUAL rel_expr
+   39         | term_expr . LESS rel_expr
+   40         | term_expr . GREATER rel_expr
+   41         | term_expr . LESSEQ rel_expr
+   42         | term_expr . GREATEREQ rel_expr
+   43         | term_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   44 term_expr: term_expr . PLUS factor_expr
+   45          | term_expr . MINUS factor_expr
 
-    PLUS   shift, and go to state 79
-    MINUS  shift, and go to state 80
+    PLUS       shift, and go to state 74
+    MINUS      shift, and go to state 75
+    EQUAL      shift, and go to state 76
+    LESS       shift, and go to state 77
+    GREATER    shift, and go to state 78
+    LESSEQ     shift, and go to state 79
+    GREATEREQ  shift, and go to state 80
 
     MINUS     [reduce using rule 43 (rel_expr)]
     $default  reduce using rule 43 (rel_expr)
@@ -1568,9 +1567,9 @@ State 28
 State 29
 
    46 term_expr: factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   47 factor_expr: factor_expr . STAR factor_expr
-   48            | factor_expr . SLASH factor_expr
-   49            | factor_expr . PERCENT factor_expr
+   47 factor_expr: factor_expr . STAR power_expr
+   48            | factor_expr . SLASH power_expr
+   49            | factor_expr . PERCENT power_expr
 
     STAR     shift, and go to state 81
     SLASH    shift, and go to state 82
@@ -1793,23 +1792,23 @@ State 48
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -1903,23 +1902,23 @@ State 49
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2013,23 +2012,23 @@ State 50
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2123,23 +2122,23 @@ State 51
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2233,23 +2232,23 @@ State 52
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2343,23 +2342,23 @@ State 53
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2453,23 +2452,23 @@ State 54
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2563,23 +2562,23 @@ State 55
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2673,23 +2672,23 @@ State 56
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -2871,23 +2870,23 @@ State 62
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3032,23 +3031,23 @@ State 67
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3201,23 +3200,23 @@ State 70
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3320,24 +3319,24 @@ State 72
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   33           | logic_expr LAND . logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   33           | logic_expr LAND . ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3390,8 +3389,8 @@ State 72
     POUND     shift, and go to state 22
 
     expr           go to state 58
-    logic_expr     go to state 127
-    ulogic_expr    go to state 26
+    logic_expr     go to state 25
+    ulogic_expr    go to state 127
     rel_expr       go to state 27
     term_expr      go to state 28
     factor_expr    go to state 29
@@ -3430,24 +3429,24 @@ State 73
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
-   34           | logic_expr LOR . logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
+   34           | logic_expr LOR . ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3500,8 +3499,8 @@ State 73
     POUND     shift, and go to state 22
 
     expr           go to state 58
-    logic_expr     go to state 128
-    ulogic_expr    go to state 26
+    logic_expr     go to state 25
+    ulogic_expr    go to state 128
     rel_expr       go to state 27
     term_expr      go to state 28
     factor_expr    go to state 29
@@ -3540,24 +3539,24 @@ State 74
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   38         | rel_expr EQUAL . rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   44          | term_expr PLUS . factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3612,9 +3611,9 @@ State 74
     expr           go to state 58
     logic_expr     go to state 25
     ulogic_expr    go to state 26
-    rel_expr       go to state 129
+    rel_expr       go to state 27
     term_expr      go to state 28
-    factor_expr    go to state 29
+    factor_expr    go to state 129
     power_expr     go to state 30
     binary_expr    go to state 31
     ubinary_expr   go to state 32
@@ -3650,24 +3649,24 @@ State 75
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   39         | rel_expr LESS . rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
+   45          | term_expr MINUS . factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3722,9 +3721,9 @@ State 75
     expr           go to state 58
     logic_expr     go to state 25
     ulogic_expr    go to state 26
-    rel_expr       go to state 130
+    rel_expr       go to state 27
     term_expr      go to state 28
-    factor_expr    go to state 29
+    factor_expr    go to state 130
     power_expr     go to state 30
     binary_expr    go to state 31
     ubinary_expr   go to state 32
@@ -3760,24 +3759,24 @@ State 76
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   40         | rel_expr GREATER . rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   38         | term_expr EQUAL . rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3870,24 +3869,24 @@ State 77
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   41         | rel_expr LESSEQ . rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   39         | term_expr LESS . rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -3980,24 +3979,24 @@ State 78
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
-   42         | rel_expr GREATEREQ . rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   40         | term_expr GREATER . rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4090,24 +4089,24 @@ State 79
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   41         | term_expr LESSEQ . rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   44          | term_expr PLUS . term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4162,8 +4161,8 @@ State 79
     expr           go to state 58
     logic_expr     go to state 25
     ulogic_expr    go to state 26
-    rel_expr       go to state 27
-    term_expr      go to state 134
+    rel_expr       go to state 134
+    term_expr      go to state 28
     factor_expr    go to state 29
     power_expr     go to state 30
     binary_expr    go to state 31
@@ -4200,24 +4199,24 @@ State 80
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
+   42         | term_expr GREATEREQ . rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
-   45          | term_expr MINUS . term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4272,8 +4271,8 @@ State 80
     expr           go to state 58
     logic_expr     go to state 25
     ulogic_expr    go to state 26
-    rel_expr       go to state 27
-    term_expr      go to state 135
+    rel_expr       go to state 135
+    term_expr      go to state 28
     factor_expr    go to state 29
     power_expr     go to state 30
     binary_expr    go to state 31
@@ -4310,24 +4309,24 @@ State 81
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   47            | factor_expr STAR . factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   47            | factor_expr STAR . power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4384,8 +4383,8 @@ State 81
     ulogic_expr    go to state 26
     rel_expr       go to state 27
     term_expr      go to state 28
-    factor_expr    go to state 136
-    power_expr     go to state 30
+    factor_expr    go to state 29
+    power_expr     go to state 136
     binary_expr    go to state 31
     ubinary_expr   go to state 32
     ulen_expr      go to state 33
@@ -4420,24 +4419,24 @@ State 82
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   48            | factor_expr SLASH . factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   48            | factor_expr SLASH . power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4494,8 +4493,8 @@ State 82
     ulogic_expr    go to state 26
     rel_expr       go to state 27
     term_expr      go to state 28
-    factor_expr    go to state 137
-    power_expr     go to state 30
+    factor_expr    go to state 29
+    power_expr     go to state 137
     binary_expr    go to state 31
     ubinary_expr   go to state 32
     ulen_expr      go to state 33
@@ -4530,24 +4529,24 @@ State 83
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
-   49            | factor_expr PERCENT . factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
+   49            | factor_expr PERCENT . power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4604,8 +4603,8 @@ State 83
     ulogic_expr    go to state 26
     rel_expr       go to state 27
     term_expr      go to state 28
-    factor_expr    go to state 138
-    power_expr     go to state 30
+    factor_expr    go to state 29
+    power_expr     go to state 138
     binary_expr    go to state 31
     ubinary_expr   go to state 32
     ulen_expr      go to state 33
@@ -4640,23 +4639,23 @@ State 84
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    51           | power_expr DSTAR . power_expr
@@ -4750,23 +4749,23 @@ State 85
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4860,23 +4859,23 @@ State 86
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -4970,23 +4969,23 @@ State 87
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5080,23 +5079,23 @@ State 88
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5190,23 +5189,23 @@ State 89
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5300,23 +5299,23 @@ State 90
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5438,23 +5437,23 @@ State 92
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5548,23 +5547,23 @@ State 93
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5658,23 +5657,23 @@ State 94
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5768,23 +5767,23 @@ State 95
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5878,23 +5877,23 @@ State 96
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -5988,23 +5987,23 @@ State 97
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6098,23 +6097,23 @@ State 98
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6208,23 +6207,23 @@ State 99
    30     | ex_index_expr ASSIGNBOR . expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6318,23 +6317,23 @@ State 100
    31     | . ex_index_expr ASSIGNBXOR expr
    31     | ex_index_expr ASSIGNBXOR . expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6451,23 +6450,23 @@ State 103
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6738,23 +6737,23 @@ State 116
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -6930,385 +6929,304 @@ State 126
 
 State 127
 
-   32 expr: logic_expr .  [LBRACKET, DOT]
-   33 logic_expr: logic_expr . LAND logic_expr
-   33           | logic_expr LAND logic_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   34           | logic_expr . LOR logic_expr
+   33 logic_expr: logic_expr LAND ulogic_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   35           | ulogic_expr .  [LAND, LOR, LBRACKET, DOT]
 
-    LAND  shift, and go to state 72
-    LOR   shift, and go to state 73
-
-    LAND      [reduce using rule 33 (logic_expr)]
-    LOR       [reduce using rule 33 (logic_expr)]
-    LBRACKET  reduce using rule 32 (expr)
-    LBRACKET  [reduce using rule 33 (logic_expr)]
-    DOT       reduce using rule 32 (expr)
-    DOT       [reduce using rule 33 (logic_expr)]
+    LAND      reduce using rule 33 (logic_expr)
+    LAND      [reduce using rule 35 (logic_expr)]
+    LOR       reduce using rule 33 (logic_expr)
+    LOR       [reduce using rule 35 (logic_expr)]
+    LBRACKET  reduce using rule 33 (logic_expr)
+    LBRACKET  [reduce using rule 35 (logic_expr)]
+    DOT       reduce using rule 33 (logic_expr)
+    DOT       [reduce using rule 35 (logic_expr)]
     $default  reduce using rule 33 (logic_expr)
 
 
 State 128
 
-   32 expr: logic_expr .  [LBRACKET, DOT]
-   33 logic_expr: logic_expr . LAND logic_expr
-   34           | logic_expr . LOR logic_expr
-   34           | logic_expr LOR logic_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   34 logic_expr: logic_expr LOR ulogic_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   35           | ulogic_expr .  [LAND, LOR, LBRACKET, DOT]
 
-    LAND  shift, and go to state 72
-    LOR   shift, and go to state 73
-
-    LAND      [reduce using rule 34 (logic_expr)]
-    LOR       [reduce using rule 34 (logic_expr)]
-    LBRACKET  reduce using rule 32 (expr)
-    LBRACKET  [reduce using rule 34 (logic_expr)]
-    DOT       reduce using rule 32 (expr)
-    DOT       [reduce using rule 34 (logic_expr)]
+    LAND      reduce using rule 34 (logic_expr)
+    LAND      [reduce using rule 35 (logic_expr)]
+    LOR       reduce using rule 34 (logic_expr)
+    LOR       [reduce using rule 35 (logic_expr)]
+    LBRACKET  reduce using rule 34 (logic_expr)
+    LBRACKET  [reduce using rule 35 (logic_expr)]
+    DOT       reduce using rule 34 (logic_expr)
+    DOT       [reduce using rule 35 (logic_expr)]
     $default  reduce using rule 34 (logic_expr)
 
 
 State 129
 
-   37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   38         | rel_expr EQUAL rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   39         | rel_expr . LESS rel_expr
-   40         | rel_expr . GREATER rel_expr
-   41         | rel_expr . LESSEQ rel_expr
-   42         | rel_expr . GREATEREQ rel_expr
+   44 term_expr: term_expr PLUS factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   46          | factor_expr .  [PLUS, MINUS, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
+   47 factor_expr: factor_expr . STAR power_expr
+   48            | factor_expr . SLASH power_expr
+   49            | factor_expr . PERCENT power_expr
 
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
+    STAR     shift, and go to state 81
+    SLASH    shift, and go to state 82
+    PERCENT  shift, and go to state 83
 
-    LAND       reduce using rule 37 (ulogic_expr)
-    LAND       [reduce using rule 38 (rel_expr)]
-    LOR        reduce using rule 37 (ulogic_expr)
-    LOR        [reduce using rule 38 (rel_expr)]
-    EQUAL      [reduce using rule 38 (rel_expr)]
-    LESS       [reduce using rule 38 (rel_expr)]
-    GREATER    [reduce using rule 38 (rel_expr)]
-    LESSEQ     [reduce using rule 38 (rel_expr)]
-    GREATEREQ  [reduce using rule 38 (rel_expr)]
-    LBRACKET   reduce using rule 37 (ulogic_expr)
-    LBRACKET   [reduce using rule 38 (rel_expr)]
-    DOT        reduce using rule 37 (ulogic_expr)
-    DOT        [reduce using rule 38 (rel_expr)]
-    $default   reduce using rule 38 (rel_expr)
+    PLUS       reduce using rule 44 (term_expr)
+    PLUS       [reduce using rule 46 (term_expr)]
+    MINUS      reduce using rule 44 (term_expr)
+    MINUS      [reduce using rule 46 (term_expr)]
+    LAND       reduce using rule 44 (term_expr)
+    LAND       [reduce using rule 46 (term_expr)]
+    LOR        reduce using rule 44 (term_expr)
+    LOR        [reduce using rule 46 (term_expr)]
+    EQUAL      reduce using rule 44 (term_expr)
+    EQUAL      [reduce using rule 46 (term_expr)]
+    LESS       reduce using rule 44 (term_expr)
+    LESS       [reduce using rule 46 (term_expr)]
+    GREATER    reduce using rule 44 (term_expr)
+    GREATER    [reduce using rule 46 (term_expr)]
+    LESSEQ     reduce using rule 44 (term_expr)
+    LESSEQ     [reduce using rule 46 (term_expr)]
+    GREATEREQ  reduce using rule 44 (term_expr)
+    GREATEREQ  [reduce using rule 46 (term_expr)]
+    LBRACKET   reduce using rule 44 (term_expr)
+    LBRACKET   [reduce using rule 46 (term_expr)]
+    DOT        reduce using rule 44 (term_expr)
+    DOT        [reduce using rule 46 (term_expr)]
+    $default   reduce using rule 44 (term_expr)
 
 
 State 130
 
-   37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   39         | rel_expr . LESS rel_expr
-   39         | rel_expr LESS rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   40         | rel_expr . GREATER rel_expr
-   41         | rel_expr . LESSEQ rel_expr
-   42         | rel_expr . GREATEREQ rel_expr
+   45 term_expr: term_expr MINUS factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   46          | factor_expr .  [PLUS, MINUS, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
+   47 factor_expr: factor_expr . STAR power_expr
+   48            | factor_expr . SLASH power_expr
+   49            | factor_expr . PERCENT power_expr
 
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
+    STAR     shift, and go to state 81
+    SLASH    shift, and go to state 82
+    PERCENT  shift, and go to state 83
 
-    LAND       reduce using rule 37 (ulogic_expr)
-    LAND       [reduce using rule 39 (rel_expr)]
-    LOR        reduce using rule 37 (ulogic_expr)
-    LOR        [reduce using rule 39 (rel_expr)]
-    EQUAL      [reduce using rule 39 (rel_expr)]
-    LESS       [reduce using rule 39 (rel_expr)]
-    GREATER    [reduce using rule 39 (rel_expr)]
-    LESSEQ     [reduce using rule 39 (rel_expr)]
-    GREATEREQ  [reduce using rule 39 (rel_expr)]
-    LBRACKET   reduce using rule 37 (ulogic_expr)
-    LBRACKET   [reduce using rule 39 (rel_expr)]
-    DOT        reduce using rule 37 (ulogic_expr)
-    DOT        [reduce using rule 39 (rel_expr)]
-    $default   reduce using rule 39 (rel_expr)
+    PLUS       reduce using rule 45 (term_expr)
+    PLUS       [reduce using rule 46 (term_expr)]
+    MINUS      reduce using rule 45 (term_expr)
+    MINUS      [reduce using rule 46 (term_expr)]
+    LAND       reduce using rule 45 (term_expr)
+    LAND       [reduce using rule 46 (term_expr)]
+    LOR        reduce using rule 45 (term_expr)
+    LOR        [reduce using rule 46 (term_expr)]
+    EQUAL      reduce using rule 45 (term_expr)
+    EQUAL      [reduce using rule 46 (term_expr)]
+    LESS       reduce using rule 45 (term_expr)
+    LESS       [reduce using rule 46 (term_expr)]
+    GREATER    reduce using rule 45 (term_expr)
+    GREATER    [reduce using rule 46 (term_expr)]
+    LESSEQ     reduce using rule 45 (term_expr)
+    LESSEQ     [reduce using rule 46 (term_expr)]
+    GREATEREQ  reduce using rule 45 (term_expr)
+    GREATEREQ  [reduce using rule 46 (term_expr)]
+    LBRACKET   reduce using rule 45 (term_expr)
+    LBRACKET   [reduce using rule 46 (term_expr)]
+    DOT        reduce using rule 45 (term_expr)
+    DOT        [reduce using rule 46 (term_expr)]
+    $default   reduce using rule 45 (term_expr)
 
 
 State 131
 
    37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   39         | rel_expr . LESS rel_expr
-   40         | rel_expr . GREATER rel_expr
-   40         | rel_expr GREATER rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   41         | rel_expr . LESSEQ rel_expr
-   42         | rel_expr . GREATEREQ rel_expr
+   38 rel_expr: term_expr EQUAL rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
 
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
-
-    LAND       reduce using rule 37 (ulogic_expr)
-    LAND       [reduce using rule 40 (rel_expr)]
-    LOR        reduce using rule 37 (ulogic_expr)
-    LOR        [reduce using rule 40 (rel_expr)]
-    EQUAL      [reduce using rule 40 (rel_expr)]
-    LESS       [reduce using rule 40 (rel_expr)]
-    GREATER    [reduce using rule 40 (rel_expr)]
-    LESSEQ     [reduce using rule 40 (rel_expr)]
-    GREATEREQ  [reduce using rule 40 (rel_expr)]
-    LBRACKET   reduce using rule 37 (ulogic_expr)
-    LBRACKET   [reduce using rule 40 (rel_expr)]
-    DOT        reduce using rule 37 (ulogic_expr)
-    DOT        [reduce using rule 40 (rel_expr)]
-    $default   reduce using rule 40 (rel_expr)
+    LAND      reduce using rule 37 (ulogic_expr)
+    LAND      [reduce using rule 38 (rel_expr)]
+    LOR       reduce using rule 37 (ulogic_expr)
+    LOR       [reduce using rule 38 (rel_expr)]
+    LBRACKET  reduce using rule 37 (ulogic_expr)
+    LBRACKET  [reduce using rule 38 (rel_expr)]
+    DOT       reduce using rule 37 (ulogic_expr)
+    DOT       [reduce using rule 38 (rel_expr)]
+    $default  reduce using rule 38 (rel_expr)
 
 
 State 132
 
    37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   39         | rel_expr . LESS rel_expr
-   40         | rel_expr . GREATER rel_expr
-   41         | rel_expr . LESSEQ rel_expr
-   41         | rel_expr LESSEQ rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   42         | rel_expr . GREATEREQ rel_expr
+   39 rel_expr: term_expr LESS rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
 
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
-
-    LAND       reduce using rule 37 (ulogic_expr)
-    LAND       [reduce using rule 41 (rel_expr)]
-    LOR        reduce using rule 37 (ulogic_expr)
-    LOR        [reduce using rule 41 (rel_expr)]
-    EQUAL      [reduce using rule 41 (rel_expr)]
-    LESS       [reduce using rule 41 (rel_expr)]
-    GREATER    [reduce using rule 41 (rel_expr)]
-    LESSEQ     [reduce using rule 41 (rel_expr)]
-    GREATEREQ  [reduce using rule 41 (rel_expr)]
-    LBRACKET   reduce using rule 37 (ulogic_expr)
-    LBRACKET   [reduce using rule 41 (rel_expr)]
-    DOT        reduce using rule 37 (ulogic_expr)
-    DOT        [reduce using rule 41 (rel_expr)]
-    $default   reduce using rule 41 (rel_expr)
+    LAND      reduce using rule 37 (ulogic_expr)
+    LAND      [reduce using rule 39 (rel_expr)]
+    LOR       reduce using rule 37 (ulogic_expr)
+    LOR       [reduce using rule 39 (rel_expr)]
+    LBRACKET  reduce using rule 37 (ulogic_expr)
+    LBRACKET  [reduce using rule 39 (rel_expr)]
+    DOT       reduce using rule 37 (ulogic_expr)
+    DOT       [reduce using rule 39 (rel_expr)]
+    $default  reduce using rule 39 (rel_expr)
 
 
 State 133
 
    37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
-   38 rel_expr: rel_expr . EQUAL rel_expr
-   39         | rel_expr . LESS rel_expr
-   40         | rel_expr . GREATER rel_expr
-   41         | rel_expr . LESSEQ rel_expr
-   42         | rel_expr . GREATEREQ rel_expr
-   42         | rel_expr GREATEREQ rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   40 rel_expr: term_expr GREATER rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
 
-    EQUAL      shift, and go to state 74
-    LESS       shift, and go to state 75
-    GREATER    shift, and go to state 76
-    LESSEQ     shift, and go to state 77
-    GREATEREQ  shift, and go to state 78
-
-    LAND       reduce using rule 37 (ulogic_expr)
-    LAND       [reduce using rule 42 (rel_expr)]
-    LOR        reduce using rule 37 (ulogic_expr)
-    LOR        [reduce using rule 42 (rel_expr)]
-    EQUAL      [reduce using rule 42 (rel_expr)]
-    LESS       [reduce using rule 42 (rel_expr)]
-    GREATER    [reduce using rule 42 (rel_expr)]
-    LESSEQ     [reduce using rule 42 (rel_expr)]
-    GREATEREQ  [reduce using rule 42 (rel_expr)]
-    LBRACKET   reduce using rule 37 (ulogic_expr)
-    LBRACKET   [reduce using rule 42 (rel_expr)]
-    DOT        reduce using rule 37 (ulogic_expr)
-    DOT        [reduce using rule 42 (rel_expr)]
-    $default   reduce using rule 42 (rel_expr)
+    LAND      reduce using rule 37 (ulogic_expr)
+    LAND      [reduce using rule 40 (rel_expr)]
+    LOR       reduce using rule 37 (ulogic_expr)
+    LOR       [reduce using rule 40 (rel_expr)]
+    LBRACKET  reduce using rule 37 (ulogic_expr)
+    LBRACKET  [reduce using rule 40 (rel_expr)]
+    DOT       reduce using rule 37 (ulogic_expr)
+    DOT       [reduce using rule 40 (rel_expr)]
+    $default  reduce using rule 40 (rel_expr)
 
 
 State 134
 
-   43 rel_expr: term_expr .  [LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
-   44 term_expr: term_expr . PLUS term_expr
-   44          | term_expr PLUS term_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   45          | term_expr . MINUS term_expr
+   37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
+   41 rel_expr: term_expr LESSEQ rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
 
-    PLUS   shift, and go to state 79
-    MINUS  shift, and go to state 80
-
-    PLUS       [reduce using rule 44 (term_expr)]
-    MINUS      [reduce using rule 44 (term_expr)]
-    LAND       reduce using rule 43 (rel_expr)
-    LAND       [reduce using rule 44 (term_expr)]
-    LOR        reduce using rule 43 (rel_expr)
-    LOR        [reduce using rule 44 (term_expr)]
-    EQUAL      reduce using rule 43 (rel_expr)
-    EQUAL      [reduce using rule 44 (term_expr)]
-    LESS       reduce using rule 43 (rel_expr)
-    LESS       [reduce using rule 44 (term_expr)]
-    GREATER    reduce using rule 43 (rel_expr)
-    GREATER    [reduce using rule 44 (term_expr)]
-    LESSEQ     reduce using rule 43 (rel_expr)
-    LESSEQ     [reduce using rule 44 (term_expr)]
-    GREATEREQ  reduce using rule 43 (rel_expr)
-    GREATEREQ  [reduce using rule 44 (term_expr)]
-    LBRACKET   reduce using rule 43 (rel_expr)
-    LBRACKET   [reduce using rule 44 (term_expr)]
-    DOT        reduce using rule 43 (rel_expr)
-    DOT        [reduce using rule 44 (term_expr)]
-    $default   reduce using rule 44 (term_expr)
+    LAND      reduce using rule 37 (ulogic_expr)
+    LAND      [reduce using rule 41 (rel_expr)]
+    LOR       reduce using rule 37 (ulogic_expr)
+    LOR       [reduce using rule 41 (rel_expr)]
+    LBRACKET  reduce using rule 37 (ulogic_expr)
+    LBRACKET  [reduce using rule 41 (rel_expr)]
+    DOT       reduce using rule 37 (ulogic_expr)
+    DOT       [reduce using rule 41 (rel_expr)]
+    $default  reduce using rule 41 (rel_expr)
 
 
 State 135
 
-   43 rel_expr: term_expr .  [LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
-   44 term_expr: term_expr . PLUS term_expr
-   45          | term_expr . MINUS term_expr
-   45          | term_expr MINUS term_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   37 ulogic_expr: rel_expr .  [LAND, LOR, LBRACKET, DOT]
+   42 rel_expr: term_expr GREATEREQ rel_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LAND, LOR, LNOT, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
 
-    PLUS   shift, and go to state 79
-    MINUS  shift, and go to state 80
-
-    PLUS       [reduce using rule 45 (term_expr)]
-    MINUS      [reduce using rule 45 (term_expr)]
-    LAND       reduce using rule 43 (rel_expr)
-    LAND       [reduce using rule 45 (term_expr)]
-    LOR        reduce using rule 43 (rel_expr)
-    LOR        [reduce using rule 45 (term_expr)]
-    EQUAL      reduce using rule 43 (rel_expr)
-    EQUAL      [reduce using rule 45 (term_expr)]
-    LESS       reduce using rule 43 (rel_expr)
-    LESS       [reduce using rule 45 (term_expr)]
-    GREATER    reduce using rule 43 (rel_expr)
-    GREATER    [reduce using rule 45 (term_expr)]
-    LESSEQ     reduce using rule 43 (rel_expr)
-    LESSEQ     [reduce using rule 45 (term_expr)]
-    GREATEREQ  reduce using rule 43 (rel_expr)
-    GREATEREQ  [reduce using rule 45 (term_expr)]
-    LBRACKET   reduce using rule 43 (rel_expr)
-    LBRACKET   [reduce using rule 45 (term_expr)]
-    DOT        reduce using rule 43 (rel_expr)
-    DOT        [reduce using rule 45 (term_expr)]
-    $default   reduce using rule 45 (term_expr)
+    LAND      reduce using rule 37 (ulogic_expr)
+    LAND      [reduce using rule 42 (rel_expr)]
+    LOR       reduce using rule 37 (ulogic_expr)
+    LOR       [reduce using rule 42 (rel_expr)]
+    LBRACKET  reduce using rule 37 (ulogic_expr)
+    LBRACKET  [reduce using rule 42 (rel_expr)]
+    DOT       reduce using rule 37 (ulogic_expr)
+    DOT       [reduce using rule 42 (rel_expr)]
+    $default  reduce using rule 42 (rel_expr)
 
 
 State 136
 
-   46 term_expr: factor_expr .  [PLUS, MINUS, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
-   47 factor_expr: factor_expr . STAR factor_expr
-   47            | factor_expr STAR factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   48            | factor_expr . SLASH factor_expr
-   49            | factor_expr . PERCENT factor_expr
+   47 factor_expr: factor_expr STAR power_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   50            | power_expr .  [PLUS, MINUS, STAR, SLASH, PERCENT, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
+   51 power_expr: power_expr . DSTAR power_expr
 
-    STAR     shift, and go to state 81
-    SLASH    shift, and go to state 82
-    PERCENT  shift, and go to state 83
+    DSTAR  shift, and go to state 84
 
-    PLUS       reduce using rule 46 (term_expr)
-    PLUS       [reduce using rule 47 (factor_expr)]
-    MINUS      reduce using rule 46 (term_expr)
-    MINUS      [reduce using rule 47 (factor_expr)]
-    STAR       [reduce using rule 47 (factor_expr)]
-    SLASH      [reduce using rule 47 (factor_expr)]
-    PERCENT    [reduce using rule 47 (factor_expr)]
-    LAND       reduce using rule 46 (term_expr)
-    LAND       [reduce using rule 47 (factor_expr)]
-    LOR        reduce using rule 46 (term_expr)
-    LOR        [reduce using rule 47 (factor_expr)]
-    EQUAL      reduce using rule 46 (term_expr)
-    EQUAL      [reduce using rule 47 (factor_expr)]
-    LESS       reduce using rule 46 (term_expr)
-    LESS       [reduce using rule 47 (factor_expr)]
-    GREATER    reduce using rule 46 (term_expr)
-    GREATER    [reduce using rule 47 (factor_expr)]
-    LESSEQ     reduce using rule 46 (term_expr)
-    LESSEQ     [reduce using rule 47 (factor_expr)]
-    GREATEREQ  reduce using rule 46 (term_expr)
-    GREATEREQ  [reduce using rule 47 (factor_expr)]
-    LBRACKET   reduce using rule 46 (term_expr)
-    LBRACKET   [reduce using rule 47 (factor_expr)]
-    DOT        reduce using rule 46 (term_expr)
-    DOT        [reduce using rule 47 (factor_expr)]
+    PLUS       reduce using rule 47 (factor_expr)
+    PLUS       [reduce using rule 50 (factor_expr)]
+    MINUS      reduce using rule 47 (factor_expr)
+    MINUS      [reduce using rule 50 (factor_expr)]
+    STAR       reduce using rule 47 (factor_expr)
+    STAR       [reduce using rule 50 (factor_expr)]
+    SLASH      reduce using rule 47 (factor_expr)
+    SLASH      [reduce using rule 50 (factor_expr)]
+    PERCENT    reduce using rule 47 (factor_expr)
+    PERCENT    [reduce using rule 50 (factor_expr)]
+    LAND       reduce using rule 47 (factor_expr)
+    LAND       [reduce using rule 50 (factor_expr)]
+    LOR        reduce using rule 47 (factor_expr)
+    LOR        [reduce using rule 50 (factor_expr)]
+    EQUAL      reduce using rule 47 (factor_expr)
+    EQUAL      [reduce using rule 50 (factor_expr)]
+    LESS       reduce using rule 47 (factor_expr)
+    LESS       [reduce using rule 50 (factor_expr)]
+    GREATER    reduce using rule 47 (factor_expr)
+    GREATER    [reduce using rule 50 (factor_expr)]
+    LESSEQ     reduce using rule 47 (factor_expr)
+    LESSEQ     [reduce using rule 50 (factor_expr)]
+    GREATEREQ  reduce using rule 47 (factor_expr)
+    GREATEREQ  [reduce using rule 50 (factor_expr)]
+    LBRACKET   reduce using rule 47 (factor_expr)
+    LBRACKET   [reduce using rule 50 (factor_expr)]
+    DOT        reduce using rule 47 (factor_expr)
+    DOT        [reduce using rule 50 (factor_expr)]
     $default   reduce using rule 47 (factor_expr)
 
 
 State 137
 
-   46 term_expr: factor_expr .  [PLUS, MINUS, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
-   47 factor_expr: factor_expr . STAR factor_expr
-   48            | factor_expr . SLASH factor_expr
-   48            | factor_expr SLASH factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
-   49            | factor_expr . PERCENT factor_expr
+   48 factor_expr: factor_expr SLASH power_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   50            | power_expr .  [PLUS, MINUS, STAR, SLASH, PERCENT, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
+   51 power_expr: power_expr . DSTAR power_expr
 
-    STAR     shift, and go to state 81
-    SLASH    shift, and go to state 82
-    PERCENT  shift, and go to state 83
+    DSTAR  shift, and go to state 84
 
-    PLUS       reduce using rule 46 (term_expr)
-    PLUS       [reduce using rule 48 (factor_expr)]
-    MINUS      reduce using rule 46 (term_expr)
-    MINUS      [reduce using rule 48 (factor_expr)]
-    STAR       [reduce using rule 48 (factor_expr)]
-    SLASH      [reduce using rule 48 (factor_expr)]
-    PERCENT    [reduce using rule 48 (factor_expr)]
-    LAND       reduce using rule 46 (term_expr)
-    LAND       [reduce using rule 48 (factor_expr)]
-    LOR        reduce using rule 46 (term_expr)
-    LOR        [reduce using rule 48 (factor_expr)]
-    EQUAL      reduce using rule 46 (term_expr)
-    EQUAL      [reduce using rule 48 (factor_expr)]
-    LESS       reduce using rule 46 (term_expr)
-    LESS       [reduce using rule 48 (factor_expr)]
-    GREATER    reduce using rule 46 (term_expr)
-    GREATER    [reduce using rule 48 (factor_expr)]
-    LESSEQ     reduce using rule 46 (term_expr)
-    LESSEQ     [reduce using rule 48 (factor_expr)]
-    GREATEREQ  reduce using rule 46 (term_expr)
-    GREATEREQ  [reduce using rule 48 (factor_expr)]
-    LBRACKET   reduce using rule 46 (term_expr)
-    LBRACKET   [reduce using rule 48 (factor_expr)]
-    DOT        reduce using rule 46 (term_expr)
-    DOT        [reduce using rule 48 (factor_expr)]
+    PLUS       reduce using rule 48 (factor_expr)
+    PLUS       [reduce using rule 50 (factor_expr)]
+    MINUS      reduce using rule 48 (factor_expr)
+    MINUS      [reduce using rule 50 (factor_expr)]
+    STAR       reduce using rule 48 (factor_expr)
+    STAR       [reduce using rule 50 (factor_expr)]
+    SLASH      reduce using rule 48 (factor_expr)
+    SLASH      [reduce using rule 50 (factor_expr)]
+    PERCENT    reduce using rule 48 (factor_expr)
+    PERCENT    [reduce using rule 50 (factor_expr)]
+    LAND       reduce using rule 48 (factor_expr)
+    LAND       [reduce using rule 50 (factor_expr)]
+    LOR        reduce using rule 48 (factor_expr)
+    LOR        [reduce using rule 50 (factor_expr)]
+    EQUAL      reduce using rule 48 (factor_expr)
+    EQUAL      [reduce using rule 50 (factor_expr)]
+    LESS       reduce using rule 48 (factor_expr)
+    LESS       [reduce using rule 50 (factor_expr)]
+    GREATER    reduce using rule 48 (factor_expr)
+    GREATER    [reduce using rule 50 (factor_expr)]
+    LESSEQ     reduce using rule 48 (factor_expr)
+    LESSEQ     [reduce using rule 50 (factor_expr)]
+    GREATEREQ  reduce using rule 48 (factor_expr)
+    GREATEREQ  [reduce using rule 50 (factor_expr)]
+    LBRACKET   reduce using rule 48 (factor_expr)
+    LBRACKET   [reduce using rule 50 (factor_expr)]
+    DOT        reduce using rule 48 (factor_expr)
+    DOT        [reduce using rule 50 (factor_expr)]
     $default   reduce using rule 48 (factor_expr)
 
 
 State 138
 
-   46 term_expr: factor_expr .  [PLUS, MINUS, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
-   47 factor_expr: factor_expr . STAR factor_expr
-   48            | factor_expr . SLASH factor_expr
-   49            | factor_expr . PERCENT factor_expr
-   49            | factor_expr PERCENT factor_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   49 factor_expr: factor_expr PERCENT power_expr .  [$end, IF, THEN, ELSE, WHILE, FOR, DO, FUNC, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, PLUS, MINUS, STAR, SLASH, PERCENT, BNOT, LAND, LOR, LNOT, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, DOT, SEMICOLON, COMMA, POUND]
+   50            | power_expr .  [PLUS, MINUS, STAR, SLASH, PERCENT, LAND, LOR, EQUAL, LESS, GREATER, LESSEQ, GREATEREQ, LBRACKET, DOT]
+   51 power_expr: power_expr . DSTAR power_expr
 
-    STAR     shift, and go to state 81
-    SLASH    shift, and go to state 82
-    PERCENT  shift, and go to state 83
+    DSTAR  shift, and go to state 84
 
-    PLUS       reduce using rule 46 (term_expr)
-    PLUS       [reduce using rule 49 (factor_expr)]
-    MINUS      reduce using rule 46 (term_expr)
-    MINUS      [reduce using rule 49 (factor_expr)]
-    STAR       [reduce using rule 49 (factor_expr)]
-    SLASH      [reduce using rule 49 (factor_expr)]
-    PERCENT    [reduce using rule 49 (factor_expr)]
-    LAND       reduce using rule 46 (term_expr)
-    LAND       [reduce using rule 49 (factor_expr)]
-    LOR        reduce using rule 46 (term_expr)
-    LOR        [reduce using rule 49 (factor_expr)]
-    EQUAL      reduce using rule 46 (term_expr)
-    EQUAL      [reduce using rule 49 (factor_expr)]
-    LESS       reduce using rule 46 (term_expr)
-    LESS       [reduce using rule 49 (factor_expr)]
-    GREATER    reduce using rule 46 (term_expr)
-    GREATER    [reduce using rule 49 (factor_expr)]
-    LESSEQ     reduce using rule 46 (term_expr)
-    LESSEQ     [reduce using rule 49 (factor_expr)]
-    GREATEREQ  reduce using rule 46 (term_expr)
-    GREATEREQ  [reduce using rule 49 (factor_expr)]
-    LBRACKET   reduce using rule 46 (term_expr)
-    LBRACKET   [reduce using rule 49 (factor_expr)]
-    DOT        reduce using rule 46 (term_expr)
-    DOT        [reduce using rule 49 (factor_expr)]
+    PLUS       reduce using rule 49 (factor_expr)
+    PLUS       [reduce using rule 50 (factor_expr)]
+    MINUS      reduce using rule 49 (factor_expr)
+    MINUS      [reduce using rule 50 (factor_expr)]
+    STAR       reduce using rule 49 (factor_expr)
+    STAR       [reduce using rule 50 (factor_expr)]
+    SLASH      reduce using rule 49 (factor_expr)
+    SLASH      [reduce using rule 50 (factor_expr)]
+    PERCENT    reduce using rule 49 (factor_expr)
+    PERCENT    [reduce using rule 50 (factor_expr)]
+    LAND       reduce using rule 49 (factor_expr)
+    LAND       [reduce using rule 50 (factor_expr)]
+    LOR        reduce using rule 49 (factor_expr)
+    LOR        [reduce using rule 50 (factor_expr)]
+    EQUAL      reduce using rule 49 (factor_expr)
+    EQUAL      [reduce using rule 50 (factor_expr)]
+    LESS       reduce using rule 49 (factor_expr)
+    LESS       [reduce using rule 50 (factor_expr)]
+    GREATER    reduce using rule 49 (factor_expr)
+    GREATER    [reduce using rule 50 (factor_expr)]
+    LESSEQ     reduce using rule 49 (factor_expr)
+    LESSEQ     [reduce using rule 50 (factor_expr)]
+    GREATEREQ  reduce using rule 49 (factor_expr)
+    GREATEREQ  [reduce using rule 50 (factor_expr)]
+    LBRACKET   reduce using rule 49 (factor_expr)
+    LBRACKET   [reduce using rule 50 (factor_expr)]
+    DOT        reduce using rule 49 (factor_expr)
+    DOT        [reduce using rule 50 (factor_expr)]
     $default   reduce using rule 49 (factor_expr)
 
 
@@ -7643,23 +7561,23 @@ State 145
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -7921,23 +7839,23 @@ State 156
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8051,23 +7969,23 @@ State 157
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8263,23 +8181,23 @@ State 167
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8451,23 +8369,23 @@ State 173
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8569,23 +8487,23 @@ State 174
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8679,23 +8597,23 @@ State 175
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8805,23 +8723,23 @@ State 176
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -8934,23 +8852,23 @@ State 177
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr
@@ -9062,23 +8980,23 @@ State 178
    30     | . ex_index_expr ASSIGNBOR expr
    31     | . ex_index_expr ASSIGNBXOR expr
    32     | . logic_expr
-   33 logic_expr: . logic_expr LAND logic_expr
-   34           | . logic_expr LOR logic_expr
+   33 logic_expr: . logic_expr LAND ulogic_expr
+   34           | . logic_expr LOR ulogic_expr
    35           | . ulogic_expr
    36 ulogic_expr: . LNOT ulogic_expr
    37            | . rel_expr
-   38 rel_expr: . rel_expr EQUAL rel_expr
-   39         | . rel_expr LESS rel_expr
-   40         | . rel_expr GREATER rel_expr
-   41         | . rel_expr LESSEQ rel_expr
-   42         | . rel_expr GREATEREQ rel_expr
+   38 rel_expr: . term_expr EQUAL rel_expr
+   39         | . term_expr LESS rel_expr
+   40         | . term_expr GREATER rel_expr
+   41         | . term_expr LESSEQ rel_expr
+   42         | . term_expr GREATEREQ rel_expr
    43         | . term_expr
-   44 term_expr: . term_expr PLUS term_expr
-   45          | . term_expr MINUS term_expr
+   44 term_expr: . term_expr PLUS factor_expr
+   45          | . term_expr MINUS factor_expr
    46          | . factor_expr
-   47 factor_expr: . factor_expr STAR factor_expr
-   48            | . factor_expr SLASH factor_expr
-   49            | . factor_expr PERCENT factor_expr
+   47 factor_expr: . factor_expr STAR power_expr
+   48            | . factor_expr SLASH power_expr
+   49            | . factor_expr PERCENT power_expr
    50            | . power_expr
    51 power_expr: . power_expr DSTAR power_expr
    52           | . binary_expr

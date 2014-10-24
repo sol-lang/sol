@@ -246,8 +246,8 @@ expr:
 ;
 
 logic_expr:
-  logic_expr LAND logic_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LAND; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| logic_expr LOR logic_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  logic_expr LAND ulogic_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LAND; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| logic_expr LOR ulogic_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LOR; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | ulogic_expr { $$ = $1; }
 ;
 
@@ -257,24 +257,24 @@ ulogic_expr:
 ;
 
 rel_expr:
-  rel_expr EQUAL rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_EQUAL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| rel_expr LESS rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESS; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| rel_expr GREATER rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_GREATER; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| rel_expr LESSEQ rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESSEQ; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| rel_expr GREATEREQ rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_GREATEREQ; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  term_expr EQUAL rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_EQUAL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr LESS rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESS; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr GREATER rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_GREATER; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr LESSEQ rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESSEQ; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr GREATEREQ rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_GREATEREQ; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | term_expr { $$ = $1; }
 ;
 
 term_expr:
-  term_expr PLUS term_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_ADD; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| term_expr MINUS term_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_SUB; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  term_expr PLUS factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_ADD; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr MINUS factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_SUB; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | factor_expr { $$ = $1; }
 ;
 
 factor_expr:
-  factor_expr STAR factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MUL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| factor_expr SLASH factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_DIV; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
-| factor_expr PERCENT factor_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MOD; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  factor_expr STAR power_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MUL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| factor_expr SLASH power_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_DIV; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| factor_expr PERCENT power_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_MOD; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | power_expr { $$ = $1; }
 ;
 
