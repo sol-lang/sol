@@ -178,6 +178,8 @@ typedef struct tag_stmt_node {
 #define BOOL_TO_INT(cond) ((cond)?1:0)
 
 sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
+sol_object_t *sol_new_stmtnode(sol_state_t *, stmt_node *);
+sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 
 // runtime.c
 

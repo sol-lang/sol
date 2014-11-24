@@ -68,6 +68,14 @@ print(try(bad, test2))
 print(bad(test1))
 --print(bad(test2))
 
+print('--- Induced errors')
+
+func raise(x)
+	error(x)
+end
+
+print(try(raise, "lp0 on fire"))
+
 print('--- Indexing')
 
 print(d["integer"])
@@ -81,7 +89,7 @@ func outer(a)
 	func inner(b)
 		return a+b
 	end
-	inner.a = a
+	inner.closure.a = a
 	return inner
 end
 
@@ -97,7 +105,7 @@ func myiter()
 	i+=1
 	return i-1
 end
-myiter.i = 1
+myiter.closure.i = 1
 
 for i in myiter do print(i) end
 
@@ -184,5 +192,129 @@ print('--- Modulus')
 print(5%3)
 print(13%5)
 print(15%15)
+
+print('--- Special function manipulation')
+
+func foo(x)
+	return x
+end
+
+print(foo)
+foo.name = "bar"
+print(foo)
+
+func something()
+	return i
+end
+
+something.closure = {i=[1, 2, 3]}
+print(something())
+
+cl = something.closure
+cl.i:insert(0, "b")
+print(something())
+
+print('--- Function body swapping')
+
+func a()
+	return 0
+end
+
+func b()
+	return 2
+end
+
+print(a, a())
+print(b, b())
+
+print(a.stmt)
+print(b.stmt)
+
+temp = a.stmt
+a.stmt = b.stmt
+b.stmt = temp
+
+print(a, a())
+print(b, b())
+
+newbody = parse('return 4')
+print(newbody)
+
+a.stmt = newbody
+b.stmt = newbody
+
+print(a, a())
+print(b, b())
+
+print('--- More complicated ASTs')
+
+print(outer, outer.stmt, outer.stmt.stmtlist)
+
+print('--- Exec- and eval-by-parse')
+
+parse('print("Hello from parse()!")')()
+print(parse('5 + 3').stmtlist[0].expr())
+
+print('--- Mutating ASTs')
+
+func f()
+	return 5 + 7
+end
+
+print(f, f.stmt, f())
+
+f.stmt.stmtlist[0].ret.right.ival = 11
+
+print(f, f.stmt, f())
+
+func g()
+	a=1
+	b=2
+	print("a=", a, ", b=", b)
+end
+
+print(g, g.stmt, g())
+
+g.stmt.stmtlist[1].expr.value = parse('a').stmtlist[0].expr
+
+print(g, g.stmt, g())
+
+print('--- AST Environments')
+
+code = parse('print("a is", a, "and b is", b"); a = 4; b = 5')
+print(code)
+code()
+
+d = {a=1, b=2}
+print(d)
+code(d)
+print(d)
+e = {a="hello", b=["world"]}
+print(e)
+code(e)
+print(e)
+
+e = {a=1, b=2}
+d = {__index = e}
+print(d)
+print(e)
+code(d)
+print(d)
+print(e)
+
+print('--- Basic buffers')
+
+b = buffer.fromstring("Hello, world!")
+print(b)
+print(b:get(buffer.type.cstr))
+b:set(buffer.type.char, "Q")
+b:set(buffer.type.char, "L", 2)
+print(b:get(buffer.type.cstr))
+print(b:get(buffer.type.cstr, 5))
+print(b:get(buffer.type.uint32))
+--b:set(buffer.type.double, 1.243416560929)
+b:set(buffer.type.uint32, 1886545252)
+print(b:get(buffer.type.uint32))
+print(b:get(buffer.type.cstr))
 
 print('--- All done!')

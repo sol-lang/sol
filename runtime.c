@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 #include "ast.h"
 
 expr_node *sol_comp_as_expr(stmt_node *stmt) {
@@ -162,11 +163,13 @@ void ex_free(expr_node *expr) {
     free(expr);
 }
 
-sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
+#define ERR_CHECK(state) do { if(sol_has_error(state)) longjmp(jmp, 1); } while(0)
+sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
     sol_object_t *res, *left, *right, *lint, *rint, *value, *list;
     exprlist_node *cure;
     assoclist_node *cura;
     if(!expr) return sol_set_error_string(state, "Evaluate NULL expression");
+	ERR_CHECK(state);
     switch(expr->type) {
         case EX_LIT:
             switch(expr->lit->type) {
@@ -192,7 +195,8 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             res = sol_new_list(state);
             cure = expr->listgen->list;
             while(cure) {
-                if(cure->expr) sol_list_insert(state, res, sol_list_len(state, res), sol_eval(state, cure->expr));
+                if(cure->expr) sol_list_insert(state, res, sol_list_len(state, res), sol_eval_inner(state, cure->expr, jmp));
+				ERR_CHECK(state);
                 cure = cure->next;
             }
             return res;
@@ -202,7 +206,8 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             res = sol_new_map(state);
             cura = expr->mapgen->map;
             while(cura) {
-                if(cura->item) sol_map_set(state, res, sol_eval(state, cura->item->key), sol_eval(state, cura->item->value));
+                if(cura->item) sol_map_set(state, res, sol_eval(state, cura->item->key), sol_eval_inner(state, cura->item->value, jmp));
+				ERR_CHECK(state);
                 cura = cura->next;
             }
             return res;
@@ -210,8 +215,11 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 
         case EX_BINOP:
             list = sol_new_list(state);
-            left = sol_eval(state, expr->binop->left);
-            right = sol_eval(state, expr->binop->right);
+			ERR_CHECK(state);
+            left = sol_eval_inner(state, expr->binop->left, jmp);
+			ERR_CHECK(state);
+            right = sol_eval_inner(state, expr->binop->right, jmp);
+			ERR_CHECK(state);
             sol_list_insert(state, list, 0, left);
             sol_list_insert(state, list, 1, right);
             switch(expr->binop->type) {
@@ -253,7 +261,9 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 
                 case OP_LAND:
                     lint = sol_cast_int(state, left);
+					ERR_CHECK(state);
                     rint = sol_cast_int(state, right);
+					ERR_CHECK(state);
                     res = sol_new_int(state, BOOL_TO_INT(lint && rint));
                     sol_obj_free(lint);
                     sol_obj_free(rint);
@@ -261,7 +271,9 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 
                 case OP_LOR:
                     lint = sol_cast_int(state, left);
+					ERR_CHECK(state);
                     rint = sol_cast_int(state, right);
+					ERR_CHECK(state);
                     res = sol_new_int(state, BOOL_TO_INT(lint || rint));
                     sol_obj_free(lint);
                     sol_obj_free(rint);
@@ -298,12 +310,15 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             sol_obj_free(list);
             sol_obj_free(left);
             sol_obj_free(right);
+			ERR_CHECK(state);
             return res;
             break;
 
         case EX_UNOP:
-            left = sol_eval(state, expr->unop->expr);
+            left = sol_eval_inner(state, expr->unop->expr, jmp);
+			ERR_CHECK(state);
             list = sol_new_list(state);
+			ERR_CHECK(state);
             sol_list_insert(state, list, 0, left);
             switch(expr->unop->type) {
                 case OP_NEG:
@@ -319,6 +334,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 
                 case OP_LNOT:
                     lint = sol_cast_int(state, left);
+					ERR_CHECK(state);
                     res = sol_new_int(state, BOOL_TO_INT(!lint->ival));
                     sol_obj_free(lint);
                     break;
@@ -329,27 +345,36 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             }
             sol_obj_free(left);
             sol_obj_free(list);
+			ERR_CHECK(state);
             return res;
             break;
 
         case EX_INDEX:
-            left = sol_eval(state, expr->index->expr);
-            right = sol_eval(state, expr->index->index);
+            left = sol_eval_inner(state, expr->index->expr, jmp);
+			ERR_CHECK(state);
+            right = sol_eval_inner(state, expr->index->index, jmp);
+			ERR_CHECK(state);
             list = sol_new_list(state);
+			ERR_CHECK(state);
             sol_list_insert(state, list, 0, left);
             sol_list_insert(state, list, 1, right);
             res = left->ops->index(state, list);
             sol_obj_free(left);
             sol_obj_free(right);
             sol_obj_free(list);
+			ERR_CHECK(state);
             return res;
             break;
 
         case EX_SETINDEX:
-            left = sol_eval(state, expr->setindex->expr);
-            right = sol_eval(state, expr->setindex->index);
-            value = sol_eval(state, expr->setindex->value);
+            left = sol_eval_inner(state, expr->setindex->expr, jmp);
+			ERR_CHECK(state);
+            right = sol_eval_inner(state, expr->setindex->index, jmp);
+			ERR_CHECK(state);
+            value = sol_eval_inner(state, expr->setindex->value, jmp);
+			ERR_CHECK(state);
             list = sol_new_list(state);
+			ERR_CHECK(state);
             sol_list_insert(state, list, 0, left);
             sol_list_insert(state, list, 1, right);
             sol_list_insert(state, list, 2, value);
@@ -358,12 +383,14 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             sol_obj_free(right);
             sol_obj_free(value);
             sol_obj_free(list);
+			ERR_CHECK(state);
             return res;
             break;
 
         case EX_ASSIGN:
-            value = sol_eval(state, expr->assign->value);
+            value = sol_eval_inner(state, expr->assign->value, jmp);
             sol_state_assign_l_name(state, expr->assign->ident, value);
+			ERR_CHECK(state);
             return value;
             break;
 
@@ -372,30 +399,45 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
             break;
 
         case EX_CALL:
-            value = sol_eval(state, expr->call->expr);
+            value = sol_eval_inner(state, expr->call->expr, jmp);
+			ERR_CHECK(state);
             list = sol_new_list(state);
+			ERR_CHECK(state);
             sol_list_insert(state, list, 0, value);
             cure = expr->call->args;
             while(cure) {
-                if(cure->expr) sol_list_insert(state, list, sol_list_len(state, list), sol_eval(state, cure->expr));
+                if(cure->expr) sol_list_insert(state, list, sol_list_len(state, list), sol_eval_inner(state, cure->expr, jmp));
+				ERR_CHECK(state);
                 cure = cure->next;
             }
             res = value->ops->call(state, list);
             sol_obj_free(value);
             sol_obj_free(list);
+			ERR_CHECK(state);
             return res;
             break;
 
         case EX_FUNCDECL:
             res = sol_new_func(state, expr->funcdecl->args, expr->funcdecl->body, expr->funcdecl->name);
+			ERR_CHECK(state);
             if(expr->funcdecl->name) {
                 sol_state_assign_l_name(state, expr->funcdecl->name, res);
+				ERR_CHECK(state);
             }
             return res;
             break;
     }
     printf("WARNING: Unhandled expression returning None");
     return sol_incref(state->None);
+}
+
+sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
+	jmp_buf jmp;
+	if(!setjmp(jmp)) {
+		return sol_eval_inner(state, expr, jmp);
+	} else {
+		return sol_incref(state->None);
+	}
 }
 
 void sol_exec(sol_state_t *state, stmt_node *stmt) {
@@ -497,32 +539,31 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 }
 
 sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *res, *scope, *value, *curo = args, *key;
+    sol_object_t *res, *scope, *value, *key;
     identlist_node *curi;
-	while(curo && !curo->lvalue) curo = curo->lnext;
-	if(!curo) {
+	dsl_seq_iter *iter;
+	iter = dsl_new_seq_iter(args->seq);
+	if(!args || dsl_seq_iter_is_invalid(iter) || sol_is_none(state, args)) {
         printf("WARNING: No parameters to function call (expecting function)\n");
         return sol_incref(state->None);
     }
-    value = curo->lvalue;
+    value = dsl_seq_iter_at(iter);
 	if(!value || !sol_is_func(value)) {
         printf("WARNING: Function call without function as first parameter\n");
         return sol_incref(state->None);
     }
     if(!value->func) return sol_incref(state->None);
-    curo = curo->lnext;
-	while(curo && !curo->lvalue) curo = curo->lnext;
+    dsl_seq_iter_next(iter);
     scope = sol_map_copy(state, value->closure);
     curi = AS(value->args, identlist_node);
     while(curi) {
         if(curi->ident) {
             key = sol_new_string(state, curi->ident);
-            if(!(curo && curo->lvalue)) {
+            if(dsl_seq_iter_is_invalid(iter)) {
                 sol_map_set(state, scope, key, sol_incref(state->None));
             } else {
-                sol_map_set(state, scope, key, curo->lvalue);
-                curo = curo->lnext;
-				while(curo && !curo->lvalue) curo = curo->lnext;
+                sol_map_set(state, scope, key, dsl_seq_iter_at(iter));
+                dsl_seq_iter_next(iter);
             }
             sol_obj_free(key);
             curi = curi->next;
@@ -554,7 +595,26 @@ sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_n
     obj->args = identlist;
 	obj->fname = (name?strdup(name):NULL);
     obj->closure = sol_new_map(state);
+	obj->udata = sol_new_map(state);
     obj->type = SOL_FUNCTION;
     obj->ops = &(state->FuncOps);
     return obj;
+}
+
+sol_object_t *sol_new_stmtnode(sol_state_t *state, stmt_node *stmt) {
+	sol_object_t *obj = sol_alloc_object(state);
+	if(sol_has_error(state)) return sol_incref(state->None);
+	obj->type = SOL_STMT;
+	obj->ops = &(state->ASTNodeOps);
+	obj->node = stmt;
+	return obj;
+}
+
+sol_object_t *sol_new_exprnode(sol_state_t *state, expr_node *expr) {
+	sol_object_t *obj = sol_alloc_object(state);
+	if(sol_has_error(state)) return sol_incref(state->None);
+	obj->type = SOL_EXPR;
+	obj->ops = &(state->ASTNodeOps);
+	obj->node = expr;
+	return obj;
 }

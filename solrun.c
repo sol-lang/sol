@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
 			printf("\n");
 		}
 		//st_free(program);
+		sol_state_cleanup(&state);
         return 0;
     }
 
