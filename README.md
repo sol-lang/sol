@@ -12,7 +12,7 @@ Sol a scripting language (whose name is subject to change) that aims to take the
 
 Here's a taste of what the language itself looks like:
 
-```
+```lua
 -- This is a comment, and there's an assignment below!
 a = 1
 while a < 10 do
@@ -152,6 +152,8 @@ After those (but more practically, with them), the following will be coming:
 **Optimization.** As mentioned above, a few critical operations are quite slow. This will probably require some higher-caliber data structures than the ones I have now, most of which will probably be relegated to DSL for code reuse.
 
 **Makefiles.** Being a non-conformist is fun, but will probably hurt in the long run :P
+
+**Documentation.** More thorough documentation will be coming soon, I promise.
 
 Contributing
 ------------
