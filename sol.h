@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include "dsl/dsl.h"
 
+#define VERSION "0.1a0"
+#define HEXVER 0x0001A00
+
 // Forward declarations:
 struct sol_tag_object_t;
 typedef struct sol_tag_object_t sol_object_t;
@@ -287,6 +290,9 @@ sol_object_t *sol_f_str_toint(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tofloat(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tostring(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_repr(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_str_sub(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_split(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_list_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_mul(sol_state_t *, sol_object_t *);

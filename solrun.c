@@ -7,6 +7,7 @@ int main(int argc, char **argv) {
     sol_state_t state;
     char *c;
     int printtree = 0;
+	FILE *prgstream = stdin;
 
     if(argc>1) {
         c = argv[1];
@@ -19,12 +20,26 @@ int main(int argc, char **argv) {
                 case 't':
                     printtree = 1;
                     break;
+					
+				case 'r':
+					if(argc<2) {
+						printf("r option requires file\n");
+						return 1;
+					}
+					prgstream = fopen(argv[2], "r");
             }
             c++;
         }
     }
+    
+    if(!prgstream) {
+		printf("No input program (check filenames)\n");
+		return 1;
+	}
 
-    program = sol_compile_file(stdin);
+    program = sol_compile_file(prgstream);
+	
+	if(prgstream!=stdin) fclose(prgstream);
 
     if(printtree) st_print(program);
 

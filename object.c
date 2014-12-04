@@ -100,10 +100,6 @@ void sol_obj_release(sol_object_t *obj) {
 
 sol_object_t *sol_new_int(sol_state_t *state, long i) {
 	sol_object_t *res = sol_alloc_object(state);
-	if(sol_has_error(state)) {
-		sol_obj_free(res);
-		return sol_incref(state->None);
-	}
 	res->type = SOL_INTEGER;
 	res->ival = i;
 	res->ops = &(state->IntOps);
@@ -113,10 +109,6 @@ sol_object_t *sol_new_int(sol_state_t *state, long i) {
 
 sol_object_t *sol_new_float(sol_state_t *state, double f) {
 	sol_object_t *res = sol_alloc_object(state);
-	if(sol_has_error(state)) {
-		sol_obj_free(res);
-		return sol_incref(state->None);
-	}
 	res->type = SOL_FLOAT;
 	res->fval = f;
 	res->ops = &(state->FloatOps);
@@ -126,10 +118,6 @@ sol_object_t *sol_new_float(sol_state_t *state, double f) {
 
 sol_object_t *sol_new_string(sol_state_t *state, const char *s) {
 	sol_object_t *res = sol_alloc_object(state);
-	if(sol_has_error(state)) {
-		sol_obj_free(res);
-		return sol_incref(state->None);
-	}
 	res->type = SOL_STRING;
 	res->str = strdup(s);
 	if(!res->str) {
@@ -171,10 +159,6 @@ sol_object_t *sol_f_str_free(sol_state_t *state, sol_object_t *obj) {
 
 sol_object_t *sol_new_list(sol_state_t *state) {
 	sol_object_t *res = sol_alloc_object(state);
-	if(sol_has_error(state)) {
-		sol_obj_free(res);
-		return sol_incref(state->None);
-	}
 	res->type = SOL_LIST;
 	res->seq = dsl_seq_new_array(NULL, &(state->obfuncs));
 	res->ops = &(state->ListOps);
@@ -184,10 +168,6 @@ sol_object_t *sol_new_list(sol_state_t *state) {
 
 sol_object_t *sol_list_from_seq(sol_state_t *state, dsl_seq *seq) {
 	sol_object_t *res = sol_alloc_object(state);
-	if(sol_has_error(state)) {
-		sol_obj_free(res);
-		return sol_incref(state->None);
-	}
 	res->type = SOL_LIST;
 	res->seq = seq;
 	res->ops = &(state->ListOps);
@@ -309,7 +289,6 @@ int sol_validate_list(sol_state_t *state, sol_object_t *list) {
 
 sol_object_t *sol_new_map(sol_state_t *state) {
     sol_object_t *map = sol_alloc_object(state);
-    if(sol_has_error(state)) return sol_incref(state->None);
     map->type = SOL_MAP;
     map->ops = &(state->MapOps);
     map->seq = dsl_seq_new_array(NULL, &(state->obfuncs));

@@ -368,4 +368,27 @@ print('...restored.')
 print('Output was:')
 prepr(io.open('stdout', io.MODE_READ):read(io.ALL))
 
+print('--- Substrings')
+
+s = 'This is a test!'
+prepr(s)
+prepr(s:sub(1, -1))
+prepr(s:sub(3, -3))
+prepr(s:sub(3, 5))
+prepr(s:sub(3, 11))
+prepr(s:sub(-1000, -1000))
+
+print('--- Splitting')
+s = 'This is a test!'
+prepr(s)
+prepr(s:split(' '))
+prepr(s:split('i'))
+prepr(s:split('0'))
+prepr(s:split('aeiou'))
+
+l = s:split(' ')
+for i in l do
+	prepr(i, type(i))
+end
+
 print('--- All done!')

@@ -186,6 +186,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, mod, "globals", sol_new_cfunc(state, sol_f_debug_globals));
 	sol_map_set_name(state, mod, "locals", sol_new_cfunc(state, sol_f_debug_locals));
 	sol_map_set_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes));
+	sol_map_set_name(state, mod, "version", sol_new_string(state, VERSION));
+	sol_map_set_name(state, mod, "hexversion", sol_new_int(state, HEXVER));
 	sol_register_module_name(state, "debug", mod);
 	sol_obj_free(mod);
 	
@@ -359,6 +361,12 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, meths, "tell", sol_new_cfunc(state, sol_f_stream_tell));
 	sol_map_set_name(state, meths, "flush", sol_new_cfunc(state, sol_f_stream_flush));
 	sol_register_methods_name(state, "stream", meths);
+	sol_obj_free(meths);
+	
+	meths = sol_new_map(state);
+	sol_map_set_name(state, meths, "sub", sol_new_cfunc(state, sol_f_str_sub));
+	sol_map_set_name(state, meths, "split", sol_new_cfunc(state, sol_f_str_split));
+	sol_register_methods_name(state, "string", meths);
 	sol_obj_free(meths);
 	
 	if(sol_has_error(state)) goto cleanup;
