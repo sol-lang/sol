@@ -10,5 +10,4 @@ gcc -c -g object.c
 gcc -c -g state.c
 gcc -c -g builtins.c
 gcc -c -g solrun.c
-gcc -c -g dummypow.c
-gcc -g -lm *.o -o sol
+gcc -g *.o -o sol -lm -ldl

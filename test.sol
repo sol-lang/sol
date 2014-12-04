@@ -304,8 +304,10 @@ print(e)
 
 print('--- Basic buffers')
 
+print('(buffer.fromstring = ', buffer.fromstring, ')')
 b = buffer.fromstring("Hello, world!")
 print(b)
+print('(b.get = ', b.get, ')')
 print(b:get(buffer.type.cstr))
 b:set(buffer.type.char, "Q")
 b:set(buffer.type.char, "L", 2)
@@ -316,5 +318,54 @@ print(b:get(buffer.type.uint32))
 b:set(buffer.type.uint32, 1886545252)
 print(b:get(buffer.type.uint32))
 print(b:get(buffer.type.cstr))
+q = buffer.fromaddress(b:address(), b:size())
+print(q:get(buffer.type.cstr))
+q:set(buffer.type.cstr, "Goodbye!")
+print(q:get(buffer.type.cstr), b:get(buffer.type.cstr))
+
+s = "A string!"
+b = buffer.fromobject(s)
+prepr(s)
+print('...is a', buffer.objtype[b:get(buffer.type.int, 0)])
+print('(buffer.sizeof.ptr = ', buffer.sizeof.ptr, ')')
+print('(buffer.sizeof.int = ', buffer.sizeof.int, ')')
+print('(buffer.sizeof.int*2 = ', buffer.sizeof.int*2, ')')
+print('(buffer.sizeof.int*2 + buffer.sizeof.ptr = ', buffer.sizeof.int*2 + (buffer.sizeof.ptr), ')')
+print('...with value:', b:get(buffer.type.ptr, buffer.sizeof.int*2 + (buffer.sizeof.ptr)):get(buffer.type.cstr))
+
+print('--- IO redirection')
+
+oldstdout = io.stdout
+io.stdout = io.open('stdout', io.MODE_WRITE|io.MODE_TRUNCATE)
+
+print('A line!')
+print('An object:', {a=1, b=2, c="turkey"})
+print('Something mysterious :o')
+io.stdout:write('Writing directly to a file :D')
+io.stdout:flush()
+
+io.stdout = oldstdout
+
+print('...restored stdout.')
+
+f = io.open('stdout', io.MODE_READ)
+s = f:read(io.ALL)
+print('Buffered output was:')
+prepr(s)
+f = None
+
+print('...second time.')
+
+io.stdout = io.open('stdout', io.MODE_WRITE|io.MODE_TRUNCATE)
+
+print('Hey there!')
+print('l'+'ol'*32)
+io.stdout:flush()
+
+io.stdout = oldstdout
+
+print('...restored.')
+print('Output was:')
+prepr(io.open('stdout', io.MODE_READ):read(io.ALL))
 
 print('--- All done!')

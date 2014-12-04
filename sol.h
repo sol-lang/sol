@@ -5,6 +5,7 @@
 #define NULL ((void *) 0)
 #endif
 
+#include <stdio.h>
 #include "dsl/dsl.h"
 
 // Forward declarations:
@@ -16,7 +17,10 @@ typedef struct sol_tag_state_t sol_state_t;
 
 typedef sol_object_t *(*sol_cfunc_t)(sol_state_t *, sol_object_t *);
 
+typedef void (*sol_printfunc_t)(sol_object_t *);
+
 typedef struct {
+	char *tname;
 	sol_cfunc_t add;
 	sol_cfunc_t sub;
 	sol_cfunc_t mul;
@@ -38,6 +42,7 @@ typedef struct {
 	sol_cfunc_t toint;
 	sol_cfunc_t tofloat;
 	sol_cfunc_t tostring;
+	sol_cfunc_t repr;
 	sol_cfunc_t init;
 	sol_cfunc_t free;
 } sol_ops_t;
@@ -55,6 +60,9 @@ typedef enum {
 	SOL_STMT,
 	SOL_EXPR,
 	SOL_BUFFER,
+	SOL_DYLIB,
+	SOL_DYSYM,
+	SOL_STREAM,
 	SOL_CDATA
 } sol_objtype_t;
 
@@ -85,6 +93,14 @@ typedef enum {
 	OWN_FREE,
 	OWN_CALLF
 } sol_owntype_t;
+
+typedef enum {
+	MODE_READ = 1,
+	MODE_WRITE = 2,
+	MODE_APPEND = 4,
+	MODE_TRUNCATE = 8,
+	MODE_BINARY = 16
+} sol_modes_t;
 
 typedef void (*sol_freefunc_t)(void *, size_t);
 typedef void *(*sol_movefunc_t)(void *, size_t);
@@ -118,6 +134,16 @@ typedef struct sol_tag_object_t {
 			sol_freefunc_t freef;
 			sol_movefunc_t movef;
 		};
+		void *dlhandle;
+		struct {
+			void *dlsym;
+			dsl_seq *argtp;
+			sol_buftype_t rettp;
+		};
+		struct {
+			FILE *stream;
+			sol_modes_t modes;
+		};
 		void *cdata;
 	};
 } sol_object_t;
@@ -133,6 +159,7 @@ typedef struct sol_tag_state_t {
 	sol_object_t *OutOfMemory;
 	sol_object_t *StopIteration;
 	sol_ops_t NullOps;
+	sol_ops_t SingletOps;
 	sol_ops_t IntOps;
 	sol_ops_t FloatOps;
 	sol_ops_t StringOps;
@@ -143,8 +170,11 @@ typedef struct sol_tag_state_t {
 	sol_ops_t CFuncOps;
 	sol_ops_t ASTNodeOps;
 	sol_ops_t BufferOps;
-	sol_object_t *ListFuncs;
-	sol_object_t *BufferFuncs;
+	sol_ops_t DyLibOps;
+	sol_ops_t DySymOps;
+	sol_ops_t StreamOps;
+	sol_object_t *modules;
+	sol_object_t *methods;
 	dsl_object_funcs obfuncs;
 } sol_state_t;
 
@@ -168,6 +198,19 @@ sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
 sol_object_t *sol_set_error_string(sol_state_t *, const char *);
 void sol_clear_error(sol_state_t *);
 
+void sol_register_module(sol_state_t *, sol_object_t *, sol_object_t *);
+void sol_register_module_name(sol_state_t *, char *, sol_object_t *);
+sol_object_t *sol_get_module(sol_state_t *, sol_object_t *);
+sol_object_t *sol_get_module_name(sol_state_t *, char *);
+void sol_register_methods(sol_state_t *, sol_object_t *, sol_object_t *);
+void sol_register_methods_name(sol_state_t *, char *, sol_object_t *);
+sol_object_t *sol_get_methods(sol_state_t *, sol_object_t *);
+sol_object_t *sol_get_methods_name(sol_state_t *, char *);
+
+sol_object_t *sol_get_stdin(sol_state_t *);
+sol_object_t *sol_get_stdout(sol_state_t *);
+sol_object_t *sol_get_stderr(sol_state_t *);
+
 void sol_ops_init(sol_ops_t *);
 
 // builtins.c
@@ -175,6 +218,8 @@ void sol_ops_init(sol_ops_t *);
 sol_object_t *sol_f_not_impl(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_no_op(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_default_cmp(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_default_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_default_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_toint(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_tofloat(sol_state_t *, sol_object_t *);
@@ -202,6 +247,8 @@ sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_list(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_map(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_singlet_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_int_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_sub(sol_state_t *, sol_object_t *);
@@ -239,6 +286,7 @@ sol_object_t *sol_f_str_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_toint(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tofloat(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_list_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_mul(sol_state_t *, sol_object_t *);
@@ -263,6 +311,8 @@ sol_object_t *sol_f_map_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_iter(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_tostring(sol_state_t *, sol_object_t *);
 
+sol_object_t *sol_f_mcell_tostring(sol_state_t *, sol_object_t *);
+
 sol_object_t *sol_f_func_call(sol_state_t *, sol_object_t *); // Defined in ast.c
 sol_object_t *sol_f_func_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_func_setindex(sol_state_t *, sol_object_t *);
@@ -278,17 +328,42 @@ sol_object_t *sol_f_astnode_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_buffer_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_tostring(sol_state_t *, sol_object_t *);
-sol_object_t *sol_f_buffer_free(sol_state_t *, sol_object_t *);
 
-sol_object_t *sol_f_buffer_new(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_get(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_set(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_address(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_size(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_buffer_new(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromstring(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromobject(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromaddress(sol_state_t *, sol_object_t *);
 
+sol_object_t *sol_f_dylib_index(sol_state_t *, sol_object_t *); 
+sol_object_t *sol_f_dylib_tostring(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_dylib_open(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_dysym_call(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_dysym_index(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_dysym_setindex(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_dysym_tostring(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_dysym_get(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_dysym_set(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_stream_blsh(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_brsh(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_index(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_tostring(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_stream_write(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_read(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_seek(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_tell(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_flush(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 
 // object.c
 
@@ -326,6 +401,8 @@ sol_object_t *sol_new_float(sol_state_t *, double);
 sol_object_t *sol_new_string(sol_state_t *, const char *);
 int sol_string_cmp(sol_state_t *, sol_object_t *, const char *);
 #define sol_string_eq(state, string, cstr) (sol_string_cmp((state), (string), (cstr))==0)
+sol_object_t *sol_string_concat(sol_state_t *, sol_object_t *, sol_object_t *);
+sol_object_t *sol_string_concat_cstr(sol_state_t *, sol_object_t *, char *);
 
 sol_object_t *sol_new_list(sol_state_t *);
 sol_object_t *sol_list_from_seq(sol_state_t *, dsl_seq *);
@@ -353,6 +430,7 @@ void sol_map_set_existing(sol_state_t *, sol_object_t *, sol_object_t *, sol_obj
 sol_object_t *sol_map_copy(sol_state_t *, sol_object_t *);
 void sol_map_merge(sol_state_t *, sol_object_t *, sol_object_t *);
 void sol_map_merge_existing(sol_state_t *, sol_object_t *, sol_object_t *);
+void sol_map_invert(sol_state_t *, sol_object_t *);
 
 // Defined in ast.h
 // sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
@@ -364,14 +442,39 @@ sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
 
 sol_object_t *sol_new_buffer(sol_state_t *, void *, ssize_t, sol_owntype_t, sol_freefunc_t, sol_movefunc_t);
 
+sol_object_t *sol_new_dylib(sol_state_t *, void *);
+
+sol_object_t *sol_new_dysym(sol_state_t *, void *, dsl_seq *, sol_buftype_t);
+
+sol_object_t *sol_new_stream(sol_state_t *, FILE *, sol_modes_t);
+size_t sol_stream_printf(sol_state_t *, sol_object_t *, const char *, ...);
+size_t sol_stream_scanf(sol_state_t *, sol_object_t *, const char *, ...);
+size_t sol_stream_fread(sol_state_t *, sol_object_t *, char *, size_t, size_t);
+size_t sol_stream_fwrite(sol_state_t *, sol_object_t *, char *, size_t, size_t);
+char *sol_stream_fgets(sol_state_t *, sol_object_t *, char *, size_t);
+#define sol_printf(state, ...) sol_stream_printf(state, sol_get_stdout(state), __VA_ARGS__)
+#define sol_scanf(state, ...) sol_stream_scanf(state, sol_get_stdin(state, __VA_ARGS__)
+#define sol_fread(state, ...) sol_stream_fread(state, sol_get_stdin(state), __VA_ARGS__)
+#define sol_fwrite(state, ...) sol_stream_fwrite(state, sol_get_stdout(state), __VA_ARGS__)
+int sol_stream_feof(sol_state_t *, sol_object_t *);
+int sol_stream_ferror(sol_state_t *, sol_object_t *);
+#define sol_stream_ready(state, stream) (!(sol_stream_feof((state), (stream)) || sol_stream_ferror((state), (stream))))
+int sol_stream_fseek(sol_state_t *, sol_object_t *, long, int);
+long sol_stream_ftell(sol_state_t *, sol_object_t *);
+int sol_stream_fflush(sol_state_t *, sol_object_t *);
+
 sol_object_t *sol_cast_int(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_float(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_string(sol_state_t *, sol_object_t *);
+sol_object_t *sol_cast_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_str_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_mcell_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_dylib_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_free(sol_state_t *, sol_object_t *);
 
 int sol_validate_list(sol_state_t *, sol_object_t *);
 int sol_validate_map(sol_state_t *, sol_object_t *);

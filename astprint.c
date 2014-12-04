@@ -8,7 +8,7 @@ void prlev(int lev, const char *fmt, ...) {
 	va_list vl;
 	int i;
 
-	for(i = 0; i < lev; i++) putchar('\t');
+	for(i = 0; i < lev; i++) { putchar('|'); putchar(' '); }
 	va_start(vl, fmt);
 	vprintf(fmt, vl);
 	va_end(vl);

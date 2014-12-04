@@ -252,7 +252,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
                     break;
 
                 case OP_BOR:
-                    res = left->ops->bor(state, list);			printf("BINOP\n"); ob_print(list); printf("\n");
+                    res = left->ops->bor(state, list);
                     break;
 
                 case OP_BXOR:
@@ -535,6 +535,10 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
         case ST_BREAK:
             state->sflag = SF_BREAKING;
             break;
+			
+		default:
+			printf("WARNING: Unhandled statement\n");
+			break;
     }
 }
 

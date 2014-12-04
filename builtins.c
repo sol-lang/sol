@@ -3,10 +3,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
+#include <dlfcn.h>
 #include "ast.h"
 #include "dsl/dsl.h"
 
 // XXX hardcoded buffer sizes
+
+#define STDIO_CHUNK_SIZE 4096
 
 static char *_itoa(int i) {
 	int n = 33;
@@ -32,6 +35,20 @@ sol_object_t *sol_f_default_cmp(sol_state_t *state, sol_object_t *args) {
     sol_obj_free(a);
     sol_obj_free(b);
     return res;
+}
+
+sol_object_t *sol_f_default_tostring(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj = sol_list_get_index(state, args, 0);
+	char s[64];
+	snprintf(s, 64, "<%s object at %p>", obj->ops->tname, obj);
+	sol_obj_free(obj);
+	return sol_new_string(state, s);
+}
+
+sol_object_t *sol_f_default_repr(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj = sol_list_get_index(state, args, 0), *res = obj->ops->tostring(state, args);
+	sol_obj_free(obj);
+	return res;
 }
 
 sol_object_t *sol_f_no_op(sol_state_t *state, sol_object_t *args) {
@@ -94,32 +111,37 @@ sol_object_t *sol_f_error(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
-static char *sol_TypeNames[] = {"singlet", "integer", "float", "string", "list", "map", "mapcell", "function", "cfunction", "cdata"};
-
 sol_object_t *sol_f_type(sol_state_t *state, sol_object_t *args) {
     sol_object_t *obj = sol_list_get_index(state, args, 0);
-    sol_object_t *res = sol_new_string(state, sol_TypeNames[obj->type]);
+    sol_object_t *res = sol_new_string(state, obj->ops->tname);
     sol_obj_free(obj);
     return res;
 }
 
 static dsl_seq *seen=NULL;
 
-void ob_print(sol_object_t *obj) {
-    sol_object_t *cur;
+int test_seen(sol_object_t *obj) {
 	dsl_seq_iter *iter;
-	int i;
 	if(seen) {
 		iter = dsl_new_seq_iter(seen);
 		while(!dsl_seq_iter_is_invalid(iter)) {
 			if(dsl_seq_iter_at(iter) == obj) {
-				printf("... (%p)", obj);
-				return;
+				return 1;
 			}
 			dsl_seq_iter_next(iter);
 		}
 		dsl_free_seq_iter(iter);
 		dsl_seq_insert(seen, dsl_seq_len(seen), obj);
+	}
+	return 0;
+}
+
+void ob_print(sol_object_t *obj) {
+    sol_object_t *cur;
+	dsl_seq_iter *iter;
+	int i;
+	if(test_seen(obj)) {
+		return;
 	}
     switch(obj->type) {
         case SOL_SINGLET:
@@ -223,25 +245,25 @@ sol_object_t *sol_f_prepr(sol_state_t *state, sol_object_t *args) {
 	}
 	printf("\n");
 	dsl_free_seq(seen);
+	seen = NULL;
     return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_print(sol_state_t *state, sol_object_t *args) {
 	int i, sz = sol_list_len(state, args);
-    sol_object_t *obj;
+    sol_object_t *obj, *str;
 	seen = dsl_seq_new_array(NULL, NULL);
 	for(i=0; i<sz; i++) {
 		obj = sol_list_get_index(state, args, i);
-		if(sol_is_string(obj)) {
-			printf("%s", obj->str);
-		} else {
-			ob_print(obj);
-		}
-		printf(" ");
+		str = sol_cast_string(state, obj);
+		sol_printf(state, "%s", str->str);
+		sol_printf(state, " ");
 		sol_obj_free(obj);
+		sol_obj_free(str);
 	}
-	printf("\n");
+	sol_printf(state, "\n");
 	dsl_free_seq(seen);
+	seen = NULL;
     return sol_incref(state->None);
 }
 
@@ -455,6 +477,12 @@ sol_object_t *sol_f_iter_map(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
+sol_object_t *sol_f_singlet_tostring(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj = sol_list_get_index(state, args, 0), *res = sol_new_string(state, obj->str);
+	sol_obj_free(obj);
+	return res;
+}
+
 sol_object_t *sol_f_int_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
 	sol_object_t *res = sol_new_int(state, a->ival + b->ival);
@@ -664,12 +692,9 @@ sol_object_t *sol_f_float_tostring(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_str_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_string(state, sol_list_get_index(state, args, 1));
-	int n = strlen(a->str) + strlen(b->str) + 1;
-	char *s = malloc(n);
-	sol_object_t *res = sol_new_string(state, strncat(strncpy(s, a->str, n), b->str, n));
+	sol_object_t *res = sol_string_concat(state, a, b);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	free(s);
 	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
 	return res;
 }
@@ -738,6 +763,15 @@ sol_object_t *sol_f_str_tostring(sol_state_t *state, sol_object_t *args) {
 	return sol_list_get_index(state, args, 0);
 }
 
+sol_object_t *sol_f_str_repr(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj = sol_list_get_index(state, args, 0), *cur = sol_new_string(state, "\""), *next = sol_string_concat(state, cur, obj);
+	sol_obj_free(cur);
+	cur = next;
+	next = sol_string_concat_cstr(state, cur, "\"");
+	sol_obj_free(cur);
+	return next;
+}
+
 sol_object_t *sol_f_list_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *ls;
 	if(!sol_is_list(b)) {
@@ -774,9 +808,11 @@ sol_object_t *sol_f_list_mul(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *ival;
-	sol_object_t *res;
+	sol_object_t *res, *funcs;
 	if(sol_is_string(b)) {
-        res = sol_map_get(state, state->ListFuncs, b);
+		funcs = sol_get_methods_name(state, "list");
+        res = sol_map_get(state, funcs, b);
+		sol_obj_free(funcs);
 	} else {
         ival = sol_cast_int(state, b);
         res = sol_list_get_index(state, ls, ival->ival);
@@ -809,7 +845,32 @@ sol_object_t *sol_f_list_iter(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_tostring(sol_state_t *state, sol_object_t *args) {
-	return sol_new_string(state, "<List>");
+	sol_object_t *cur = sol_new_string(state, "["), *next, *str, *obj = sol_list_get_index(state, args, 0), *item;
+	dsl_seq_iter *iter = dsl_new_seq_iter(obj->seq);
+	char s[64];
+	while(!dsl_seq_iter_is_invalid(iter)) {
+		item = AS_OBJ(dsl_seq_iter_at(iter));
+		if(test_seen(item)) {
+			snprintf(s, 64, "... (%p)", item);
+			next = sol_string_concat_cstr(state, cur, s);
+		} else {
+			str = sol_cast_repr(state, item);
+			next = sol_string_concat(state, cur, str);
+			sol_obj_free(str);
+		}
+		sol_obj_free(cur);
+		cur = next;
+		if(!dsl_seq_iter_at_end(iter)) {
+			next = sol_string_concat_cstr(state, cur, ", ");
+			sol_obj_free(cur);
+			cur = next;
+		}
+		dsl_seq_iter_next(iter);
+	}
+	next = sol_string_concat_cstr(state, cur, "]");
+	sol_obj_free(cur);
+	dsl_free_seq_iter(iter);
+	return next;
 }
 
 sol_object_t *sol_f_list_copy(sol_state_t *state, sol_object_t *args) {
@@ -986,7 +1047,62 @@ sol_object_t *sol_f_map_iter(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_map_tostring(sol_state_t *state, sol_object_t *args) {
-	return sol_new_string(state, "<Map>");
+	sol_object_t *cur = sol_new_string(state, "{"), *next, *str, *obj = sol_list_get_index(state, args, 0), *item;
+	dsl_seq_iter *iter = dsl_new_seq_iter(obj->seq);
+	char s[64];
+	while(!dsl_seq_iter_is_invalid(iter)) {
+		item = AS_OBJ(dsl_seq_iter_at(iter));
+		if(test_seen(item)) {
+			snprintf(s, 64, "... (%p)", item);
+			next = sol_string_concat_cstr(state, cur, s);
+		} else {
+			str = sol_cast_repr(state, item);
+			next = sol_string_concat(state, cur, str);
+			sol_obj_free(str);
+		}
+		sol_obj_free(cur);
+		cur = next;
+		if(!dsl_seq_iter_at_end(iter)) {
+			next = sol_string_concat_cstr(state, cur, ", ");
+			sol_obj_free(cur);
+			cur = next;
+		}
+		dsl_seq_iter_next(iter);
+	}
+	next = sol_string_concat_cstr(state, cur, "}");
+	sol_obj_free(cur);
+	dsl_free_seq_iter(iter);
+	sol_obj_free(obj);
+	return next;
+}
+
+sol_object_t *sol_f_mcell_tostring(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *mcell = sol_list_get_index(state, args, 0), *cur = sol_new_string(state, "["), *next, *str;
+	char s[64];
+	if(test_seen(mcell->key)) {
+		snprintf(s, 64, "... (%p)", mcell->key);
+		next = sol_string_concat_cstr(state, cur, s);
+	} else {
+		str = sol_cast_repr(state, mcell->key);
+		next = sol_string_concat(state, cur, str);
+		sol_obj_free(str);
+	}
+	sol_obj_free(cur);
+	cur = next;
+	next = sol_string_concat_cstr(state, cur, "] = ");
+	sol_obj_free(cur);
+	cur = next;
+	if(test_seen(mcell->val)) {
+		snprintf(s, 64, "... (%p)", mcell->val);
+		next = sol_string_concat_cstr(state, cur, s);
+	} else {
+		str = sol_cast_repr(state, mcell->val);
+		next = sol_string_concat(state, cur, str);
+		sol_obj_free(str);
+	}
+	sol_obj_free(cur);
+	sol_obj_free(mcell);
+	return next;
 }
 
 sol_object_t *sol_f_func_index(sol_state_t *state, sol_object_t *args) {
@@ -1047,7 +1163,11 @@ sol_object_t *sol_f_func_setindex(sol_state_t *state, sol_object_t *args) {
 sol_object_t *sol_f_func_tostring(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *func = sol_list_get_index(state, args, 0), *ret;
 	char *s = malloc(256 * sizeof(char));
-	snprintf(s, 256, "<Function %s>", func->fname);
+	if(func->fname) {
+		snprintf(s, 256, "<Function %s>", func->fname);
+	} else {
+		snprintf(s, 256, "<Function>");
+	}
 	ret = sol_new_string(state, s);
 	free(s);
 	sol_obj_free(func);
@@ -1578,8 +1698,10 @@ sol_object_t *sol_f_astnode_tostring(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_buffer_index(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *key = sol_list_get_index(state, args, 1), *res = sol_map_get(state, state->BufferFuncs, key);
+	sol_object_t *key = sol_list_get_index(state, args, 1), *funcs = sol_get_methods_name(state, "buffer");
+	sol_object_t *res = sol_map_get(state, funcs, key);
 	sol_obj_free(key);
+	sol_obj_free(funcs);
 	return res;
 }
 
@@ -1872,4 +1994,191 @@ sol_object_t *sol_f_buffer_fromaddress(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(iaddr);
 	sol_obj_free(isz);
 	return buf;
+}
+
+sol_object_t *sol_f_dylib_index(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *dylib = sol_list_get_index(state, args, 0), *key = sol_list_get_index(state, args, 1), *skey = sol_cast_string(state, key);
+	void *handle = dlsym(dylib->dlhandle, skey->str);
+	sol_obj_free(dylib);
+	sol_obj_free(key);
+	sol_obj_free(skey);
+	if(handle) {
+		return sol_new_dysym(state, handle, NULL, BUF_NONE);
+	} else {
+		return sol_incref(state->None);
+	}
+}
+
+sol_object_t *sol_f_dylib_tostring(sol_state_t *state, sol_object_t *args) {
+	return sol_new_string(state, "<DyLib>");
+}
+
+sol_object_t *sol_f_dysym_call(sol_state_t *state, sol_object_t *args) {
+	//TODO
+	return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_dysym_index(sol_state_t *state, sol_object_t *args) {
+	//TODO
+	return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_dysym_setindex(sol_state_t *state, sol_object_t *args) {
+	//TODO
+	return sol_incref(state->None);
+}
+
+sol_object_t *sol_f_dysym_tostring(sol_state_t *state, sol_object_t *args) {
+	return sol_new_string(state, "<DySym>");
+}
+
+sol_object_t *sol_f_stream_blsh(sol_state_t *state, sol_object_t *args) {
+	return sol_f_stream_write(state, args);
+}
+
+sol_object_t *sol_f_stream_brsh(sol_state_t *state, sol_object_t *args) {
+	return sol_f_stream_read(state, args);
+}
+
+sol_object_t *sol_f_stream_index(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *key = sol_list_get_index(state, args, 1), *funcs = sol_get_methods_name(state, "stream");
+	sol_object_t *res = sol_map_get(state, funcs, key);
+	sol_obj_free(key);
+	sol_obj_free(funcs);
+	return res;
+}
+
+sol_object_t *sol_f_stream_tostring(sol_state_t *state, sol_object_t *args) {
+	return sol_new_string(state, "<Stream>");
+}
+
+sol_object_t *sol_f_stream_write(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *obj = sol_list_get_index(state, args, 1), *str = sol_cast_string(state, obj);
+	size_t sz = sol_stream_printf(state, stream, "%s", str->str);
+	sol_obj_free(obj);
+	sol_obj_free(str);
+	sol_obj_free(stream);
+	return sol_new_int(state, sz);
+}
+
+sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *amt = sol_list_get_index(state, args, 1), *iamt, *res;
+	char *s=NULL, *p;
+	size_t count=0, max=0, pos, end;
+	if(sol_is_string(amt)) {
+		if(sol_string_eq(state, amt, "ALL")) {
+			pos = sol_stream_ftell(state, stream);
+			sol_stream_fseek(state, stream, 0, SEEK_END);
+			end = sol_stream_ftell(state, stream);
+			sol_stream_fseek(state, stream, pos, SEEK_SET);
+			//printf("IO: Reading %ld bytes starting at %ld\n", end-pos, pos);
+			s = malloc((end-pos+1)*sizeof(char));
+			if(sol_stream_fread(state, stream, s, sizeof(char), end-pos)<(end-pos)) {
+				free(s);
+				sol_obj_free(stream);
+				sol_obj_free(amt);
+				return sol_set_error_string(state, "IO read error");
+			}
+			s[end-pos]='\0';
+		} else if(sol_string_eq(state, amt, "LINE")) {
+			s = malloc(STDIO_CHUNK_SIZE*sizeof(char));
+			sol_stream_fgets(state, stream, s, STDIO_CHUNK_SIZE);
+		}
+	} else {
+		iamt = sol_cast_int(state, amt);
+		s = malloc((iamt->ival + 1)*sizeof(char));
+		count = sol_stream_fread(state, stream, s, sizeof(char), iamt->ival);
+		s[iamt->ival]='\0';
+		sol_obj_free(iamt);
+	}
+	if(s) {
+		//printf("IO: Read result: %s\n", s);
+		res = sol_new_string(state, s);
+		free(s);
+	} else {
+		//printf("IO: No read result!\n");
+		res = sol_incref(state->None);
+	}
+	sol_obj_free(amt);
+	sol_obj_free(stream);
+	return res;
+}
+
+sol_object_t *sol_f_stream_seek(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *offset = sol_list_get_index(state, args, 1), *whence = sol_list_get_index(state, args, 2);
+	sol_object_t *ioffset = sol_cast_int(state, offset), *iwhence = sol_cast_int(state, whence);
+	sol_object_t *res = sol_new_int(state, sol_stream_fseek(state, stream, ioffset->ival, iwhence->ival));
+	sol_obj_free(stream);
+	sol_obj_free(offset);
+	sol_obj_free(whence);
+	sol_obj_free(ioffset);
+	sol_obj_free(iwhence);
+	return res;
+}
+
+sol_object_t *sol_f_stream_tell(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *res = sol_new_int(state, sol_stream_ftell(state, stream));
+	sol_obj_free(stream);
+	return res;
+}
+
+sol_object_t *sol_f_stream_flush(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *res = sol_new_int(state, sol_stream_fflush(state, stream));
+	sol_obj_free(stream);
+	return res;
+}
+
+static char *sol_FileModes[]={
+	NULL,
+	"r",
+	"w",
+	"r+",
+	NULL,
+	NULL,
+	"a",
+	"a+",
+	NULL,
+	NULL,
+	"w",
+	"w+",
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	"rb",
+	"wb",
+	"r+b",
+	NULL,
+	NULL,
+	"ab",
+	"a+b",
+	NULL,
+	NULL,
+	"wb",
+	"w+b",
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+
+sol_object_t *sol_f_stream_open(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *fn = sol_list_get_index(state, args, 0), *mode = sol_list_get_index(state, args, 1);
+	sol_object_t *sfn = sol_cast_string(state, fn), *imode = sol_cast_int(state, mode);
+	sol_modes_t m = imode->ival;
+	char *smode = sol_FileModes[m];
+	FILE *f;
+	sol_obj_free(mode);
+	sol_obj_free(imode);
+	if(!smode) {
+		sol_obj_free(fn);
+		sol_obj_free(sfn);
+		return sol_set_error_string(state, "Bad file open mode");
+	}
+	f = fopen(sfn->str, smode);
+	sol_obj_free(sfn);
+	sol_obj_free(fn);
+	if(!f) return sol_set_error_string(state, "File open failed");
+	return sol_new_stream(state, f, m);
 }
