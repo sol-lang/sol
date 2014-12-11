@@ -5,6 +5,11 @@
 
 #include <stdio.h>
 
+typedef struct {
+	size_t line;
+	size_t col;
+} loc_t;
+
 struct tag_expr_node;
 typedef struct tag_expr_node expr_node;
 
@@ -96,6 +101,7 @@ typedef struct {
 typedef enum {EX_LIT, EX_LISTGEN, EX_MAPGEN, EX_BINOP, EX_UNOP, EX_INDEX, EX_SETINDEX, EX_ASSIGN, EX_REF, EX_CALL, EX_FUNCDECL} expr_t;
 typedef struct tag_expr_node {
 	expr_t type;
+	loc_t loc;
 	union {
 		lit_node *lit;
 		listgen_node *listgen;
@@ -140,6 +146,7 @@ typedef struct tag_stmtlist_node {
 typedef enum {ST_EXPR, ST_IFELSE, ST_LOOP, ST_ITER, ST_LIST, ST_RET, ST_CONT, ST_BREAK} stmt_t;
 typedef struct tag_stmt_node {
 	stmt_t type;
+	loc_t loc;
 	union {
 		expr_node *expr;
 		ifelse_node *ifelse;
@@ -155,6 +162,7 @@ typedef struct tag_stmt_node {
 #define AS(arg, tp) ((tp *) (arg))
 #define NEW_ST() malloc(sizeof(stmt_node))
 #define NEW_EX() malloc(sizeof(expr_node))
+#define SET_LOC(node, l) do { (node)->loc.line = (l).first_line; (node)->loc.col = (l).first_column; } while(0)
 #define NEW(arg) malloc(sizeof(arg))
 #define MAKE_REF_BINOP(nd, tp, name, val) nd = NEW_EX(); \
 	nd->type = EX_BINOP; \
@@ -191,8 +199,8 @@ void sol_compile_free(stmt_node *);
 void st_free(stmt_node *);
 void ex_free(expr_node *);
 
-void st_print(stmt_node *);
-void ex_print(expr_node *);
+void st_print(sol_state_t *, stmt_node *);
+void ex_print(sol_state_t *, expr_node *);
 void ob_print(sol_object_t *);
 
 sol_object_t *sol_eval(sol_state_t *, expr_node *);

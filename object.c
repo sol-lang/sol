@@ -55,47 +55,13 @@ sol_object_t *sol_new_singlet(sol_state_t *state, const char *name) {
 		res->ops = &(state->SingletOps);
 		res->str = strdup(name);
 	}
-	return sol_incref(res);
+	return sol_incref(res); // XXX Segfault
 }
 
 // And, now, for the rest of the checked stuff...
 
-sol_object_t *sol_alloc_object(sol_state_t *state) {
-	sol_object_t *res = malloc(sizeof(sol_object_t));
-	if(!res) {
-		sol_set_error(state, state->OutOfMemory);
-		return sol_incref(state->None);
-	}
-	res->refcnt = 0;
-	res->ops = &(state->NullOps);
-	return sol_incref(res);
-}
-
 void sol_init_object(sol_state_t *state, sol_object_t *obj) {
 	if(obj->ops->init) obj->ops->init(state, obj);
-}
-
-sol_object_t *sol_obj_acquire(sol_object_t *obj) {
-	return sol_incref(obj);
-}
-
-void sol_obj_free(sol_object_t *obj) {
-	if(!obj) {
-		printf("WARNING: Attempt to free NULL\n");
-		return;
-	}
-	if(sol_decref(obj) <= 0) {
-		if(obj->refcnt < 0) {
-			printf("WARNING: Encountered refcnt < 0!\nObject %p type %d ref %d\n", obj, obj->type, obj->refcnt);
-		} else {
-			sol_obj_release(obj);
-		}
-	}
-}
-
-void sol_obj_release(sol_object_t *obj) {
-    if(obj->ops->free) obj->ops->free(NULL, obj);
-    free(obj);
 }
 
 sol_object_t *sol_new_int(sol_state_t *state, long i) {
@@ -549,7 +515,7 @@ size_t sol_stream_printf(sol_state_t *state, sol_object_t *stream, const char *f
 	va_list va;
 	size_t res;
 	if(!(stream->modes & MODE_WRITE)) {
-		sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
 		return 0;
 	}
 	va_start(va, fmt);
@@ -558,11 +524,19 @@ size_t sol_stream_printf(sol_state_t *state, sol_object_t *stream, const char *f
 	return res;
 }
 
+size_t sol_stream_vprintf(sol_state_t *state, sol_object_t *stream, const char *fmt, va_list va) {
+	if(!(stream->modes & MODE_WRITE)) {
+		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		return 0;
+	}
+	return vfprintf(stream->stream, fmt, va);
+}
+
 size_t sol_stream_scanf(sol_state_t *state, sol_object_t *stream, const char *fmt, ...) {
 	va_list va;
 	size_t res;
 	if(!(stream->modes & MODE_READ)) {
-		sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
 		return 0;
 	}
 	va_start(va, fmt);
@@ -573,7 +547,7 @@ size_t sol_stream_scanf(sol_state_t *state, sol_object_t *stream, const char *fm
 
 size_t sol_stream_fread(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz, size_t memb) {
 	if(!(stream->modes & MODE_READ)) {
-		sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
 		return 0;
 	}
 	return fread(buffer, sz, memb, stream->stream);
@@ -581,7 +555,7 @@ size_t sol_stream_fread(sol_state_t *state, sol_object_t *stream, char *buffer, 
 
 size_t sol_stream_fwrite(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz, size_t memb) {
 	if(!(stream->modes & MODE_WRITE)) {
-		sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
 		return 0;
 	}
 	return fwrite(buffer, sz, memb, stream->stream);
@@ -589,10 +563,18 @@ size_t sol_stream_fwrite(sol_state_t *state, sol_object_t *stream, char *buffer,
 
 char *sol_stream_fgets(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz) {
 	if(!(stream->modes & MODE_READ)) {
-		sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
 		return NULL;
 	}
 	return fgets(buffer, sz, stream->stream);
+}
+
+int sol_stream_fputc(sol_state_t *state, sol_object_t *stream, int ch) {
+	if(!(stream->modes & MODE_WRITE)) {
+		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		return 0;
+	}
+	return fputc(ch, stream->stream);
 }
 
 int sol_stream_feof(sol_state_t *state, sol_object_t *stream) {

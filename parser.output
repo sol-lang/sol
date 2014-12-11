@@ -61,7 +61,7 @@ Grammar
     1 program: stmt_list
 
     2 stmt_list: stmt_list stmt
-    3          | %empty
+    3          | /* empty */
 
     4 stmt: expr
     5     | IF expr THEN stmt_list END
@@ -164,17 +164,17 @@ Grammar
 
    85 paren_expr: LPAREN expr RPAREN
 
-   86 expr_list: %empty
+   86 expr_list: /* empty */
    87          | expr
    88          | expr_list COMMA
    89          | expr_list expr
 
-   90 ident_list: %empty
+   90 ident_list: /* empty */
    91           | IDENT
    92           | ident_list COMMA
    93           | ident_list IDENT
 
-   94 assoc_list: %empty
+   94 assoc_list: /* empty */
    95           | assoc_item
    96           | assoc_list COMMA
    97           | assoc_list assoc_item
@@ -309,7 +309,7 @@ State 0
     0 $accept: . program $end
     1 program: . stmt_list
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
 
     $default  reduce using rule 3 (stmt_list)
 
@@ -1122,7 +1122,7 @@ State 18
 State 19
 
    83 gen_expr: LBRACE . assoc_list RBRACE
-   94 assoc_list: . %empty  [IDENT, RBRACE, LBRACKET, COMMA]
+   94 assoc_list: .  [IDENT, RBRACE, LBRACKET, COMMA]
    95           | . assoc_item
    96           | . assoc_list COMMA
    97           | . assoc_list assoc_item
@@ -1325,7 +1325,7 @@ State 21
    83         | . LBRACE assoc_list RBRACE
    84         | . paren_expr
    85 paren_expr: . LPAREN expr RPAREN
-   86 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, LBRACKET, RBRACKET, COMMA, POUND]
+   86 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, LBRACKET, RBRACKET, COMMA, POUND]
    87          | . expr
    88          | . expr_list COMMA
    89          | . expr_list expr
@@ -1742,7 +1742,7 @@ State 45
 State 46
 
    67 funcdecl_expr: FUNC LPAREN . ident_list RPAREN stmt_list END
-   90 ident_list: . %empty  [IDENT, RPAREN, COMMA]
+   90 ident_list: .  [IDENT, RPAREN, COMMA]
    91           | . IDENT
    92           | . ident_list COMMA
    93           | . ident_list IDENT
@@ -5353,7 +5353,7 @@ State 90
    83         | . LBRACE assoc_list RBRACE
    84         | . paren_expr
    85 paren_expr: . LPAREN expr RPAREN
-   86 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
+   86 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
    87          | . expr
    88          | . expr_list COMMA
    89          | . expr_list expr
@@ -6408,7 +6408,7 @@ State 100
 State 101
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
     5 stmt: IF expr THEN . stmt_list END
     6     | IF expr THEN . stmt_list ELSE stmt_list END
 
@@ -6420,7 +6420,7 @@ State 101
 State 102
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
     7 stmt: WHILE expr DO . stmt_list END
 
     $default  reduce using rule 3 (stmt_list)
@@ -6541,7 +6541,7 @@ State 103
 State 104
 
    66 funcdecl_expr: FUNC IDENT LPAREN . ident_list RPAREN stmt_list END
-   90 ident_list: . %empty  [IDENT, RPAREN, COMMA]
+   90 ident_list: .  [IDENT, RPAREN, COMMA]
    91           | . IDENT
    92           | . ident_list COMMA
    93           | . ident_list IDENT
@@ -8099,7 +8099,7 @@ State 160
 State 161
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
    67 funcdecl_expr: FUNC LPAREN ident_list RPAREN . stmt_list END
 
     $default  reduce using rule 3 (stmt_list)
@@ -8235,7 +8235,7 @@ State 167
    83         | . LBRACE assoc_list RBRACE
    84         | . paren_expr
    85 paren_expr: . LPAREN expr RPAREN
-   86 expr_list: . %empty  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
+   86 expr_list: .  [FUNC, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
    87          | . expr
    88          | . expr_list COMMA
    89          | . expr_list expr
@@ -8293,7 +8293,7 @@ State 167
 State 168
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
     6 stmt: IF expr THEN stmt_list ELSE . stmt_list END
 
     $default  reduce using rule 3 (stmt_list)
@@ -8318,7 +8318,7 @@ State 170
 State 171
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
     8 stmt: FOR IDENT IN expr DO . stmt_list END
 
     $default  reduce using rule 3 (stmt_list)
@@ -8329,7 +8329,7 @@ State 171
 State 172
 
     2 stmt_list: . stmt_list stmt
-    3          | . %empty
+    3          | .
    66 funcdecl_expr: FUNC IDENT LPAREN ident_list RPAREN . stmt_list END
 
     $default  reduce using rule 3 (stmt_list)

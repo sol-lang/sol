@@ -56,6 +56,16 @@ while __interp.running do
 						__interp.result = try(__interp.program[1])
 						if !__interp.result[0] then
 							print(__interp.result[1])
+							print(__interp.result[2])
+							for ent in __interp.result[2] do
+								st = ent[0]
+								scope = ent[1]
+								if st.type == ast.ST_LIST then continue end
+								print('In', st, 'at', st.loc.line, ',', st.loc.col, ':')
+								ast.print(st)
+								print(scope)
+								print('---')
+							end
 						else
 							if __interp.isexpr then
 								prepr(__interp.result[1])

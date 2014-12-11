@@ -55,15 +55,15 @@ stmt_list:
 ;
 
 stmt:
-  expr { $$ = NEW_ST(); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
-| IF expr THEN stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
-| IF expr THEN stmt_list ELSE stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
-| WHILE expr DO stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
-| FOR IDENT IN expr DO stmt_list END { $$ = NEW_ST(); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
-| RETURN expr { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
-| RETURN { $$ = NEW_ST(); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
-| BREAK { $$ = NEW_ST(); AS_ST($$)->type = ST_BREAK; }
-| CONTINUE { $$ = NEW_ST(); AS_ST($$)->type = ST_CONT; }
+  expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
+| IF expr THEN stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
+| IF expr THEN stmt_list ELSE stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
+| WHILE expr DO stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
+| FOR IDENT IN expr DO stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
+| RETURN expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
+| RETURN { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
+| BREAK { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; }
+| CONTINUE { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; }
 | stmt SEMICOLON { $$ = $1; }
 ;
 

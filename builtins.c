@@ -95,6 +95,7 @@ sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 		sol_obj_free(err);
 		sol_list_insert(state, ls, 0, zero);
 		sol_obj_free(zero);
+		sol_list_insert(state, ls, 2, state->traceback);
 		return ls;
 	}
 	sol_list_insert(state, ls, 0, res);
@@ -207,11 +208,11 @@ void ob_print(sol_object_t *obj) {
 			break;
 			
 		case SOL_STMT:
-			st_print(obj->node);
+			st_print(NULL, obj->node); //TODO: FIXME
 			break;
 			
 		case SOL_EXPR:
-			ex_print(obj->node);
+			ex_print(NULL, obj->node); //TODO: FIXME
 			break;
 			
 		case SOL_BUFFER:
@@ -235,14 +236,17 @@ void ob_print(sol_object_t *obj) {
 
 sol_object_t *sol_f_prepr(sol_state_t *state, sol_object_t *args) {
 	int i, sz = sol_list_len(state, args);
-    sol_object_t *obj;
+    sol_object_t *obj, *str;
 	seen = dsl_seq_new_array(NULL, NULL);
 	for(i=0; i<sz; i++) {
 		obj = sol_list_get_index(state, args, i);
-		ob_print(obj);
-		printf(" ");
+		str = sol_cast_repr(state, obj);
+		sol_printf(state, "%s", str->str);
+		sol_printf(state, " ");
 		sol_obj_free(obj);
+		sol_obj_free(str);
 	}
+	sol_printf(state, "\n");
 	printf("\n");
 	dsl_free_seq(seen);
 	seen = NULL;
@@ -375,6 +379,39 @@ sol_object_t *sol_f_parse(sol_state_t *state, sol_object_t *args) {
 	return sol_new_stmtnode(state, program);
 }
 
+sol_object_t *sol_f_ord(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *arg = sol_list_get_index(state, args, 0), *str = sol_cast_string(state, arg);
+	sol_object_t *idx = sol_new_int(state, 0), *arg2, *iarg, *res;
+	size_t len = strlen(str->str);
+	sol_obj_free(arg);
+	if(sol_list_len(state, args)>1) {
+		arg2 = sol_list_get_index(state, args, 1);
+		iarg = sol_cast_int(state, arg2);
+		sol_obj_free(arg2);
+		idx->ival = iarg->ival;
+		sol_obj_free(iarg);
+	}
+	if(idx->ival < 0 || idx->ival >= len) {
+		sol_obj_free(str);
+		sol_obj_free(idx);
+		return sol_set_error_string(state, "Compute ord of out-of-bounds index");
+	}
+	res = sol_new_int(state, str->str[idx->ival]);
+	sol_obj_free(str);
+	sol_obj_free(idx);
+	return res;
+}
+
+sol_object_t *sol_f_chr(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *arg = sol_list_get_index(state, args, 0), *iarg = sol_cast_int(state, arg);
+	char cbuf[2]={iarg->ival, 0};
+	sol_object_t *res = sol_new_string(state, cbuf);
+	sol_obj_free(arg);
+	sol_obj_free(iarg);
+	return res;
+}
+	
+
 sol_object_t *sol_f_debug_getref(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0);
 	sol_object_t *res = sol_new_int(state, obj->refcnt - 2); // NB: We grabbed a reference, and there's one in the arglist, so account for them.
@@ -475,6 +512,17 @@ sol_object_t *sol_f_iter_map(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(local);
 	sol_obj_free(obj);
 	return res;
+}
+
+sol_object_t *sol_f_ast_print(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj = sol_list_get_index(state, args, 0);
+	if(sol_is_aststmt(obj)) {
+		st_print(state, obj->node);
+	} else {
+		ex_print(state, obj->node);
+	}
+	sol_obj_free(obj);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_singlet_tostring(sol_state_t *state, sol_object_t *args) {
@@ -845,6 +893,16 @@ sol_object_t *sol_f_str_split(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
+sol_object_t *sol_f_str_find(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *str = sol_list_get_index(state, args, 0), *substr = sol_list_get_index(state, args, 1), *ssubstr = sol_cast_string(state, substr);
+	char *ptr = strstr(str->str, ssubstr->str);
+	sol_object_t *res = sol_new_int(state, ptr?ptr-str->str:-1);
+	sol_obj_free(str);
+	sol_obj_free(substr);
+	sol_obj_free(ssubstr);
+	return res;
+}
+
 sol_object_t *sol_f_list_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *ls;
 	if(!sol_is_list(b)) {
@@ -1039,22 +1097,25 @@ sol_object_t *sol_f_map_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *map = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
 	sol_object_t *indexf = sol_map_get_name(state, map, "__index");
 	sol_object_t *res = NULL, *newls;
-	if(!sol_is_none(state, indexf)) {
-		if(indexf->ops->call && (sol_is_func(indexf) || sol_is_cfunc(indexf)) && indexf->ops->call != sol_f_not_impl) {
-			newls = sol_new_list(state);
-			sol_list_insert(state, newls, 0, indexf);
-			sol_list_append(state, newls, args);
-			res = indexf->ops->call(state, newls);
-			sol_obj_free(newls);
-		} else if(indexf->ops->index && indexf->ops->index != sol_f_not_impl) {
-            newls = sol_new_list(state);
-            sol_list_insert(state, newls, 0, indexf);
-            sol_list_insert(state, newls, 1, b);
-			res = indexf->ops->index(state, newls);
-			sol_obj_free(newls);
+	res = sol_map_get(state, map, b);
+	if(sol_is_none(state, res)) {
+		if(!sol_is_none(state, indexf)) {
+			sol_obj_free(res);
+			if(indexf->ops->call && (sol_is_func(indexf) || sol_is_cfunc(indexf)) && indexf->ops->call != sol_f_not_impl) {
+				newls = sol_new_list(state);
+				sol_list_insert(state, newls, 0, indexf);
+				sol_list_append(state, newls, args);
+				res = indexf->ops->call(state, newls);
+				sol_obj_free(newls);
+			} else if(indexf->ops->index && indexf->ops->index != sol_f_not_impl) {
+				newls = sol_new_list(state);
+				sol_list_insert(state, newls, 0, indexf);
+				sol_list_insert(state, newls, 1, b);
+				res = indexf->ops->index(state, newls);
+				sol_obj_free(newls);
+			}
 		}
 	}
-	if(!res) res = sol_map_get(state, map, b);
 	sol_obj_free(indexf);
 	sol_obj_free(map);
 	sol_obj_free(b);
@@ -1120,9 +1181,38 @@ sol_object_t *sol_f_map_iter(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_map_tostring(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *cur = sol_new_string(state, "{"), *next, *str, *obj = sol_list_get_index(state, args, 0), *item;
-	dsl_seq_iter *iter = dsl_new_seq_iter(obj->seq);
+	sol_object_t *map = sol_list_get_index(state, args, 0), *res;
+	sol_object_t *tostrf = sol_map_get_name(state, map, "__tostring"), *fargs;
+	if(!sol_is_none(state, tostrf) && tostrf->ops->call) {
+		fargs = sol_new_list(state);
+		sol_list_insert(state, fargs, 0, tostrf);
+		sol_list_insert(state, fargs, 1, map);
+		res = tostrf->ops->call(state, fargs);
+		sol_obj_free(fargs);
+	} else {
+		res = sol_cast_repr(state, map);
+	}
+	sol_obj_free(tostrf);
+	sol_obj_free(map);
+	return res;
+}
+
+sol_object_t *sol_f_map_repr(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *cur = sol_new_string(state, "{"), *next, *str, *obj = sol_list_get_index(state, args, 0), *item, *reprf = sol_map_get_name(state, obj, "__repr"), *fargs;
+	dsl_seq_iter *iter;
 	char s[64];
+	if(!sol_is_none(state, reprf) && reprf->ops->call) {
+		sol_obj_free(cur);
+		fargs = sol_new_list(state);
+		sol_list_insert(state, fargs, 0, reprf);
+		sol_list_insert(state, fargs, 1, obj);
+		cur = reprf->ops->call(state, fargs);
+		sol_obj_free(fargs);
+		sol_obj_free(obj);
+		sol_obj_free(reprf);
+		return cur;
+	}
+	iter = dsl_new_seq_iter(obj->seq);
 	while(!dsl_seq_iter_is_invalid(iter)) {
 		item = AS_OBJ(dsl_seq_iter_at(iter));
 		if(test_seen(item)) {
@@ -1293,6 +1383,10 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 	if(sol_is_aststmt(obj)) {
 		if(sol_string_eq(state, str, "type")) {
 			res = sol_new_int(state, stmt->type);
+		} else if(sol_string_eq(state, str, "loc")) {
+			res = sol_new_map(state);
+			sol_map_set_name(state, res, "line", sol_new_int(state, stmt->loc.line));
+			sol_map_set_name(state, res, "col", sol_new_int(state, stmt->loc.col));
 		} else {
 			switch(stmt->type) {
 					case ST_EXPR:
@@ -1350,6 +1444,10 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 	} else {
 		if(sol_string_eq(state, str, "type")) {
 			res = sol_new_int(state, expr->type);
+		} else if(sol_string_eq(state, str, "loc")) {
+			res = sol_new_map(state);
+			sol_map_set_name(state, res, "line", sol_new_int(state, expr->loc.line));
+			sol_map_set_name(state, res, "col", sol_new_int(state, expr->loc.col));
 		} else {
 			switch(expr->type) {
 				case EX_LIT:
@@ -1482,15 +1580,26 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 	stmt_node *stmt = (stmt_node *) obj->node;
 	stmtlist_node *curs, *prevs;
 	expr_node *expr = (expr_node *) obj->node;
-	exprlist_node *cure, *preve;
-	assoclist_node *cura, *preva;
-	identlist_node *curi, *previ;
+	exprlist_node *cure, *preve = NULL;
+	assoclist_node *cura, *preva = NULL;
+	identlist_node *curi, *previ = NULL;
 	int i=0, len;
 	if(sol_is_aststmt(obj)) {
 		if(sol_string_eq(state, str, "type")) {
 			ival = sol_cast_int(state, val);
 			stmt->type = ival->ival;
 			sol_obj_free(ival);
+		} else if(sol_string_eq(state, str, "loc") && sol_is_map(val)) {
+			pair = sol_map_get_name(state, val, "line");
+			ival = sol_cast_int(state, pair);
+			stmt->loc.line = ival->ival;
+			sol_obj_free(ival);
+			sol_obj_free(pair);
+			pair = sol_map_get_name(state, val, "col");
+			ival = sol_cast_int(state, pair);
+			stmt->loc.col = ival->ival;
+			sol_obj_free(ival);
+			sol_obj_free(pair);
 		} else {
 			switch(stmt->type) {
 				case ST_EXPR:
@@ -1543,8 +1652,9 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									prevs->next = curs;
 								}
 							}
+							if(stmt->stmtlist == curs) stmt->stmtlist = NULL;
 							free(curs);
-							prevs->next = NULL;
+							if(prevs) prevs->next = NULL;
 						} else {
 							stmt->stmtlist = NULL;
 						}
@@ -1563,6 +1673,17 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 			ival = sol_cast_int(state, val);
 			expr->type = ival->ival;
 			sol_obj_free(ival);
+		} else if(sol_string_eq(state, str, "loc") && sol_is_map(val)) {
+			pair = sol_map_get_name(state, val, "line");
+			ival = sol_cast_int(state, pair);
+			expr->loc.line = ival->ival;
+			sol_obj_free(ival);
+			sol_obj_free(pair);
+			pair = sol_map_get_name(state, val, "col");
+			ival = sol_cast_int(state, pair);
+			expr->loc.col = ival->ival;
+			sol_obj_free(ival);
+			sol_obj_free(pair);
 		} else {
 			switch(expr->type) {
 				case EX_LIT:
@@ -1592,15 +1713,16 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 							cure = malloc(sizeof(exprlist_node));
 							expr->listgen->list = cure;
 							for(i=0; i<len; i++) {
-								if(sol_is_aststmt(sol_list_get_index(state, val, i))) {
+								if(sol_is_astexpr(sol_list_get_index(state, val, i))) {
 									cure->expr = sol_list_get_index(state, val, i)->node;
 									preve = cure;
 									cure = malloc(sizeof(exprlist_node));
 									preve->next = cure;
 								}
 							}
+							if(expr->listgen->list == cure) expr->listgen->list = NULL;
 							free(cure);
-							preve->next = NULL;
+							if(preve) preve->next = NULL;
 						} else {
 							expr->listgen->list = NULL;
 						}
@@ -1626,8 +1748,9 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									}
 								}
 							}
+							if(expr->mapgen->map == cura) expr->mapgen->map = NULL;
 							free(cura);
-							preva->next = NULL;
+							if(preva) preva->next = NULL;
 						} else {
 							expr->mapgen->map = NULL;
 						}
@@ -1701,15 +1824,16 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 							cure = malloc(sizeof(exprlist_node));
 							expr->call->args= cure;
 							for(i=0; i<len; i++) {
-								if(sol_is_aststmt(sol_list_get_index(state, val, i))) {
+								if(sol_is_astexpr(sol_list_get_index(state, val, i))) {
 									cure->expr = sol_list_get_index(state, val, i)->node;
 									preve = cure;
 									cure = malloc(sizeof(exprlist_node));
 									preve->next = cure;
 								}
 							}
+							if(expr->call->args == cure) expr->call->args = NULL;
 							free(cure);
-							preve->next = NULL;
+							if(preve) preve->next = NULL;
 						} else {
 							expr->call->args = NULL;
 						}
@@ -1727,17 +1851,16 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 							curi = malloc(sizeof(identlist_node));
 							expr->funcdecl->args= curi;
 							for(i=0; i<len; i++) {
-								if(sol_is_aststmt(sol_list_get_index(state, val, i))) {
-									sval = sol_cast_string(state, sol_list_get_index(state, val, i));
-									curi->ident = strdup(sval->str);
-									sol_obj_free(sval);
-									previ = curi;
-									curi = malloc(sizeof(identlist_node));
-									previ->next = curi;
-								}
+								sval = sol_cast_string(state, sol_list_get_index(state, val, i));
+								curi->ident = strdup(sval->str);
+								sol_obj_free(sval);
+								previ = curi;
+								curi = malloc(sizeof(identlist_node));
+								previ->next = curi;
 							}
+							if(expr->funcdecl->args == curi) expr->funcdecl->args = NULL;
 							free(curi);
-							previ->next = NULL;
+							if(previ) previ->next = NULL;
 						} else {
 							expr->funcdecl->args = NULL;
 						}
@@ -1751,11 +1874,10 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(obj);
 	sol_obj_free(key);
 	sol_obj_free(str);
-	sol_obj_free(val);
-	return sol_incref(state->None);
+	return val;
 }
 
-static char *sol_StmtNames[]={"EXPR", "IFSELSE", "LOOP", "ITER", "RET", "CONT", "BREAK"};
+static char *sol_StmtNames[]={"EXPR", "IFSELSE", "LOOP", "ITER", "LIST", "RET", "CONT", "BREAK"};
 static char *sol_ExprNames[]={"LIT", "LISTGEN", "MAPGEN", "BINOP", "UNOP", "INDEX", "SETINDEX", "ASSIGN", "REF", "CALL", "FUNCDECL"}; 
 
 sol_object_t *sol_f_astnode_tostring(sol_state_t *state, sol_object_t *args) {
@@ -2161,7 +2283,7 @@ sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
 		iamt = sol_cast_int(state, amt);
 		s = malloc((iamt->ival + 1)*sizeof(char));
 		count = sol_stream_fread(state, stream, s, sizeof(char), iamt->ival);
-		s[iamt->ival]='\0';
+		s[count]='\0';
 		sol_obj_free(iamt);
 	}
 	if(s) {
@@ -2197,6 +2319,12 @@ sol_object_t *sol_f_stream_tell(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_stream_flush(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *stream = sol_list_get_index(state, args, 0), *res = sol_new_int(state, sol_stream_fflush(state, stream));
+	sol_obj_free(stream);
+	return res;
+}
+
+sol_object_t *sol_f_stream_eof(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *res = sol_new_int(state, sol_stream_feof(state, stream));
 	sol_obj_free(stream);
 	return res;
 }

@@ -4,310 +4,310 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void prlev(int lev, const char *fmt, ...) {
+void prlev(sol_state_t *state, int lev, const char *fmt, ...) {
 	va_list vl;
 	int i;
 
-	for(i = 0; i < lev; i++) { putchar('|'); putchar(' '); }
+	for(i = 0; i < lev; i++) { sol_putchar(state, '|'); sol_putchar(state, ' '); }
 	va_start(vl, fmt);
-	vprintf(fmt, vl);
+	sol_vprintf(state, fmt, vl);
 	va_end(vl);
-	putchar('\n');
+	sol_putchar(state, '\n');
 }
 
-void prex(expr_node *, int);
+void prex( sol_state_t *, expr_node *, int);
 
-void prst(stmt_node *node, int lev) {
+void prst(sol_state_t *state, stmt_node *node, int lev) {
 	if(!node) {
-		prlev(lev, "<NULL>");
+		prlev(state, lev, "<NULL>");
 		return;
 	}
 	switch(node->type) {
 		case ST_EXPR:
-			prlev(lev, "Stmt<Expr>:");
-			prex(node->expr, lev+1);
+			prlev(state, lev, "Stmt<Expr>:");
+			prex(state, node->expr, lev+1);
 			break;
 
 		case ST_IFELSE:
-			prlev(lev, "Stmt<IfElse>:");
+			prlev(state, lev, "Stmt<IfElse>:");
 			lev++;
-			prlev(lev, "Cond:");
-			prex(node->ifelse->cond, lev+1);
-			prlev(lev, "IfTrue:");
-			prst(node->ifelse->iftrue, lev+1);
-			prlev(lev, "IfFalse:");
-			prst(node->ifelse->iffalse, lev+1);
+			prlev(state, lev, "Cond:");
+			prex(state, node->ifelse->cond, lev+1);
+			prlev(state, lev, "IfTrue:");
+			prst(state, node->ifelse->iftrue, lev+1);
+			prlev(state, lev, "IfFalse:");
+			prst(state, node->ifelse->iffalse, lev+1);
 			break;
 
 		case ST_LOOP:
-			prlev(lev, "Stmt<Loop>:");
+			prlev(state, lev, "Stmt<Loop>:");
 			lev++;
-			prlev(lev, "Cond:");
-			prex(node->loop->cond, lev+1);
-			prlev(lev, "Loop:");
-			prst(node->loop->loop, lev+1);
+			prlev(state, lev, "Cond:");
+			prex(state, node->loop->cond, lev+1);
+			prlev(state, lev, "Loop:");
+			prst(state, node->loop->loop, lev+1);
 			break;
 
 		case ST_ITER:
-			prlev(lev, "Stmt<Iter>:");
+			prlev(state, lev, "Stmt<Iter>:");
 			lev++;
-			prlev(lev, "Var: %s", node->iter->var);
-			prlev(lev, "Iter:");
-			prex(node->iter->iter, lev+1);
-			prlev(lev, "Loop:");
-			prst(node->iter->loop, lev+1);
+			prlev(state, lev, "Var: %s", node->iter->var);
+			prlev(state, lev, "Iter:");
+			prex(state, node->iter->iter, lev+1);
+			prlev(state, lev, "Loop:");
+			prst(state, node->iter->loop, lev+1);
 			break;
 
 		case ST_LIST:
-			prlev(lev, "Stmt<List>:");
+			prlev(state, lev, "Stmt<List>:");
 			stmtlist_node *cur = node->stmtlist;
 			while(cur && cur->stmt) {
-				prst(cur->stmt, lev+1);
+				prst(state, cur->stmt, lev+1);
 				cur = cur->next;
 			}
 			break;
 
         case ST_RET:
-            prlev(lev, "Stmt<Ret>:");
-            prex(node->ret->ret, lev+1);
+            prlev(state, lev, "Stmt<Ret>:");
+            prex(state, node->ret->ret, lev+1);
             break;
 
         case ST_CONT:
-            prlev(lev, "Stmt<Continue>");
+            prlev(state, lev, "Stmt<Continue>");
             break;
 
         case ST_BREAK:
-            prlev(lev, "Stmt<Break>");
+            prlev(state, lev, "Stmt<Break>");
             break;
 	}
 }
 
-void prex(expr_node *node, int lev) {
+void prex(sol_state_t *state, expr_node *node, int lev) {
 	assoclist_node *cura;
 	exprlist_node *cure;
 	identlist_node *curi;
 	if(!node) {
-		prlev(lev, "<NULL>");
+		prlev(state, lev, "<NULL>");
 		return;
 	}
 	switch(node->type) {
 		case EX_LIT:
-			prlev(lev, "Literal:");
+			prlev(state, lev, "Literal:");
 			lev++;
 			switch(node->lit->type) {
 				case LIT_INT:
-					prlev(lev, "Int: %ld", node->lit->ival);
+					prlev(state, lev, "Int: %ld", node->lit->ival);
 					break;
 
 				case LIT_FLOAT:
-					prlev(lev, "Float: %f", node->lit->fval);
+					prlev(state, lev, "Float: %f", node->lit->fval);
 					break;
 
 				case LIT_STRING:
-					prlev(lev, "String: %s", node->lit->str);
+					prlev(state, lev, "String: %s", node->lit->str);
 					break;
 
 				case LIT_NONE:
-					prlev(lev, "None");
+					prlev(state, lev, "None");
 					break;
 			}
 			break;
 
 		case EX_LISTGEN:
-			prlev(lev, "ListGen:");
+			prlev(state, lev, "ListGen:");
 			cure = node->listgen->list;
 			while(cure && cure->expr) {
-				prex(cure->expr, lev+1);
+				prex(state, cure->expr, lev+1);
 				cure = cure->next;
 			}
 			break;
 
 		case EX_MAPGEN:
-			prlev(lev, "MapGen:");
+			prlev(state, lev, "MapGen:");
 			lev++;
 			cura = node->mapgen->map;
 			while(cura && cura->item) {
-				prlev(lev, "<Key>:");
-				prex(cura->item->key, lev+1);
-				prlev(lev, "<Value>:");
-				prex(cura->item->value, lev+1);
+				prlev(state, lev, "<Key>:");
+				prex(state, cura->item->key, lev+1);
+				prlev(state, lev, "<Value>:");
+				prex(state, cura->item->value, lev+1);
 				cura = cura->next;
 			}
 			break;
 
 		case EX_BINOP:
-			prlev(lev, "BinOp:");
+			prlev(state, lev, "BinOp:");
 			lev++;
 			switch(node->binop->type) {
 				case OP_ADD:
-					prlev(lev, "Op: +");
+					prlev(state, lev, "Op: +");
 					break;
 
 				case OP_SUB:
-					prlev(lev, "Op: -");
+					prlev(state, lev, "Op: -");
 					break;
 
 				case OP_MUL:
-					prlev(lev, "Op: *");
+					prlev(state, lev, "Op: *");
 					break;
 
 				case OP_DIV:
-					prlev(lev, "Op: /");
+					prlev(state, lev, "Op: /");
 					break;
 
                 case OP_MOD:
-					prlev(lev, "Op: %");
+					prlev(state, lev, "Op: %");
 					break;
 
 				case OP_POW:
-					prlev(lev, "Op: **");
+					prlev(state, lev, "Op: **");
 					break;
 
 				case OP_BAND:
-					prlev(lev, "Op: &");
+					prlev(state, lev, "Op: &");
 					break;
 
 				case OP_BOR:
-					prlev(lev, "Op: |");
+					prlev(state, lev, "Op: |");
 					break;
 
 				case OP_BXOR:
-					prlev(lev, "Op: ^");
+					prlev(state, lev, "Op: ^");
 					break;
 
 				case OP_LAND:
-					prlev(lev, "Op: &&");
+					prlev(state, lev, "Op: &&");
 					break;
 
 				case OP_LOR:
-					prlev(lev, "Op: ||");
+					prlev(state, lev, "Op: ||");
 					break;
 
 				case OP_EQUAL:
-					prlev(lev, "Op: ==");
+					prlev(state, lev, "Op: ==");
 					break;
 
 				case OP_LESS:
-					prlev(lev, "Op: <");
+					prlev(state, lev, "Op: <");
 					break;
 
 				case OP_GREATER:
-					prlev(lev, "Op: >");
+					prlev(state, lev, "Op: >");
 					break;
 
 				case OP_LESSEQ:
-					prlev(lev, "Op: <=");
+					prlev(state, lev, "Op: <=");
 					break;
 
 				case OP_GREATEREQ:
-					prlev(lev, "Op: >=");
+					prlev(state, lev, "Op: >=");
 					break;
 
 				case OP_LSHIFT:
-					prlev(lev, "Op: <<");
+					prlev(state, lev, "Op: <<");
 					break;
 
 				case OP_RSHIFT:
-					prlev(lev, "Op: >>");
+					prlev(state, lev, "Op: >>");
 					break;
 			}
-			prlev(lev, "Left:");
-			prex(node->binop->left, lev+1);
-			prlev(lev, "Right:");
-			prex(node->binop->right, lev+1);
+			prlev(state, lev, "Left:");
+			prex(state, node->binop->left, lev+1);
+			prlev(state, lev, "Right:");
+			prex(state, node->binop->right, lev+1);
 			break;
 
 		case EX_UNOP:
-			prlev(lev, "UnOp:");
+			prlev(state, lev, "UnOp:");
 			lev++;
 			switch(node->unop->type) {
 				case OP_NEG:
-					prlev(lev, "Op: -");
+					prlev(state, lev, "Op: -");
 					break;
 
 				case OP_BNOT:
-					prlev(lev, "Op: ~");
+					prlev(state, lev, "Op: ~");
 					break;
 
 				case OP_LNOT:
-					prlev(lev, "Op: !");
+					prlev(state, lev, "Op: !");
 					break;
 
 				case OP_LEN:
-					prlev(lev, "Op: #");
+					prlev(state, lev, "Op: #");
 					break;
 			}
-			prlev(lev, "Expr:");
-			prex(node->unop->expr, lev+1);
+			prlev(state, lev, "Expr:");
+			prex(state, node->unop->expr, lev+1);
 			break;
 
 		case EX_INDEX:
-			prlev(lev, "Index:");
+			prlev(state, lev, "Index:");
 			lev++;
-			prlev(lev, "Expr:");
-			prex(node->index->expr, lev+1);
-			prlev(lev, "Index:");
-			prex(node->index->index, lev+1);
+			prlev(state, lev, "Expr:");
+			prex(state, node->index->expr, lev+1);
+			prlev(state, lev, "Index:");
+			prex(state, node->index->index, lev+1);
 			break;
 
 		case EX_SETINDEX:
-			prlev(lev, "SetIndex:");
+			prlev(state, lev, "SetIndex:");
 			lev++;
-			prlev(lev, "Expr:");
-			prex(node->setindex->expr, lev+1);
-			prlev(lev, "Index:");
-			prex(node->setindex->index, lev+1);
-			prlev(lev, "Value:");
-			prex(node->setindex->value, lev+1);
+			prlev(state, lev, "Expr:");
+			prex(state, node->setindex->expr, lev+1);
+			prlev(state, lev, "Index:");
+			prex(state, node->setindex->index, lev+1);
+			prlev(state, lev, "Value:");
+			prex(state, node->setindex->value, lev+1);
 			break;
 
 		case EX_ASSIGN:
-			prlev(lev, "Assign:");
+			prlev(state, lev, "Assign:");
 			lev++;
-			prlev(lev, "Ident: %s", node->assign->ident);
-			prlev(lev, "Value:");
-			prex(node->assign->value, lev+1);
+			prlev(state, lev, "Ident: %s", node->assign->ident);
+			prlev(state, lev, "Value:");
+			prex(state, node->assign->value, lev+1);
 			break;
 
 		case EX_REF:
-			prlev(lev, "Ref: %s", node->ref->ident);
+			prlev(state, lev, "Ref: %s", node->ref->ident);
 			break;
 
 		case EX_CALL:
-			prlev(lev, "Call:");
+			prlev(state, lev, "Call:");
 			lev++;
-			prlev(lev, "Expr:");
-			prex(node->call->expr, lev+1);
-			prlev(lev, "Args:");
+			prlev(state, lev, "Expr:");
+			prex(state, node->call->expr, lev+1);
+			prlev(state, lev, "Args:");
 			cure = node->call->args;
 			while(cure && cure->expr) {
-				prex(cure->expr, lev+1);
+				prex(state, cure->expr, lev+1);
 				cure = cure->next;
 			}
 			break;
 
 		case EX_FUNCDECL:
-			prlev(lev, "FuncDecl:");
+			prlev(state, lev, "FuncDecl:");
 			lev++;
-			prlev(lev, "Name: %s", node->funcdecl->name);
-			prlev(lev, "Args:");
+			prlev(state, lev, "Name: %s", node->funcdecl->name);
+			prlev(state, lev, "Args:");
 			curi = node->funcdecl->args;
 			while(curi && curi->ident) {
-				prlev(lev+1, curi->ident);
+				prlev(state, lev+1, curi->ident);
 				curi = curi->next;
 			}
-			prlev(lev, "Body:");
-			prst(node->funcdecl->body, lev+1);
+			prlev(state, lev, "Body:");
+			prst(state, node->funcdecl->body, lev+1);
 			break;
 	}
 }
 
-void st_print(stmt_node *stmt) {
-    prst(stmt, 0);
+void st_print(sol_state_t *state, stmt_node *stmt) {
+    prst(state, stmt, 0);
 }
 
-void ex_print(expr_node *expr) {
-    prex(expr, 0);
+void ex_print(sol_state_t *state, expr_node *expr) {
+    prex(state, expr, 0);
 }
 
 /*int main(int argc, char **argv) {
@@ -318,11 +318,11 @@ void ex_print(expr_node *expr) {
 	if(yyparse(&program)) {
 		printf("Syntax error (somewhere)\n");
 		printf("Partial tree:\n");
-		prst(program, 0);
+		prst(state, program, 0);
 		return 1;
 	}
 
-	prst(program, 0);
+	prst(state, program, 0);
 	return 0;
 }*/
 

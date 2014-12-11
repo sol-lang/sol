@@ -6,6 +6,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdarg.h>
 #include "dsl/dsl.h"
 
 #define VERSION "0.1a0"
@@ -156,6 +157,7 @@ typedef enum {SF_NORMAL, SF_BREAKING, SF_CONTINUING} sol_state_flag_t;
 typedef struct sol_tag_state_t {
 	sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
 	sol_object_t *ret; // Return value of this function, for early return
+	sol_object_t *traceback; // The last stack of statement (nodes) in the last error, or NULL
 	sol_state_flag_t sflag; // Used to implement break/continue
 	sol_object_t *error; // Some arbitrary error descriptor, None if no error
 	sol_object_t *None;
@@ -179,6 +181,9 @@ typedef struct sol_tag_state_t {
 	sol_object_t *modules;
 	sol_object_t *methods;
 	dsl_object_funcs obfuncs;
+#ifdef DEBUG_GC
+	dsl_seq *objects;
+#endif
 } sol_state_t;
 
 // state.c
@@ -200,6 +205,10 @@ sol_object_t *sol_get_error(sol_state_t *);
 sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
 sol_object_t *sol_set_error_string(sol_state_t *, const char *);
 void sol_clear_error(sol_state_t *);
+
+void sol_init_traceback(sol_state_t *);
+void sol_add_traceback(sol_state_t *, sol_object_t *);
+sol_object_t *sol_traceback(sol_state_t *);
 
 void sol_register_module(sol_state_t *, sol_object_t *, sol_object_t *);
 void sol_register_module_name(sol_state_t *, char *, sol_object_t *);
@@ -239,6 +248,8 @@ sol_object_t *sol_f_exec(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_execfile(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_parse(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_ord(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_chr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_debug_getref(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_setref(sol_state_t *, sol_object_t *);
@@ -250,6 +261,8 @@ sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_list(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_map(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_ast_print(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_singlet_tostring(sol_state_t *, sol_object_t *);
 
@@ -293,6 +306,7 @@ sol_object_t *sol_f_str_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_str_sub(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_split(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_find(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_list_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_mul(sol_state_t *, sol_object_t *);
@@ -316,6 +330,7 @@ sol_object_t *sol_f_map_call(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_len(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_iter(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_map_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_mcell_tostring(sol_state_t *, sol_object_t *);
 
@@ -368,17 +383,11 @@ sol_object_t *sol_f_stream_read(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_seek(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_tell(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_flush(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_eof(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 
 // object.c
-
-#define sol_incref(obj) (++((obj)->refcnt), obj)
-#define sol_decref(obj) (--((obj)->refcnt))
-
-sol_object_t *sol_obj_acquire(sol_object_t *);
-void sol_obj_free(sol_object_t *);
-void sol_obj_release(sol_object_t *);
 
 #define sol_is_singlet(obj) ((obj)->type == SOL_SINGLET)
 #define sol_is_none(state, obj) ((obj) == state->None)
@@ -397,8 +406,6 @@ void sol_obj_release(sol_object_t *);
 #define sol_is_cdata(obj) ((obj)->type == SOL_CDATA)
 
 #define sol_has_error(state) (!sol_is_none((state), (state)->error))
-
-sol_object_t *sol_alloc_object(sol_state_t *);
 
 sol_object_t *sol_new_singlet(sol_state_t *, const char *);
 sol_object_t *sol_new_int(sol_state_t *, long);
@@ -454,14 +461,18 @@ sol_object_t *sol_new_dysym(sol_state_t *, void *, dsl_seq *, sol_buftype_t);
 
 sol_object_t *sol_new_stream(sol_state_t *, FILE *, sol_modes_t);
 size_t sol_stream_printf(sol_state_t *, sol_object_t *, const char *, ...);
+size_t sol_stream_vprintf(sol_state_t *, sol_object_t *, const char *, va_list);
 size_t sol_stream_scanf(sol_state_t *, sol_object_t *, const char *, ...);
 size_t sol_stream_fread(sol_state_t *, sol_object_t *, char *, size_t, size_t);
 size_t sol_stream_fwrite(sol_state_t *, sol_object_t *, char *, size_t, size_t);
 char *sol_stream_fgets(sol_state_t *, sol_object_t *, char *, size_t);
+int sol_stream_fputc(sol_state_t *, sol_object_t *, int);
 #define sol_printf(state, ...) sol_stream_printf(state, sol_get_stdout(state), __VA_ARGS__)
+#define sol_vprintf(state, ...) sol_stream_vprintf(state, sol_get_stdout(state), __VA_ARGS__)
 #define sol_scanf(state, ...) sol_stream_scanf(state, sol_get_stdin(state, __VA_ARGS__)
 #define sol_fread(state, ...) sol_stream_fread(state, sol_get_stdin(state), __VA_ARGS__)
 #define sol_fwrite(state, ...) sol_stream_fwrite(state, sol_get_stdout(state), __VA_ARGS__)
+#define sol_putchar(state, ...) sol_stream_fputc(state, sol_get_stdout(state), __VA_ARGS__)
 int sol_stream_feof(sol_state_t *, sol_object_t *);
 int sol_stream_ferror(sol_state_t *, sol_object_t *);
 #define sol_stream_ready(state, stream) (!(sol_stream_feof((state), (stream)) || sol_stream_ferror((state), (stream))))
@@ -488,6 +499,31 @@ int sol_validate_map(sol_state_t *, sol_object_t *);
 // util.c
 
 sol_object_t *sol_util_call(sol_state_t *, sol_object_t *, int *, int, ...);
+
+// gc.c
+
+#ifdef DEBUG_GC
+
+sol_object_t *_int_sol_incref(const char *, sol_object_t *);
+void _int_sol_obj_free(const char *, sol_object_t *);
+#define sol_incref(obj) (_int_sol_incref(__func__, (obj)))
+#define sol_obj_free(obj) (_int_sol_obj_free(__func__, (obj)))
+
+#else
+
+#define sol_incref(obj) (++((obj)->refcnt), obj)
+void sol_obj_free(sol_object_t *);
+
+#endif
+
+#define sol_decref(obj) (--((obj)->refcnt))
+
+sol_object_t *sol_obj_acquire(sol_object_t *);
+void sol_obj_release(sol_object_t *);
+
+sol_object_t *sol_alloc_object(sol_state_t *);
+
+void sol_mm_finalize(sol_state_t *);
 
 #define AS_OBJ(x) ((sol_object_t *) (x))
 

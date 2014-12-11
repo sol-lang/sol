@@ -391,4 +391,19 @@ for i in l do
 	prepr(i, type(i))
 end
 
+print('--- Continue/break')
+
+l = range(10)
+for i in l do
+	print(i)
+	if i >= 5 then break end
+end
+
+print('---')
+
+for i in l do
+	if i%2 == 0 then continue end
+	print(i)
+end
+
 print('--- All done!')

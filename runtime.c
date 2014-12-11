@@ -450,6 +450,9 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
     switch(stmt->type) {
         case ST_EXPR:
             sol_obj_free(sol_eval(state, stmt->expr));
+			if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
             break;
 
         case ST_IFELSE:
@@ -462,6 +465,9 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             }
             sol_obj_free(value);
             sol_obj_free(vint);
+			if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
             break;
 
         case ST_LOOP:
@@ -471,11 +477,19 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 sol_obj_free(value);
                 sol_obj_free(vint);
                 sol_exec(state, stmt->loop->loop);
-                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
+                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
+					value = sol_incref(state->None);
+					vint = sol_new_int(state, 0);
+					continue;
+				}
+				state->sflag = SF_NORMAL;
                 value = sol_eval(state, stmt->loop->cond);
                 vint = sol_cast_int(state, value);
             }
             state->sflag = SF_NORMAL;
+			if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
 			sol_obj_free(value);
 			sol_obj_free(vint);
             break;
@@ -503,13 +517,20 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 sol_state_assign_l_name(state, stmt->iter->var, item);
                 sol_exec(state, stmt->iter->loop);
 				sol_obj_free(item);
-                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) break;
+                if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
+					item = sol_incref(state->StopIteration);
+				}
+				state->sflag = SF_NORMAL;
                 item = iter->ops->call(state, list);
             }
             state->sflag = SF_NORMAL;
-			sol_obj_free(list);
+			if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
 			sol_obj_free(iter);
 			sol_obj_free(value);
+			sol_obj_free(list);
+			sol_obj_free(item);
             break;
 
         case ST_LIST:
@@ -518,6 +539,9 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
                 if(curs->stmt) sol_exec(state, curs->stmt);
                 curs = curs->next;
             }
+            if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
             break;
 
         case ST_RET:
@@ -526,6 +550,9 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
             } else {
                 state->ret = sol_incref(state->None);
             }
+            if(sol_has_error(state)) {
+				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+			}
             break;
 
         case ST_CONT:
@@ -594,7 +621,6 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name) {
     sol_object_t *obj = sol_alloc_object(state);
-    if(sol_has_error(state)) return sol_incref(state->None);
     obj->func = body;
     obj->args = identlist;
 	obj->fname = (name?strdup(name):NULL);
@@ -607,7 +633,6 @@ sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_n
 
 sol_object_t *sol_new_stmtnode(sol_state_t *state, stmt_node *stmt) {
 	sol_object_t *obj = sol_alloc_object(state);
-	if(sol_has_error(state)) return sol_incref(state->None);
 	obj->type = SOL_STMT;
 	obj->ops = &(state->ASTNodeOps);
 	obj->node = stmt;
@@ -616,7 +641,6 @@ sol_object_t *sol_new_stmtnode(sol_state_t *state, stmt_node *stmt) {
 
 sol_object_t *sol_new_exprnode(sol_state_t *state, expr_node *expr) {
 	sol_object_t *obj = sol_alloc_object(state);
-	if(sol_has_error(state)) return sol_incref(state->None);
 	obj->type = SOL_EXPR;
 	obj->ops = &(state->ASTNodeOps);
 	obj->node = expr;

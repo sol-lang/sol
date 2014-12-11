@@ -41,10 +41,10 @@ int main(int argc, char **argv) {
 	
 	if(prgstream!=stdin) fclose(prgstream);
 
-    if(printtree) st_print(program);
+	sol_state_init(&state);
+    if(printtree) st_print(&state, program);
 
     if(program) {
-        sol_state_init(&state);
         sol_exec(&state, program);
 		if(sol_has_error(&state)) {
 			printf("Error: ");
