@@ -97,6 +97,15 @@ That's a really brief taste; you can look at the `test.sol` file for a larger co
 Buiding/Installation
 --------------------
 
+First off, *you should clone this repository with --recurive* if you want to get the submodules in one go. If you've already cloned it, don't worry; just run this:
+
+```
+git submodule init
+git submodule update
+```
+
+This should pull in the requisite build dependencies. (For more on this, see git's documentation on [Cloning a Project with Submodules](http://git-scm.com/book/en/v2/Git-Tools-Submodules#Cloning-a-Project-with-Submodules).)
+
 Because makefiles aren't hipster enough, the build system for Sol presently consists of exclusively .sh files, and it's presently hardcoded to use gcc, and include debugging symbols (this will be fixed eventually). If you're on any POSIX-y platform, you should be able to clone this repo and run:
 
     ./build.sh
