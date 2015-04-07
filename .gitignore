@@ -1,3 +1,4 @@
 sol
 *.o
 stdout
+.submodule_stamp
