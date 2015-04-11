@@ -30,11 +30,11 @@ sol_object_t *sol_f_not_impl(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_default_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
-    sol_object_t *res = sol_new_int(state, a!=b);
-    sol_obj_free(a);
-    sol_obj_free(b);
-    return res;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
+	sol_object_t *res = sol_new_int(state, a!=b);
+	sol_obj_free(a);
+	sol_obj_free(b);
+	return res;
 }
 
 sol_object_t *sol_f_default_tostring(sol_state_t *state, sol_object_t *args) {
@@ -52,7 +52,9 @@ sol_object_t *sol_f_default_repr(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_no_op(sol_state_t *state, sol_object_t *args) {
-	if(state) return sol_incref(state->None);
+	if(state) {
+		return sol_incref(state->None);
+	}
 	return NULL;
 }
 
@@ -113,10 +115,10 @@ sol_object_t *sol_f_error(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_type(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *obj = sol_list_get_index(state, args, 0);
-    sol_object_t *res = sol_new_string(state, obj->ops->tname);
-    sol_obj_free(obj);
-    return res;
+	sol_object_t *obj = sol_list_get_index(state, args, 0);
+	sol_object_t *res = sol_new_string(state, obj->ops->tname);
+	sol_obj_free(obj);
+	return res;
 }
 
 static dsl_seq *seen=NULL;
@@ -138,40 +140,40 @@ int test_seen(sol_object_t *obj) {
 }
 
 void ob_print(sol_object_t *obj) {
-    sol_object_t *cur;
+	sol_object_t *cur;
 	dsl_seq_iter *iter;
 	int i;
 	if(test_seen(obj)) {
 		return;
 	}
-    switch(obj->type) {
-        case SOL_SINGLET:
-            printf("%s", obj->str);
-            break;
+	switch(obj->type) {
+		case SOL_SINGLET:
+			printf("%s", obj->str);
+			break;
 
-        case SOL_INTEGER:
-            printf("%ld", obj->ival);
-            break;
+		case SOL_INTEGER:
+			printf("%ld", obj->ival);
+			break;
 
-        case SOL_FLOAT:
-            printf("%f", obj->fval);
-            break;
+		case SOL_FLOAT:
+			printf("%f", obj->fval);
+			break;
 
-        case SOL_STRING:
-            printf("\"%s\"", obj->str);
-            break;
+		case SOL_STRING:
+			printf("\"%s\"", obj->str);
+			break;
 
-        case SOL_LIST:
-            printf("[");
-            iter = dsl_new_seq_iter(obj->seq);
-            while(!dsl_seq_iter_is_invalid(iter)) {
-                ob_print(dsl_seq_iter_at(iter));
-                printf(", ");
+		case SOL_LIST:
+			printf("[");
+			iter = dsl_new_seq_iter(obj->seq);
+			while(!dsl_seq_iter_is_invalid(iter)) {
+				ob_print(dsl_seq_iter_at(iter));
+				printf(", ");
 				dsl_seq_iter_next(iter);
-            }
-            dsl_free_seq_iter(iter);
-            printf("]");
-            break;
+			}
+			dsl_free_seq_iter(iter);
+			printf("]");
+			break;
 
 		case SOL_MCELL:
 			printf("<<");
@@ -180,41 +182,41 @@ void ob_print(sol_object_t *obj) {
 			ob_print(obj->val);
 			printf(">>");
 
-        case SOL_MAP:
-            printf("{");
-            iter = dsl_new_seq_iter(obj->seq);
-            while(!dsl_seq_iter_is_invalid(iter)) {
+		case SOL_MAP:
+			printf("{");
+			iter = dsl_new_seq_iter(obj->seq);
+			while(!dsl_seq_iter_is_invalid(iter)) {
 				printf("[");
 				ob_print(AS_OBJ(dsl_seq_iter_at(iter))->key);
 				printf("] = ");
 				ob_print(AS_OBJ(dsl_seq_iter_at(iter))->val);
 				printf(", ");
-                dsl_seq_iter_next(iter);
-            }
-            dsl_free_seq_iter(iter);
-            printf("}");
-            break;
+				dsl_seq_iter_next(iter);
+			}
+			dsl_free_seq_iter(iter);
+			printf("}");
+			break;
 
-        case SOL_FUNCTION:
+		case SOL_FUNCTION:
 			if(obj->fname) {
 				printf("<Function %s>", obj->fname);
 			} else {
 				printf("<Function>");
 			}
-            break;
-			
+			break;
+
 		case SOL_CFUNCTION:
 			printf("<CFunction>");
 			break;
-			
+
 		case SOL_STMT:
 			st_print(NULL, obj->node); //TODO: FIXME
 			break;
-			
+
 		case SOL_EXPR:
 			ex_print(NULL, obj->node); //TODO: FIXME
 			break;
-			
+
 		case SOL_BUFFER:
 			if(obj->sz == -1) {
 				printf("<Buffer @%p>", obj->buffer);
@@ -222,21 +224,21 @@ void ob_print(sol_object_t *obj) {
 				printf("<Buffer @%p size %ld>", obj->buffer, obj->sz);
 			}
 			break;
-			
+
 		case SOL_CDATA:
 			printf("<CData>");
 			break;
-			
-		/*default:
-			cur = sol_cast_string(state, obj);
-			printf("%s", cur->str);
-			sol_obj_free(cur);*/
-    }
+
+			/*default:
+				cur = sol_cast_string(state, obj);
+				printf("%s", cur->str);
+				sol_obj_free(cur);*/
+	}
 }
 
 sol_object_t *sol_f_prepr(sol_state_t *state, sol_object_t *args) {
 	int i, sz = sol_list_len(state, args);
-    sol_object_t *obj, *str;
+	sol_object_t *obj, *str;
 	seen = dsl_seq_new_array(NULL, NULL);
 	for(i=0; i<sz; i++) {
 		obj = sol_list_get_index(state, args, i);
@@ -250,12 +252,12 @@ sol_object_t *sol_f_prepr(sol_state_t *state, sol_object_t *args) {
 	printf("\n");
 	dsl_free_seq(seen);
 	seen = NULL;
-    return sol_incref(state->None);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_print(sol_state_t *state, sol_object_t *args) {
 	int i, sz = sol_list_len(state, args);
-    sol_object_t *obj, *str;
+	sol_object_t *obj, *str;
 	seen = dsl_seq_new_array(NULL, NULL);
 	for(i=0; i<sz; i++) {
 		obj = sol_list_get_index(state, args, i);
@@ -268,12 +270,14 @@ sol_object_t *sol_f_print(sol_state_t *state, sol_object_t *args) {
 	sol_printf(state, "\n");
 	dsl_free_seq(seen);
 	seen = NULL;
-    return sol_incref(state->None);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_rawget(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *key, *res;
-	if(!sol_is_map(obj)) return sol_set_error_string(state, "Rawset of non-map");
+	if(!sol_is_map(obj)) {
+		return sol_set_error_string(state, "Rawset of non-map");
+	}
 	key = sol_list_get_index(state, args, 1);
 	res = sol_map_get(state, obj, key);
 	sol_obj_free(key);
@@ -284,7 +288,9 @@ sol_object_t *sol_f_rawget(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_rawset(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *key, *val;
-	if(!sol_is_map(obj)) return sol_set_error_string(state, "Rawset of non-map");
+	if(!sol_is_map(obj)) {
+		return sol_set_error_string(state, "Rawset of non-map");
+	}
 	key = sol_list_get_index(state, args, 1);
 	val = sol_list_get_index(state, args, 2);
 	sol_map_set(state, obj, key, val);
@@ -305,67 +311,67 @@ sol_object_t *sol_f_range(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_exec(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
-    stmt_node *program;
+	sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
+	stmt_node *program;
 
-    program = sol_compile(prgstr->str);
-    if(!program) {
-        return sol_set_error_string(state, "Compilation failure");
-    }
-    // XXX should st_free(program);
+	program = sol_compile(prgstr->str);
+	if(!program) {
+		return sol_set_error_string(state, "Compilation failure");
+	}
+	// XXX should st_free(program);
 
-    sol_exec(state, program);
-    return sol_incref(state->None);
+	sol_exec(state, program);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_eval(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
-    stmt_node *program;
+	sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
+	stmt_node *program;
 
-    program = sol_compile(prgstr->str);
-    if(!program) {
-        return sol_set_error_string(state, "Compilation failure");
-    }
-    if(program->type != ST_LIST || program->stmtlist->stmt->type != ST_EXPR) {
-        return sol_set_error_string(state, "Not an expression");
-    }
-    // XXX should st_free(program);
+	program = sol_compile(prgstr->str);
+	if(!program) {
+		return sol_set_error_string(state, "Compilation failure");
+	}
+	if(program->type != ST_LIST || program->stmtlist->stmt->type != ST_EXPR) {
+		return sol_set_error_string(state, "Not an expression");
+	}
+	// XXX should st_free(program);
 
-    return sol_eval(state, program->stmtlist->stmt->expr);
+	return sol_eval(state, program->stmtlist->stmt->expr);
 }
 
 sol_object_t *sol_f_execfile(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
-    stmt_node *program;
-    FILE *f = fopen(prgstr->str, "r");
-    char *s;
-    long sz;
+	sol_object_t *prg = sol_list_get_index(state, args, 0), *prgstr = sol_cast_string(state, prg);
+	stmt_node *program;
+	FILE *f = fopen(prgstr->str, "r");
+	char *s;
+	long sz;
 
-    if(!f) {
-        return sol_set_error_string(state, "File open failure");
-    }
+	if(!f) {
+		return sol_set_error_string(state, "File open failure");
+	}
 
-    fseek(f, 0, SEEK_END);
-    sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    s = malloc(sz+1);
-    if(!s) {
-        fclose(f);
-        return sol_set_error_string(state, "File memory allocation failure");
-    }
-    fread(s, 1, sz, f);
-    s[sz]=0;
-    fclose(f);
+	fseek(f, 0, SEEK_END);
+	sz = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	s = malloc(sz+1);
+	if(!s) {
+		fclose(f);
+		return sol_set_error_string(state, "File memory allocation failure");
+	}
+	fread(s, 1, sz, f);
+	s[sz]=0;
+	fclose(f);
 
-    program = sol_compile(s);
-    free(s);
-    if(!program) {
-        return sol_set_error_string(state, "Compilation failure");
-    }
-    // XXX should st_free(program);
+	program = sol_compile(s);
+	free(s);
+	if(!program) {
+		return sol_set_error_string(state, "Compilation failure");
+	}
+	// XXX should st_free(program);
 
-    sol_exec(state, program);
-    return sol_incref(state->None);
+	sol_exec(state, program);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_parse(sol_state_t *state, sol_object_t *args) {
@@ -404,13 +410,13 @@ sol_object_t *sol_f_ord(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_chr(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *arg = sol_list_get_index(state, args, 0), *iarg = sol_cast_int(state, arg);
-	char cbuf[2]={iarg->ival, 0};
+	char cbuf[2]= {iarg->ival, 0};
 	sol_object_t *res = sol_new_string(state, cbuf);
 	sol_obj_free(arg);
 	sol_obj_free(iarg);
 	return res;
 }
-	
+
 
 sol_object_t *sol_f_debug_getref(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0);
@@ -443,7 +449,7 @@ sol_object_t *sol_f_debug_locals(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_debug_scopes(sol_state_t *state, sol_object_t *args) {
-    return sol_incref(state->scopes);
+	return sol_incref(state->scopes);
 }
 
 sol_object_t *sol_f_iter_str(sol_state_t *state, sol_object_t *args) {
@@ -536,7 +542,10 @@ sol_object_t *sol_f_int_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival + b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -545,7 +554,10 @@ sol_object_t *sol_f_int_sub(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival - b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -554,7 +566,10 @@ sol_object_t *sol_f_int_mul(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival * b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -563,7 +578,10 @@ sol_object_t *sol_f_int_div(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival / b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -572,7 +590,10 @@ sol_object_t *sol_f_int_mod(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival % b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -581,7 +602,10 @@ sol_object_t *sol_f_int_pow(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, (long) pow((double) a->ival, b->ival));
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -590,7 +614,10 @@ sol_object_t *sol_f_int_band(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival & b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -599,7 +626,10 @@ sol_object_t *sol_f_int_bor(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival | b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -608,7 +638,10 @@ sol_object_t *sol_f_int_bxor(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival ^ b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -617,7 +650,10 @@ sol_object_t *sol_f_int_blsh(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival << b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -626,7 +662,10 @@ sol_object_t *sol_f_int_brsh(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_int(state, a->ival >> b->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -638,11 +677,11 @@ sol_object_t *sol_f_int_bnot(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-    sol_object_t *res = sol_new_int(state, a->ival==b->ival? 0 : (a->ival<b->ival? -1 : 1));
-    sol_obj_free(a);
-    sol_obj_free(b);
-    return res;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
+	sol_object_t *res = sol_new_int(state, a->ival==b->ival? 0 : (a->ival<b->ival? -1 : 1));
+	sol_obj_free(a);
+	sol_obj_free(b);
+	return res;
 }
 
 sol_object_t *sol_f_int_toint(sol_state_t *state, sol_object_t *args) {
@@ -670,7 +709,10 @@ sol_object_t *sol_f_float_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_float(state, a->fval + b->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -679,7 +721,10 @@ sol_object_t *sol_f_float_sub(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_float(state, a->fval - b->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -688,7 +733,10 @@ sol_object_t *sol_f_float_mul(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_float(state, a->fval * b->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -697,7 +745,10 @@ sol_object_t *sol_f_float_div(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_float(state, a->fval / b->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -706,16 +757,19 @@ sol_object_t *sol_f_float_pow(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_float(state, pow(a->fval, b->fval));
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
 sol_object_t *sol_f_float_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-    sol_object_t *res = sol_new_int(state, a->fval==b->fval? 0 : (a->fval<b->fval? -1 : 1));
-    sol_obj_free(a);
-    sol_obj_free(b);
-    return res;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
+	sol_object_t *res = sol_new_int(state, a->fval==b->fval? 0 : (a->fval<b->fval? -1 : 1));
+	sol_obj_free(a);
+	sol_obj_free(b);
+	return res;
 }
 
 sol_object_t *sol_f_float_toint(sol_state_t *state, sol_object_t *args) {
@@ -743,7 +797,10 @@ sol_object_t *sol_f_str_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_string_concat(state, a, b);
 	sol_obj_free(a);
 	sol_obj_free(b);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -753,21 +810,26 @@ sol_object_t *sol_f_str_mul(sol_state_t *state, sol_object_t *args) {
 	char *s = malloc(n);
 	int i;
 	s[0]='\0';
-	for(i = 0; i < b->ival; i++) strncat(s, a->str, n);
+	for(i = 0; i < b->ival; i++) {
+		strncat(s, a->str, n);
+	}
 	sol_object_t *res = sol_new_string(state, s);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	free(s);
-	if(sol_has_error(state)) {sol_obj_free(res); return sol_incref(state->None);}
+	if(sol_has_error(state)) {
+		sol_obj_free(res);
+		return sol_incref(state->None);
+	}
 	return res;
 }
 
 sol_object_t *sol_f_str_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_string(state, sol_list_get_index(state, args, 1));
-    sol_object_t *res = sol_new_int(state, strcmp(a->str, b->str));
-    sol_obj_free(a);
-    sol_obj_free(b);
-    return res;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_string(state, sol_list_get_index(state, args, 1));
+	sol_object_t *res = sol_new_int(state, strcmp(a->str, b->str));
+	sol_obj_free(a);
+	sol_obj_free(b);
+	return res;
 }
 
 sol_object_t *sol_f_str_len(sol_state_t *state, sol_object_t *args) {
@@ -779,7 +841,7 @@ sol_object_t *sol_f_str_len(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_str_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *str = sol_list_get_index(state, args, 0), *key = sol_list_get_index(state, args, 1), *idx, *funcs, *res;
-	char buf[2]={0, 0};
+	char buf[2]= {0, 0};
 	if(sol_is_string(key)) {
 		funcs = sol_get_methods_name(state, "string");
 		res = sol_map_get(state, funcs, key);
@@ -846,14 +908,22 @@ sol_object_t *sol_f_str_sub(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(high);
 	if(ilow->ival<0) {
 		ilow->ival+=len;
-		if(ilow->ival<0) ilow->ival=0;
+		if(ilow->ival<0) {
+			ilow->ival=0;
+		}
 	}
-	if(ilow->ival>len) ilow->ival=len;
+	if(ilow->ival>len) {
+		ilow->ival=len;
+	}
 	if(ihigh->ival<0) {
 		ihigh->ival+=len;
-		if(ihigh->ival<0) ihigh->ival=0;
+		if(ihigh->ival<0) {
+			ihigh->ival=0;
+		}
 	}
-	if(ihigh->ival>len) ihigh->ival=len;
+	if(ihigh->ival>len) {
+		ihigh->ival=len;
+	}
 	if(ilow->ival >= ihigh->ival) {
 		sol_obj_free(ilow);
 		sol_obj_free(ihigh);
@@ -861,7 +931,9 @@ sol_object_t *sol_f_str_sub(sol_state_t *state, sol_object_t *args) {
 		return sol_new_string(state, "");
 	}
 	s = malloc(ihigh->ival - ilow->ival + 1);
-	for(i=ilow->ival; i<ihigh->ival; i++) s[i-ilow->ival] = str->str[i];
+	for(i=ilow->ival; i<ihigh->ival; i++) {
+		s[i-ilow->ival] = str->str[i];
+	}
 	s[ihigh->ival-ilow->ival]='\0';
 	sol_obj_free(ihigh);
 	sol_obj_free(ilow);
@@ -942,12 +1014,12 @@ sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res, *funcs;
 	if(sol_is_string(b)) {
 		funcs = sol_get_methods_name(state, "list");
-        res = sol_map_get(state, funcs, b);
+		res = sol_map_get(state, funcs, b);
 		sol_obj_free(funcs);
 	} else {
-        ival = sol_cast_int(state, b);
-        res = sol_list_get_index(state, ls, ival->ival);
-        sol_obj_free(ival);
+		ival = sol_cast_int(state, b);
+		res = sol_list_get_index(state, ls, ival->ival);
+		sol_obj_free(ival);
 	}
 	sol_obj_free(ls);
 	sol_obj_free(b);
@@ -1005,78 +1077,82 @@ sol_object_t *sol_f_list_tostring(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_copy(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0);
-    sol_object_t *res = sol_list_copy(state, list);
-    sol_obj_free(list);
-    return res;
+	sol_object_t *list = sol_list_get_index(state, args, 0);
+	sol_object_t *res = sol_list_copy(state, list);
+	sol_obj_free(list);
+	return res;
 }
 
 sol_object_t *sol_f_list_insert(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1)), *obj = sol_list_get_index(state, args, 2);
-    sol_list_insert(state, list, idx->ival, obj);
-    sol_obj_free(list);
-    return sol_incref(state->None);
+	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1)), *obj = sol_list_get_index(state, args, 2);
+	sol_list_insert(state, list, idx->ival, obj);
+	sol_obj_free(list);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_list_remove(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1));
-    sol_list_remove(state, list, idx->ival);
-    sol_obj_free(list);
-    return sol_incref(state->None);
+	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1));
+	sol_list_remove(state, list, idx->ival);
+	sol_obj_free(list);
+	return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_list_truncate(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1);
-    sol_object_t *res = sol_list_truncate(state, list, idx->ival);
-    sol_obj_free(list);
-    return res;
+	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1);
+	sol_object_t *res = sol_list_truncate(state, list, idx->ival);
+	sol_obj_free(list);
+	return res;
 }
 
 sol_object_t *sol_f_list_map(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
-    sol_object_t *fargs = sol_new_list(state), *item;
-    int idx=0, len = sol_list_len(state, list);
-    sol_list_insert(state, fargs, 0, func);
-    while(idx<len) {
-        item = sol_list_get_index(state, list, idx);
-        sol_list_insert(state, fargs, 1, item);
-        sol_obj_free(item);
-        item = func->ops->call(state, fargs);
-        if(sol_has_error(state)) return list;
-        sol_list_remove(state, fargs, 1);
-        sol_list_set_index(state, list, idx, item);
-        sol_obj_free(item);
-        idx++;
-    }
-    sol_obj_free(fargs);
-    sol_obj_free(func);
-    return list;
+	sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *fargs = sol_new_list(state), *item;
+	int idx=0, len = sol_list_len(state, list);
+	sol_list_insert(state, fargs, 0, func);
+	while(idx<len) {
+		item = sol_list_get_index(state, list, idx);
+		sol_list_insert(state, fargs, 1, item);
+		sol_obj_free(item);
+		item = func->ops->call(state, fargs);
+		if(sol_has_error(state)) {
+			return list;
+		}
+		sol_list_remove(state, fargs, 1);
+		sol_list_set_index(state, list, idx, item);
+		sol_obj_free(item);
+		idx++;
+	}
+	sol_obj_free(fargs);
+	sol_obj_free(func);
+	return list;
 }
 
 sol_object_t *sol_f_list_filter(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
-    sol_object_t *fargs = sol_new_list(state), *item, *ival;
-    int idx=0, len = sol_list_len(state, list);
-    sol_list_insert(state, fargs, 0, func);
-    while(idx<len) {
-        item = sol_list_get_index(state, list, idx);
-        sol_list_insert(state, fargs, 1, item);
-        sol_obj_free(item);
-        item = func->ops->call(state, fargs);
-        if(sol_has_error(state)) return list;
-        ival = sol_cast_int(state, item);
-        if(ival->ival) {
-            idx++;
-        } else {
-            sol_list_remove(state, list, idx);
-            len--;
-        }
-        sol_obj_free(item);
-        sol_obj_free(ival);
-    }
-    sol_obj_free(fargs);
-    sol_obj_free(func);
-    return list;
+	sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *fargs = sol_new_list(state), *item, *ival;
+	int idx=0, len = sol_list_len(state, list);
+	sol_list_insert(state, fargs, 0, func);
+	while(idx<len) {
+		item = sol_list_get_index(state, list, idx);
+		sol_list_insert(state, fargs, 1, item);
+		sol_obj_free(item);
+		item = func->ops->call(state, fargs);
+		if(sol_has_error(state)) {
+			return list;
+		}
+		ival = sol_cast_int(state, item);
+		if(ival->ival) {
+			idx++;
+		} else {
+			sol_list_remove(state, list, idx);
+			len--;
+		}
+		sol_obj_free(item);
+		sol_obj_free(ival);
+	}
+	sol_obj_free(fargs);
+	sol_obj_free(func);
+	return list;
 }
 
 sol_object_t *sol_f_map_add(sol_state_t *state, sol_object_t *args) {
@@ -1136,9 +1212,9 @@ sol_object_t *sol_f_map_setindex(sol_state_t *state, sol_object_t *args) {
 			return sol_incref(state->None);
 		} else if(setindexf->ops->setindex && setindexf->ops->setindex != sol_f_not_impl) {
 			newls = sol_new_list(state);
-            sol_list_insert(state, newls, 0, setindexf);
-            sol_list_insert(state, newls, 1, b);
-            sol_list_insert(state, newls, 2, val);
+			sol_list_insert(state, newls, 0, setindexf);
+			sol_list_insert(state, newls, 1, b);
+			sol_list_insert(state, newls, 2, val);
 			sol_obj_free(setindexf->ops->index(state, newls));
 			sol_obj_free(newls);
 			return sol_incref(state->None);
@@ -1165,7 +1241,9 @@ sol_object_t *sol_f_map_call(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(map);
 	sol_obj_free(fargs);
 	sol_obj_free(callf);
-	if(res) return res;
+	if(res) {
+		return res;
+	}
 	return sol_set_error_string(state, "Call map without call method");
 }
 
@@ -1389,57 +1467,57 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 			sol_map_set_name(state, res, "col", sol_new_int(state, stmt->loc.col));
 		} else {
 			switch(stmt->type) {
-					case ST_EXPR:
-						if(sol_string_eq(state, str, "expr")) {
-							res = sol_new_exprnode(state, stmt->expr);
+				case ST_EXPR:
+					if(sol_string_eq(state, str, "expr")) {
+						res = sol_new_exprnode(state, stmt->expr);
+					}
+					break;
+
+				case ST_IFELSE:
+					if(sol_string_eq(state, str, "cond")) {
+						res = sol_new_exprnode(state, stmt->ifelse->cond);
+					} else if(sol_string_eq(state, str, "iftrue")) {
+						res = sol_new_stmtnode(state, stmt->ifelse->iftrue);
+					} else if(sol_string_eq(state, str, "iffalse")) {
+						res = sol_new_stmtnode(state, stmt->ifelse->iffalse);
+					}
+					break;
+
+				case ST_LOOP:
+					if(sol_string_eq(state, str, "cond")) {
+						res = sol_new_exprnode(state, stmt->loop->cond);
+					} else if(sol_string_eq(state, str, "loop")) {
+						res = sol_new_stmtnode(state, stmt->loop->loop);
+					}
+					break;
+
+				case ST_ITER:
+					if(sol_string_eq(state, str, "var")) {
+						res = sol_new_string(state, stmt->iter->var);
+					} else if(sol_string_eq(state, str, "iter")) {
+						res = sol_new_exprnode(state, stmt->iter->iter);
+					} else if(sol_string_eq(state, str, "loop")) {
+						res = sol_new_stmtnode(state, stmt->iter->loop);
+					}
+					break;
+
+				case ST_LIST:
+					if(sol_string_eq(state, str, "stmtlist")) {
+						res = sol_new_list(state);
+						curs = stmt->stmtlist;
+						while(curs) {
+							sol_list_insert(state, res, i++, sol_new_stmtnode(state, curs->stmt));
+							curs = curs->next;
 						}
-						break;
-						
-					case ST_IFELSE:
-						if(sol_string_eq(state, str, "cond")) {
-							res = sol_new_exprnode(state, stmt->ifelse->cond);
-						} else if(sol_string_eq(state, str, "iftrue")) {
-							res = sol_new_stmtnode(state, stmt->ifelse->iftrue);
-						} else if(sol_string_eq(state, str, "iffalse")) {
-							res = sol_new_stmtnode(state, stmt->ifelse->iffalse);
-						}
-						break;
-						
-					case ST_LOOP:
-						if(sol_string_eq(state, str, "cond")) {
-							res = sol_new_exprnode(state, stmt->loop->cond);
-						} else if(sol_string_eq(state, str, "loop")) {
-							res = sol_new_stmtnode(state, stmt->loop->loop);
-						}
-						break;
-						
-					case ST_ITER:
-						if(sol_string_eq(state, str, "var")) {
-							res = sol_new_string(state, stmt->iter->var);
-						} else if(sol_string_eq(state, str, "iter")) {
-							res = sol_new_exprnode(state, stmt->iter->iter);
-						} else if(sol_string_eq(state, str, "loop")) {
-							res = sol_new_stmtnode(state, stmt->iter->loop);
-						}
-						break;
-						
-					case ST_LIST:
-						if(sol_string_eq(state, str, "stmtlist")) {
-							res = sol_new_list(state);
-							curs = stmt->stmtlist;
-							while(curs) {
-								sol_list_insert(state, res, i++, sol_new_stmtnode(state, curs->stmt));
-								curs = curs->next;
-							}
-						}
-						break;
-						
-					case ST_RET:
-						if(sol_string_eq(state, str, "ret")) {
-							res = sol_new_exprnode(state, stmt->ret->ret);
-						}
-						break;
-				}
+					}
+					break;
+
+				case ST_RET:
+					if(sol_string_eq(state, str, "ret")) {
+						res = sol_new_exprnode(state, stmt->ret->ret);
+					}
+					break;
+			}
 		}
 	} else {
 		if(sol_string_eq(state, str, "type")) {
@@ -1461,7 +1539,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_string(state, expr->lit->str);
 					}
 					break;
-					
+
 				case EX_LISTGEN:
 					if(sol_string_eq(state, str, "list")) {
 						res = sol_new_list(state);
@@ -1472,7 +1550,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						}
 					}
 					break;
-					
+
 				case EX_MAPGEN:
 					if(sol_string_eq(state, str, "map")) {
 						res = sol_new_list(state);
@@ -1486,7 +1564,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						}
 					}
 					break;
-					
+
 				case EX_BINOP:
 					if(sol_string_eq(state, str, "binoptype")) {
 						res = sol_new_int(state, expr->binop->type);
@@ -1496,7 +1574,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_exprnode(state, expr->binop->right);
 					}
 					break;
-					
+
 				case EX_UNOP:
 					if(sol_string_eq(state, str, "unoptype")) {
 						res = sol_new_int(state, expr->unop->type);
@@ -1504,7 +1582,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_exprnode(state, expr->unop->expr);
 					}
 					break;
-					
+
 				case EX_INDEX:
 					if(sol_string_eq(state, str, "expr")) {
 						res = sol_new_exprnode(state, expr->index->expr);
@@ -1512,7 +1590,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_exprnode(state, expr->index->index);
 					}
 					break;
-					
+
 				case EX_SETINDEX:
 					if(sol_string_eq(state, str, "expr")) {
 						res = sol_new_exprnode(state, expr->setindex->expr);
@@ -1522,7 +1600,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_exprnode(state, expr->setindex->value);
 					}
 					break;
-					
+
 				case EX_ASSIGN:
 					if(sol_string_eq(state, str, "ident")) {
 						res = sol_new_string(state, expr->assign->ident);
@@ -1530,13 +1608,13 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_exprnode(state, expr->assign->value);
 					}
 					break;
-					
+
 				case EX_REF:
 					if(sol_string_eq(state, str, "ident")) {
 						res = sol_new_string(state, expr->ref->ident);
 					}
 					break;
-					
+
 				case EX_CALL:
 					if(sol_string_eq(state, str, "expr")) {
 						res = sol_new_exprnode(state, expr->call->expr);
@@ -1549,7 +1627,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						}
 					}
 					break;
-					
+
 				case EX_FUNCDECL:
 					if(sol_string_eq(state, str, "name")) {
 						res = sol_new_string(state, (expr->funcdecl->name?expr->funcdecl->name:""));
@@ -1570,7 +1648,9 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(obj);
 	sol_obj_free(key);
 	sol_obj_free(str);
-	if(!res) res = sol_incref(state->None);
+	if(!res) {
+		res = sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -1607,7 +1687,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						stmt->expr = val->node;
 					}
 					break;
-					
+
 				case ST_IFELSE:
 					if(sol_string_eq(state, str, "cond") && sol_is_astexpr(val)) {
 						stmt->ifelse->cond = val->node;
@@ -1617,7 +1697,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						stmt->ifelse->iffalse = val->node;
 					}
 					break;
-					
+
 				case ST_LOOP:
 					if(sol_string_eq(state, str, "cond") && sol_is_astexpr(val)) {
 						stmt->loop->cond = val->node;
@@ -1625,7 +1705,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						stmt->loop->loop = val->node;
 					}
 					break;
-					
+
 				case ST_ITER:
 					if(sol_string_eq(state, str, "var")) {
 						sval = sol_cast_string(state, val);
@@ -1637,7 +1717,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						stmt->iter->loop = val->node;
 					}
 					break;
-					
+
 				case ST_LIST:
 					if(sol_string_eq(state, str, "stmtlist") && sol_is_list(val)) {
 						len = sol_list_len(state, val);
@@ -1652,15 +1732,19 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									prevs->next = curs;
 								}
 							}
-							if(stmt->stmtlist == curs) stmt->stmtlist = NULL;
+							if(stmt->stmtlist == curs) {
+								stmt->stmtlist = NULL;
+							}
 							free(curs);
-							if(prevs) prevs->next = NULL;
+							if(prevs) {
+								prevs->next = NULL;
+							}
 						} else {
 							stmt->stmtlist = NULL;
 						}
 					}
 					break;
-					
+
 				case ST_RET:
 					if(sol_string_eq(state, str, "ret") && sol_is_astexpr(val)) {
 						stmt->ret->ret = val->node;
@@ -1705,7 +1789,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						sol_obj_free(sval);
 					}
 					break;
-					
+
 				case EX_LISTGEN:
 					if(sol_string_eq(state, str, "list") && sol_is_list(val)) {
 						len = sol_list_len(state, val);
@@ -1720,15 +1804,19 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									preve->next = cure;
 								}
 							}
-							if(expr->listgen->list == cure) expr->listgen->list = NULL;
+							if(expr->listgen->list == cure) {
+								expr->listgen->list = NULL;
+							}
 							free(cure);
-							if(preve) preve->next = NULL;
+							if(preve) {
+								preve->next = NULL;
+							}
 						} else {
 							expr->listgen->list = NULL;
 						}
 					}
 					break;
-					
+
 				case EX_MAPGEN:
 					if(sol_string_eq(state, str, "map") && sol_is_list(val)) {
 						len = sol_list_len(state, val);
@@ -1748,15 +1836,19 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									}
 								}
 							}
-							if(expr->mapgen->map == cura) expr->mapgen->map = NULL;
+							if(expr->mapgen->map == cura) {
+								expr->mapgen->map = NULL;
+							}
 							free(cura);
-							if(preva) preva->next = NULL;
+							if(preva) {
+								preva->next = NULL;
+							}
 						} else {
 							expr->mapgen->map = NULL;
 						}
 					}
 					break;
-					
+
 				case EX_BINOP:
 					if(sol_string_eq(state, str, "binoptype")) {
 						ival = sol_cast_int(state, val);
@@ -1768,7 +1860,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->binop->right = val->node;
 					}
 					break;
-					
+
 				case EX_UNOP:
 					if(sol_string_eq(state, str, "unoptype")) {
 						ival = sol_cast_int(state, val);
@@ -1778,7 +1870,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->unop->expr = val->node;
 					}
 					break;
-					
+
 				case EX_INDEX:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
 						expr->index->expr = val->node;
@@ -1786,7 +1878,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->index->index = val->node;
 					}
 					break;
-					
+
 				case EX_SETINDEX:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
 						expr->setindex->expr = val->node;
@@ -1796,7 +1888,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->setindex->value = val->node;
 					}
 					break;
-					
+
 				case EX_ASSIGN:
 					if(sol_string_eq(state, str, "ident")) {
 						sval = sol_cast_string(state, val);
@@ -1806,7 +1898,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->assign->value = val->node;
 					}
 					break;
-					
+
 				case EX_REF:
 					if(sol_string_eq(state, str, "ident")) {
 						sval = sol_cast_string(state, val);
@@ -1814,7 +1906,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						sol_obj_free(sval);
 					}
 					break;
-					
+
 				case EX_CALL:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
 						expr->call->expr = val->node;
@@ -1831,15 +1923,19 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 									preve->next = cure;
 								}
 							}
-							if(expr->call->args == cure) expr->call->args = NULL;
+							if(expr->call->args == cure) {
+								expr->call->args = NULL;
+							}
 							free(cure);
-							if(preve) preve->next = NULL;
+							if(preve) {
+								preve->next = NULL;
+							}
 						} else {
 							expr->call->args = NULL;
 						}
 					}
 					break;
-					
+
 				case EX_FUNCDECL:
 					if(sol_string_eq(state, str, "name")) {
 						sval = sol_cast_string(state, val);
@@ -1858,9 +1954,13 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 								curi = malloc(sizeof(identlist_node));
 								previ->next = curi;
 							}
-							if(expr->funcdecl->args == curi) expr->funcdecl->args = NULL;
+							if(expr->funcdecl->args == curi) {
+								expr->funcdecl->args = NULL;
+							}
 							free(curi);
-							if(previ) previ->next = NULL;
+							if(previ) {
+								previ->next = NULL;
+							}
 						} else {
 							expr->funcdecl->args = NULL;
 						}
@@ -1877,8 +1977,8 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 	return val;
 }
 
-static char *sol_StmtNames[]={"EXPR", "IFSELSE", "LOOP", "ITER", "LIST", "RET", "CONT", "BREAK"};
-static char *sol_ExprNames[]={"LIT", "LISTGEN", "MAPGEN", "BINOP", "UNOP", "INDEX", "SETINDEX", "ASSIGN", "REF", "CALL", "FUNCDECL"}; 
+static char *sol_StmtNames[]= {"EXPR", "IFSELSE", "LOOP", "ITER", "LIST", "RET", "CONT", "BREAK"};
+static char *sol_ExprNames[]= {"LIT", "LISTGEN", "MAPGEN", "BINOP", "UNOP", "INDEX", "SETINDEX", "ASSIGN", "REF", "CALL", "FUNCDECL"};
 
 sol_object_t *sol_f_astnode_tostring(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *res;
@@ -1913,7 +2013,7 @@ sol_object_t *sol_f_buffer_tostring(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
-sol_object_t *sol_f_buffer_new(sol_state_t *state, sol_object_t *args)  {
+sol_object_t *sol_f_buffer_new(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *sz = sol_list_get_index(state, args, 0), *isz = sol_cast_int(state, sz);
 	size_t bufsz = isz->ival;
 	void *buf = malloc(bufsz);
@@ -1929,7 +2029,7 @@ sol_object_t *sol_f_buffer_get(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *buf = sol_list_get_index(state, args, 0), *tp = sol_list_get_index(state, args, 1), *off = sol_list_get_index(state, args, 2);
 	sol_object_t *itp = sol_cast_int(state, tp), *ioff, *res=NULL;
 	sol_buftype_t buftp = itp->ival;
-	char *data, cbuf[2]={0, 0};
+	char *data, cbuf[2]= {0, 0};
 	sol_obj_free(tp);
 	sol_obj_free(itp);
 	if(!sol_is_none(state, off)) {
@@ -1950,77 +2050,79 @@ sol_object_t *sol_f_buffer_get(sol_state_t *state, sol_object_t *args) {
 		case BUF_UINT8:
 			res = sol_new_int(state, *((uint8_t *) data));
 			break;
-			
+
 		case BUF_UINT16:
 			res = sol_new_int(state, *((uint16_t *) data));
 			break;
-			
+
 		case BUF_UINT32:
 			res = sol_new_int(state, *((uint32_t *) data));
 			break;
-			
+
 		case BUF_UINT64:
 			res = sol_new_int(state, *((uint64_t *) data));
 			break;
-			
+
 		case BUF_INT8:
 			res = sol_new_int(state, *((int8_t *) data));
 			break;
-			
+
 		case BUF_INT16:
 			res = sol_new_int(state, *((int16_t *) data));
 			break;
-			
+
 		case BUF_INT32:
 			res = sol_new_int(state, *((int32_t *) data));
 			break;
-			
+
 		case BUF_INT64:
 			res = sol_new_int(state, *((int64_t *) data));
 			break;
-			
+
 		case BUF_CHAR:
 			cbuf[0] = *((char *) data);
 			res = sol_new_string(state, cbuf);
 			break;
-			
+
 		case BUF_BYTE:
 			res = sol_new_int(state, *((unsigned char *) data));
 			break;
-			
+
 		case BUF_INT:
 			res = sol_new_int(state, *((int *) data));
 			break;
-			
+
 		case BUF_UINT:
 			res = sol_new_int(state, *((unsigned int *) data));
 			break;
-			
+
 		case BUF_LONG:
 			res = sol_new_int(state, *((long *) data));
 			break;
-			
+
 		case BUF_ULONG:
 			res = sol_new_int(state, *((unsigned long *) data));
 			break;
-			
+
 		case BUF_FLOAT:
 			res = sol_new_float(state, *((float *) data));
 			break;
-			
+
 		case BUF_DOUBLE:
 			res = sol_new_float(state, *((double *) data));
 			break;
-			
+
 		case BUF_CSTR:
 			res = sol_new_string(state, (char *) data);
 			break;
-			
+
 		case BUF_PTR:
 			res = sol_new_buffer(state, ((void *) *((unsigned long *) data)), -1, OWN_NONE, NULL, NULL);
 			break;
 	}
-	if(!res) res = sol_incref(state->None);
+	if(!res) {
+		res = sol_incref(state->None);
+	}
 	return res;
 }
 
@@ -2050,87 +2152,87 @@ sol_object_t *sol_f_buffer_set(sol_state_t *state, sol_object_t *args) {
 			ival = sol_cast_int(state, val);
 			*((uint8_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_UINT16:
 			ival = sol_cast_int(state, val);
 			*((uint16_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_UINT32:
 			ival = sol_cast_int(state, val);
 			*((uint32_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_UINT64:
 			ival = sol_cast_int(state, val);
 			*((uint64_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_INT8:
 			ival = sol_cast_int(state, val);
 			*((int8_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_INT16:
 			ival = sol_cast_int(state, val);
 			*((int16_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_INT32:
 			ival = sol_cast_int(state, val);
 			*((int32_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_INT64:
 			ival = sol_cast_int(state, val);
 			*((int64_t *) data) = ival->ival;
 			break;
-			
+
 		case BUF_CHAR:
 			sval = sol_cast_string(state, val);
 			*((char *) data) = sval->str[0];
 			break;
-			
+
 		case BUF_BYTE:
 			ival = sol_cast_int(state, val);
 			*((unsigned char *) data) = ival->ival;
 			break;
-			
+
 		case BUF_INT:
 			ival = sol_cast_int(state, val);
 			*((int *) data) = ival->ival;
 			break;
-			
+
 		case BUF_UINT:
 			ival = sol_cast_int(state, val);
 			*((unsigned int *) data) = ival->ival;
 			break;
-			
+
 		case BUF_LONG:
 			ival = sol_cast_int(state, val);
 			*((long *) data) = ival->ival;
 			break;
-			
+
 		case BUF_ULONG:
 			ival = sol_cast_int(state, val);
 			*((unsigned long *) data) = ival->ival;
 			break;
-			
+
 		case BUF_FLOAT:
 			fval = sol_cast_float(state, val);
 			*((float *) data) = fval->fval;
 			break;
-			
+
 		case BUF_DOUBLE:
 			fval = sol_cast_float(state, val);
 			*((double *) data) = fval->fval;
 			break;
-			
+
 		case BUF_CSTR:
 			sval = sol_cast_string(state, val);
 			strcpy((char *) data, sval->str);
 			break;
-			
+
 		case BUF_PTR:
 			if(sol_is_buffer(val)) {
 				*((unsigned long *) data) = ((unsigned long) val->buffer);
@@ -2143,9 +2245,15 @@ sol_object_t *sol_f_buffer_set(sol_state_t *state, sol_object_t *args) {
 			}
 			break;
 	}
-	if(ival) sol_obj_free(ival);
-	if(fval) sol_obj_free(fval);
-	if(sval) sol_obj_free(sval);
+	if(ival) {
+		sol_obj_free(ival);
+	}
+	if(fval) {
+		sol_obj_free(fval);
+	}
+	if(sval) {
+		sol_obj_free(sval);
+	}
 	return sol_incref(state->None);
 }
 
@@ -2329,7 +2437,7 @@ sol_object_t *sol_f_stream_eof(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
-static char *sol_FileModes[]={
+static char *sol_FileModes[]= {
 	NULL,
 	"r",
 	"w",
@@ -2380,6 +2488,8 @@ sol_object_t *sol_f_stream_open(sol_state_t *state, sol_object_t *args) {
 	f = fopen(sfn->str, smode);
 	sol_obj_free(sfn);
 	sol_obj_free(fn);
-	if(!f) return sol_set_error_string(state, "File open failed");
+	if(!f) {
+		return sol_set_error_string(state, "File open failed");
+	}
 	return sol_new_stream(state, f, m);
 }

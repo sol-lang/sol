@@ -35,8 +35,10 @@ void sol_obj_free(sol_object_t *obj) {
 }
 
 void sol_obj_release(sol_object_t *obj) {
-    if(obj->ops->free) obj->ops->free(NULL, obj);
-    free(obj);
+	if(obj->ops->free) {
+		obj->ops->free(NULL, obj);
+	}
+	free(obj);
 }
 
 #endif

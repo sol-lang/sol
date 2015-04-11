@@ -8,7 +8,10 @@ void prlev(sol_state_t *state, int lev, const char *fmt, ...) {
 	va_list vl;
 	int i;
 
-	for(i = 0; i < lev; i++) { sol_putchar(state, '|'); sol_putchar(state, ' '); }
+	for(i = 0; i < lev; i++) {
+		sol_putchar(state, '|');
+		sol_putchar(state, ' ');
+	}
 	va_start(vl, fmt);
 	sol_vprintf(state, fmt, vl);
 	va_end(vl);
@@ -67,18 +70,18 @@ void prst(sol_state_t *state, stmt_node *node, int lev) {
 			}
 			break;
 
-        case ST_RET:
-            prlev(state, lev, "Stmt<Ret>:");
-            prex(state, node->ret->ret, lev+1);
-            break;
+		case ST_RET:
+			prlev(state, lev, "Stmt<Ret>:");
+			prex(state, node->ret->ret, lev+1);
+			break;
 
-        case ST_CONT:
-            prlev(state, lev, "Stmt<Continue>");
-            break;
+		case ST_CONT:
+			prlev(state, lev, "Stmt<Continue>");
+			break;
 
-        case ST_BREAK:
-            prlev(state, lev, "Stmt<Break>");
-            break;
+		case ST_BREAK:
+			prlev(state, lev, "Stmt<Break>");
+			break;
 	}
 }
 
@@ -155,7 +158,7 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 					prlev(state, lev, "Op: /");
 					break;
 
-                case OP_MOD:
+				case OP_MOD:
 					prlev(state, lev, "Op: %");
 					break;
 
@@ -303,11 +306,11 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 }
 
 void st_print(sol_state_t *state, stmt_node *stmt) {
-    prst(state, stmt, 0);
+	prst(state, stmt, 0);
 }
 
 void ex_print(sol_state_t *state, expr_node *expr) {
-    prex(state, expr, 0);
+	prex(state, expr, 0);
 }
 
 /*int main(int argc, char **argv) {

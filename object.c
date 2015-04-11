@@ -9,7 +9,9 @@
 
 sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_int(obj)) return sol_incref(obj);
+	if(sol_is_int(obj)) {
+		return sol_incref(obj);
+	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->toint(state, ls);
@@ -19,7 +21,9 @@ sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 
 sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_float(obj)) return sol_incref(obj);
+	if(sol_is_float(obj)) {
+		return sol_incref(obj);
+	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->tofloat(state, ls);
@@ -29,7 +33,9 @@ sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 
 sol_object_t *sol_cast_string(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
-	if(sol_is_string(obj)) return sol_incref(obj);
+	if(sol_is_string(obj)) {
+		return sol_incref(obj);
+	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
 	res = obj->ops->tostring(state, ls);
@@ -61,7 +67,9 @@ sol_object_t *sol_new_singlet(sol_state_t *state, const char *name) {
 // And, now, for the rest of the checked stuff...
 
 void sol_init_object(sol_state_t *state, sol_object_t *obj) {
-	if(obj->ops->init) obj->ops->init(state, obj);
+	if(obj->ops->init) {
+		obj->ops->init(state, obj);
+	}
 }
 
 sol_object_t *sol_new_int(sol_state_t *state, long i) {
@@ -159,22 +167,30 @@ sol_object_t *sol_list_sublist(sol_state_t *state, sol_object_t *list, int idx) 
 }
 
 sol_object_t *sol_list_get_index(sol_state_t *state, sol_object_t *list, int idx) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) return sol_incref(state->None);
+	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+		return sol_incref(state->None);
+	}
 	return sol_incref(AS_OBJ(dsl_seq_get(list->seq, idx)));
 }
 
 void sol_list_set_index(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) return;
+	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+		return;
+	}
 	dsl_seq_set(list->seq, idx, obj);
 }
 
 void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
-	if(idx<0 || idx>dsl_seq_len(list->seq)) return;
+	if(idx<0 || idx>dsl_seq_len(list->seq)) {
+		return;
+	}
 	dsl_seq_insert(list->seq, idx, obj);
 }
 
 sol_object_t *sol_list_remove(sol_state_t *state, sol_object_t *list, int idx) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) return sol_incref(state->None);
+	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+		return sol_incref(state->None);
+	}
 	return dsl_seq_remove(list->seq, idx);
 }
 
@@ -198,13 +214,13 @@ sol_object_t *sol_list_truncate(sol_state_t *state, sol_object_t *list, int len)
 }
 
 void sol_list_append(sol_state_t *state, sol_object_t *dest, sol_object_t *src) {
-    dsl_seq *oldseq = dest->seq;
+	dsl_seq *oldseq = dest->seq;
 	dest->seq = dsl_seq_append(dest->seq, src->seq);
 	dsl_free_seq(oldseq);
 }
 
 sol_object_t *sol_f_list_free(sol_state_t *state, sol_object_t *list) {
-    dsl_free_seq(list->seq);
+	dsl_free_seq(list->seq);
 	return list;
 }
 
@@ -254,29 +270,31 @@ int sol_validate_list(sol_state_t *state, sol_object_t *list) {
 }*/
 
 sol_object_t *sol_new_map(sol_state_t *state) {
-    sol_object_t *map = sol_alloc_object(state);
-    map->type = SOL_MAP;
-    map->ops = &(state->MapOps);
-    map->seq = dsl_seq_new_array(NULL, &(state->obfuncs));
+	sol_object_t *map = sol_alloc_object(state);
+	map->type = SOL_MAP;
+	map->ops = &(state->MapOps);
+	map->seq = dsl_seq_new_array(NULL, &(state->obfuncs));
 	sol_init_object(state, map);
-    return map;
+	return map;
 }
 
 sol_object_t *sol_map_from_seq(sol_state_t *state, dsl_seq *seq) {
-    sol_object_t *map = sol_alloc_object(state);
-    if(sol_has_error(state)) return sol_incref(state->None);
-    map->type = SOL_MAP;
-    map->ops = &(state->MapOps);
-    map->seq = seq;
-    return map;
+	sol_object_t *map = sol_alloc_object(state);
+	if(sol_has_error(state)) {
+		return sol_incref(state->None);
+	}
+	map->type = SOL_MAP;
+	map->ops = &(state->MapOps);
+	map->seq = seq;
+	return map;
 }
 
 int sol_map_len(sol_state_t *state, sol_object_t *map) {
-    return dsl_seq_len(map->seq);
+	return dsl_seq_len(map->seq);
 }
 
 sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
-    sol_object_t *list, *cmp, *icmp, *res = NULL;
+	sol_object_t *list, *cmp, *icmp, *res = NULL;
 	dsl_seq_iter *iter;
 	if(!sol_is_map(map)) {
 		printf("WARNING: Attempt to index non-map as map\n");
@@ -289,24 +307,24 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 		sol_obj_free(list);
 		return sol_incref(state->None);
 	}
-    sol_list_insert(state, list, 0, key);
+	sol_list_insert(state, list, 0, key);
 	sol_list_insert(state, list, 1, state->None);
-    if(!dsl_seq_iter_is_invalid(iter)) do {
-		sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
-		cmp = key->ops->cmp(state, list);
-		icmp = sol_cast_int(state, cmp);
-		sol_obj_free(cmp);
-		if(icmp->ival == 0) {
-			res = AS_OBJ(dsl_seq_iter_at(iter));
-		}
-		sol_obj_free(icmp);
-	} while(dsl_seq_iter_next(iter));
+	if(!dsl_seq_iter_is_invalid(iter)) do {
+			sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
+			cmp = key->ops->cmp(state, list);
+			icmp = sol_cast_int(state, cmp);
+			sol_obj_free(cmp);
+			if(icmp->ival == 0) {
+				res = AS_OBJ(dsl_seq_iter_at(iter));
+			}
+			sol_obj_free(icmp);
+		} while(dsl_seq_iter_next(iter));
 	dsl_free_seq_iter(iter);
 	sol_obj_free(list);
 	if(res) {
 		return res;
 	}
-    return sol_incref(state->None);
+	return sol_incref(state->None);
 }
 
 int sol_map_has(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
@@ -317,8 +335,8 @@ int sol_map_has(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
 }
 
 sol_object_t *sol_map_get(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
-    sol_object_t *mcell = sol_map_mcell(state, map, key);
-    if(sol_is_none(state, mcell)) {
+	sol_object_t *mcell = sol_map_mcell(state, map, key);
+	if(sol_is_none(state, mcell)) {
 		return mcell;
 	}
 	return sol_incref(mcell->val);
@@ -332,7 +350,7 @@ sol_object_t *sol_map_get_name(sol_state_t *state, sol_object_t *map, char *name
 }
 
 void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_object_t *val) {
-    sol_object_t *mcell =sol_map_mcell(state, map, key), *newcell, *temp;
+	sol_object_t *mcell =sol_map_mcell(state, map, key), *newcell, *temp;
 	if(sol_is_none(state, mcell)) {
 		newcell = sol_alloc_object(state);
 		newcell->type = SOL_MCELL;
@@ -355,7 +373,7 @@ void sol_map_set_name(sol_state_t *state, sol_object_t *map, char *name, sol_obj
 }
 
 void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_object_t *val) {
-    sol_object_t *mcell =sol_map_mcell(state, map, key), *temp;
+	sol_object_t *mcell =sol_map_mcell(state, map, key), *temp;
 	if(!sol_is_none(state, mcell)) {
 		temp = mcell->val;
 		mcell->val = sol_incref(val);
@@ -364,22 +382,22 @@ void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *k
 }
 
 sol_object_t *sol_map_copy(sol_state_t *state, sol_object_t *map) {
-    return sol_map_from_seq(state, dsl_seq_copy(map->seq));
+	return sol_map_from_seq(state, dsl_seq_copy(map->seq));
 }
 
 void sol_map_merge(sol_state_t *state, sol_object_t *dest, sol_object_t *src) {
-    dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
+	dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
 	if(!dsl_seq_iter_is_invalid(iter)) do {
-		sol_map_set(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
-	} while(dsl_seq_iter_next(iter));
+			sol_map_set(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
+		} while(dsl_seq_iter_next(iter));
 	dsl_free_seq_iter(iter);
 }
 
 void sol_map_merge_existing(sol_state_t *state, sol_object_t *dest, sol_object_t *src) {
-    dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
+	dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
 	if(!dsl_seq_iter_is_invalid(iter)) do {
-		sol_map_set_existing(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
-	} while(dsl_seq_iter_next(iter));
+			sol_map_set_existing(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
+		} while(dsl_seq_iter_next(iter));
 	dsl_free_seq_iter(iter);
 }
 
@@ -397,13 +415,17 @@ void sol_map_invert(sol_state_t *state, sol_object_t *map) {
 }
 
 sol_object_t *sol_f_map_free(sol_state_t *state, sol_object_t *map) {
-    dsl_free_seq(map->seq);
-    return map;
+	dsl_free_seq(map->seq);
+	return map;
 }
 
 sol_object_t *sol_f_mcell_free(sol_state_t *state, sol_object_t *mcell) {
-	if(mcell->key) sol_obj_free(mcell->key);
-	if(mcell->val) sol_obj_free(mcell->val);
+	if(mcell->key) {
+		sol_obj_free(mcell->key);
+	}
+	if(mcell->val) {
+		sol_obj_free(mcell->val);
+	}
 	return mcell;
 }
 
@@ -429,21 +451,21 @@ sol_object_t *sol_f_mcell_free(sol_state_t *state, sol_object_t *mcell) {
 }*/
 
 sol_object_t *sol_new_cfunc(sol_state_t *state, sol_cfunc_t cfunc) {
-    sol_object_t *res = sol_alloc_object(state);
-    res->type = SOL_CFUNCTION;
-    res->ops = &(state->CFuncOps);
-    res->cfunc = cfunc;
+	sol_object_t *res = sol_alloc_object(state);
+	res->type = SOL_CFUNCTION;
+	res->ops = &(state->CFuncOps);
+	res->cfunc = cfunc;
 	sol_init_object(state, res);
-    return res;
+	return res;
 }
 
 sol_object_t *sol_new_cdata(sol_state_t *state, void *cdata, sol_ops_t *ops) {
-    sol_object_t *res = sol_alloc_object(state);
-    res->type = SOL_CDATA;
-    res->ops = ops;
-    res->cdata = cdata;
+	sol_object_t *res = sol_alloc_object(state);
+	res->type = SOL_CDATA;
+	res->ops = ops;
+	res->cdata = cdata;
 	sol_init_object(state, res);
-    return res;
+	return res;
 }
 
 sol_object_t *sol_new_buffer(sol_state_t *state, void *buffer, ssize_t sz, sol_owntype_t own, sol_freefunc_t freef, sol_movefunc_t movef) {
@@ -464,7 +486,7 @@ sol_object_t *sol_f_buffer_free(sol_state_t *state, sol_object_t *buf) {
 		case OWN_FREE:
 			free(buf->buffer);
 			break;
-			
+
 		case OWN_CALLF:
 			buf->freef(buf->buffer, buf->sz);
 			break;
@@ -515,7 +537,9 @@ size_t sol_stream_printf(sol_state_t *state, sol_object_t *stream, const char *f
 	va_list va;
 	size_t res;
 	if(!(stream->modes & MODE_WRITE)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		}
 		return 0;
 	}
 	va_start(va, fmt);
@@ -526,7 +550,9 @@ size_t sol_stream_printf(sol_state_t *state, sol_object_t *stream, const char *f
 
 size_t sol_stream_vprintf(sol_state_t *state, sol_object_t *stream, const char *fmt, va_list va) {
 	if(!(stream->modes & MODE_WRITE)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		}
 		return 0;
 	}
 	return vfprintf(stream->stream, fmt, va);
@@ -536,7 +562,9 @@ size_t sol_stream_scanf(sol_state_t *state, sol_object_t *stream, const char *fm
 	va_list va;
 	size_t res;
 	if(!(stream->modes & MODE_READ)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		}
 		return 0;
 	}
 	va_start(va, fmt);
@@ -547,7 +575,9 @@ size_t sol_stream_scanf(sol_state_t *state, sol_object_t *stream, const char *fm
 
 size_t sol_stream_fread(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz, size_t memb) {
 	if(!(stream->modes & MODE_READ)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		}
 		return 0;
 	}
 	return fread(buffer, sz, memb, stream->stream);
@@ -555,7 +585,9 @@ size_t sol_stream_fread(sol_state_t *state, sol_object_t *stream, char *buffer, 
 
 size_t sol_stream_fwrite(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz, size_t memb) {
 	if(!(stream->modes & MODE_WRITE)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		}
 		return 0;
 	}
 	return fwrite(buffer, sz, memb, stream->stream);
@@ -563,7 +595,9 @@ size_t sol_stream_fwrite(sol_state_t *state, sol_object_t *stream, char *buffer,
 
 char *sol_stream_fgets(sol_state_t *state, sol_object_t *stream, char *buffer, size_t sz) {
 	if(!(stream->modes & MODE_READ)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Read from non-readable stream"));
+		}
 		return NULL;
 	}
 	return fgets(buffer, sz, stream->stream);
@@ -571,7 +605,9 @@ char *sol_stream_fgets(sol_state_t *state, sol_object_t *stream, char *buffer, s
 
 int sol_stream_fputc(sol_state_t *state, sol_object_t *stream, int ch) {
 	if(!(stream->modes & MODE_WRITE)) {
-		if(state) sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		if(state) {
+			sol_obj_free(sol_set_error_string(state, "Write to non-writable stream"));
+		}
 		return 0;
 	}
 	return fputc(ch, stream->stream);
