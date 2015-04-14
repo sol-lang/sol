@@ -140,9 +140,9 @@ sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
 					res = sol_new_int(state, AT(cstruct->data, uint32_t, spec->offset));
 					break;
 
-					/*case SOL_MT_UINT64:
-					    res = sol_new_int(state, AT(cstruct->data, uint64_t, spec->offset));
-					    break;*/
+				/*case SOL_MT_UINT64:
+				    res = sol_new_int(state, AT(cstruct->data, uint64_t, spec->offset));
+				    break;*/
 
 				case SOL_MT_FLOAT:
 					res = sol_new_float(state, AT(cstruct->data, float, spec->offset));
@@ -233,9 +233,9 @@ sol_object_t *sol_f_cstruct_setindex(sol_state_t *state, sol_object_t *args) {
 					AT(cstruct->data, uint32_t, spec->offset) = sol_cast_int(state, val)->ival;
 					break;
 
-					/*case SOL_MT_UINT64:
-					    AT(cstruct->data, uint64_t, spec->offset) = sol_cast_int(state, val)->ival;
-					    break;*/
+				/*case SOL_MT_UINT64:
+				    AT(cstruct->data, uint64_t, spec->offset) = sol_cast_int(state, val)->ival;
+				    break;*/
 
 				case SOL_MT_FLOAT:
 					AT(cstruct->data, float, spec->offset) = sol_cast_float(state, val)->fval;

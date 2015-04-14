@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 	int printtree = 0;
 	FILE *prgstream = stdin;
 
-	if(argc>1) {
+	if(argc > 1) {
 		c = argv[1];
 		while(*c) {
 			switch(*c) {
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 					break;
 
 				case 'r':
-					if(argc<2) {
+					if(argc < 2) {
 						printf("r option requires file\n");
 						return 1;
 					}
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
 	program = sol_compile_file(prgstream);
 
-	if(prgstream!=stdin) {
+	if(prgstream != stdin) {
 		fclose(prgstream);
 	}
 

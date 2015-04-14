@@ -160,35 +160,35 @@ sol_object_t *sol_list_sublist(sol_state_t *state, sol_object_t *list, int idx) 
 		return sol_set_error_string(state, "Create sublist at negative index");
 	}
 	subl = dsl_seq_copy(list->seq);
-	for(i=0; i<idx; i++) {
+	for(i = 0; i < idx; i++) {
 		dsl_seq_delete(subl, 0);
 	}
 	return sol_list_from_seq(state, subl);
 }
 
 sol_object_t *sol_list_get_index(sol_state_t *state, sol_object_t *list, int idx) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+	if(idx < 0 || idx >= dsl_seq_len(list->seq)) {
 		return sol_incref(state->None);
 	}
 	return sol_incref(AS_OBJ(dsl_seq_get(list->seq, idx)));
 }
 
 void sol_list_set_index(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+	if(idx < 0 || idx >= dsl_seq_len(list->seq)) {
 		return;
 	}
 	dsl_seq_set(list->seq, idx, obj);
 }
 
 void sol_list_insert(sol_state_t *state, sol_object_t *list, int idx, sol_object_t *obj) {
-	if(idx<0 || idx>dsl_seq_len(list->seq)) {
+	if(idx < 0 || idx > dsl_seq_len(list->seq)) {
 		return;
 	}
 	dsl_seq_insert(list->seq, idx, obj);
 }
 
 sol_object_t *sol_list_remove(sol_state_t *state, sol_object_t *list, int idx) {
-	if(idx<0 || idx>=dsl_seq_len(list->seq)) {
+	if(idx < 0 || idx >= dsl_seq_len(list->seq)) {
 		return sol_incref(state->None);
 	}
 	return dsl_seq_remove(list->seq, idx);
@@ -204,8 +204,8 @@ sol_object_t *sol_list_truncate(sol_state_t *state, sol_object_t *list, int len)
 	int pos = dsl_seq_iter_seek(iter, len);
 	int sz = dsl_seq_len(newseq);
 	int i;
-	if(pos>=len) {
-		for(i=0; i<sz-pos; i++) {
+	if(pos >= len) {
+		for(i = 0; i < sz - pos; i++) {
 			dsl_seq_iter_delete_at(iter);
 		}
 	}
@@ -350,7 +350,7 @@ sol_object_t *sol_map_get_name(sol_state_t *state, sol_object_t *map, char *name
 }
 
 void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_object_t *val) {
-	sol_object_t *mcell =sol_map_mcell(state, map, key), *newcell, *temp;
+	sol_object_t *mcell = sol_map_mcell(state, map, key), *newcell, *temp;
 	if(sol_is_none(state, mcell)) {
 		newcell = sol_alloc_object(state);
 		newcell->type = SOL_MCELL;
@@ -373,7 +373,7 @@ void sol_map_set_name(sol_state_t *state, sol_object_t *map, char *name, sol_obj
 }
 
 void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_object_t *val) {
-	sol_object_t *mcell =sol_map_mcell(state, map, key), *temp;
+	sol_object_t *mcell = sol_map_mcell(state, map, key), *temp;
 	if(!sol_is_none(state, mcell)) {
 		temp = mcell->val;
 		mcell->val = sol_incref(val);

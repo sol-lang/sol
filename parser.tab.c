@@ -110,63 +110,63 @@ extern int yydebug;
 /* Put the tokens into the symbol table, so that GDB and other debuggers
    know about them.  */
 enum yytokentype {
-    IF = 258,
-    THEN = 259,
-    ELSE = 260,
-    WHILE = 261,
-    FOR = 262,
-    IN = 263,
-    DO = 264,
-    FUNC = 265,
-    RETURN = 266,
-    BREAK = 267,
-    CONTINUE = 268,
-    END = 269,
-    NONE = 270,
-    IDENT = 271,
-    INT = 272,
-    FLOAT = 273,
-    STRING = 274,
-    PLUS = 275,
-    MINUS = 276,
-    STAR = 277,
-    SLASH = 278,
-    PERCENT = 279,
-    DSTAR = 280,
-    BAND = 281,
-    BOR = 282,
-    BXOR = 283,
-    BNOT = 284,
-    LAND = 285,
-    LOR = 286,
-    LNOT = 287,
-    ASSIGN = 288,
-    ASSIGNPLUS = 289,
-    ASSIGNMINUS = 290,
-    ASSIGNSTAR = 291,
-    ASSIGNSLASH = 292,
-    ASSIGNDSTAR = 293,
-    ASSIGNBAND = 294,
-    ASSIGNBOR = 295,
-    ASSIGNBXOR = 296,
-    EQUAL = 297,
-    LESS = 298,
-    GREATER = 299,
-    LESSEQ = 300,
-    GREATEREQ = 301,
-    RSHIFT = 302,
-    LSHIFT = 303,
-    LBRACE = 304,
-    RBRACE = 305,
-    LPAREN = 306,
-    RPAREN = 307,
-    LBRACKET = 308,
-    RBRACKET = 309,
-    DOT = 310,
-    COLON = 311,
-    SEMICOLON = 312,
-    COMMA = 313,
-    POUND = 314
+	IF = 258,
+	THEN = 259,
+	ELSE = 260,
+	WHILE = 261,
+	FOR = 262,
+	IN = 263,
+	DO = 264,
+	FUNC = 265,
+	RETURN = 266,
+	BREAK = 267,
+	CONTINUE = 268,
+	END = 269,
+	NONE = 270,
+	IDENT = 271,
+	INT = 272,
+	FLOAT = 273,
+	STRING = 274,
+	PLUS = 275,
+	MINUS = 276,
+	STAR = 277,
+	SLASH = 278,
+	PERCENT = 279,
+	DSTAR = 280,
+	BAND = 281,
+	BOR = 282,
+	BXOR = 283,
+	BNOT = 284,
+	LAND = 285,
+	LOR = 286,
+	LNOT = 287,
+	ASSIGN = 288,
+	ASSIGNPLUS = 289,
+	ASSIGNMINUS = 290,
+	ASSIGNSTAR = 291,
+	ASSIGNSLASH = 292,
+	ASSIGNDSTAR = 293,
+	ASSIGNBAND = 294,
+	ASSIGNBOR = 295,
+	ASSIGNBXOR = 296,
+	EQUAL = 297,
+	LESS = 298,
+	GREATER = 299,
+	LESSEQ = 300,
+	GREATEREQ = 301,
+	RSHIFT = 302,
+	LSHIFT = 303,
+	LBRACE = 304,
+	RBRACE = 305,
+	LPAREN = 306,
+	RPAREN = 307,
+	LBRACKET = 308,
+	RBRACKET = 309,
+	DOT = 310,
+	COLON = 311,
+	SEMICOLON = 312,
+	COMMA = 313,
+	POUND = 314
 };
 #endif
 
@@ -965,12 +965,12 @@ __attribute__((__unused__))
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static unsigned
-yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
+yy_location_print_ (FILE *yyo, YYLTYPE const *const yylocp)
 #else
 static unsigned
 yy_location_print_ (yyo, yylocp)
 FILE *yyo;
-YYLTYPE const * const yylocp;
+YYLTYPE const *const yylocp;
 #endif
 {
 	unsigned res = 0;
@@ -1044,14 +1044,14 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, stmt_node **program)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const *const yyvaluep, YYLTYPE const *const yylocationp, stmt_node **program)
 #else
 static void
 yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, program)
 FILE *yyoutput;
 int yytype;
-YYSTYPE const * const yyvaluep;
-YYLTYPE const * const yylocationp;
+YYSTYPE const *const yyvaluep;
+YYLTYPE const *const yylocationp;
 stmt_node **program;
 #endif
 {
@@ -1080,14 +1080,14 @@ stmt_node **program;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, stmt_node **program)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const *const yyvaluep, YYLTYPE const *const yylocationp, stmt_node **program)
 #else
 static void
 yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp, program)
 FILE *yyoutput;
 int yytype;
-YYSTYPE const * const yyvaluep;
-YYLTYPE const * const yylocationp;
+YYSTYPE const *const yyvaluep;
+YYLTYPE const *const yylocationp;
 stmt_node **program;
 #endif
 {
@@ -1279,7 +1279,7 @@ yytnamerr (char *yyres, const char *yystr) {
 					if (*++yyp != '\\') {
 						goto do_not_strip_quotes;
 					}
-					/* Fall through.  */
+				/* Fall through.  */
 				default:
 					if (yyres) {
 						yyres[yyn] = *yyp;
@@ -1787,7 +1787,7 @@ yyreduce:
 	   users should not rely upon it.  Assigning to YYVAL
 	   unconditionally makes the parser a bit smaller, and it avoids a
 	   GCC warning that YYVAL may be used uninitialized.  */
-	yyval = yyvsp[1-yylen];
+	yyval = yyvsp[1 - yylen];
 
 	/* Default location.  */
 	YYLLOC_DEFAULT (yyloc, (yylsp - yylen), yylen);
@@ -3108,7 +3108,7 @@ yyerrorlab:
 		goto yyerrorlab;
 	}
 
-	yyerror_range[1] = yylsp[1-yylen];
+	yyerror_range[1] = yylsp[1 - yylen];
 	/* Do not reclaim the symbols of the rule which action triggered
 	   this YYERROR.  */
 	YYPOPSTACK (yylen);

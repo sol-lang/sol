@@ -467,14 +467,14 @@ void sol_state_assign(sol_state_t *state, sol_object_t *key, sol_object_t *val) 
 		return;
 	}
 
-	active = sol_list_get_index(state, state->scopes, sol_list_len(state, state->scopes)-1);
+	active = sol_list_get_index(state, state->scopes, sol_list_len(state, state->scopes) - 1);
 
 	if(!active || sol_is_none(state, cur)) {
 		sol_set_error_string(state, "No scopes exist");
 		return;
 	}
 
-	args=sol_new_list(state);
+	args = sol_new_list(state);
 	sol_list_insert(state, args, 0, active);
 	sol_list_insert(state, args, 1, key);
 	sol_list_insert(state, args, 2, val);
@@ -503,7 +503,7 @@ void sol_state_assign_l(sol_state_t *state, sol_object_t *key, sol_object_t *val
 		return;
 	}
 
-	args=sol_new_list(state);
+	args = sol_new_list(state);
 	sol_list_insert(state, args, 0, cur);
 	sol_list_insert(state, args, 1, key);
 	sol_list_insert(state, args, 2, val);

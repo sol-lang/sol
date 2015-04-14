@@ -360,7 +360,7 @@ sol_object_t *sol_f_buffer_fromstring(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromobject(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromaddress(sol_state_t *, sol_object_t *);
 
-sol_object_t *sol_f_dylib_index(sol_state_t *, sol_object_t *); 
+sol_object_t *sol_f_dylib_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_dylib_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_dylib_open(sol_state_t *, sol_object_t *);

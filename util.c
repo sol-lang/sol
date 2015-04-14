@@ -17,8 +17,8 @@ sol_object_t *sol_util_call(sol_state_t *state, sol_object_t *func, int *error, 
 	sol_list_insert(state, args, 0, func);
 
 	va_start(va, elems);
-	for(i=0; i<elems; i++) {
-		sol_list_insert(state, args, i+1, va_arg(va, sol_object_t *));
+	for(i = 0; i < elems; i++) {
+		sol_list_insert(state, args, i + 1, va_arg(va, sol_object_t *));
 	}
 	va_end(va);
 

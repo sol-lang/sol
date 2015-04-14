@@ -28,27 +28,27 @@ void prst(sol_state_t *state, stmt_node *node, int lev) {
 	switch(node->type) {
 		case ST_EXPR:
 			prlev(state, lev, "Stmt<Expr>:");
-			prex(state, node->expr, lev+1);
+			prex(state, node->expr, lev + 1);
 			break;
 
 		case ST_IFELSE:
 			prlev(state, lev, "Stmt<IfElse>:");
 			lev++;
 			prlev(state, lev, "Cond:");
-			prex(state, node->ifelse->cond, lev+1);
+			prex(state, node->ifelse->cond, lev + 1);
 			prlev(state, lev, "IfTrue:");
-			prst(state, node->ifelse->iftrue, lev+1);
+			prst(state, node->ifelse->iftrue, lev + 1);
 			prlev(state, lev, "IfFalse:");
-			prst(state, node->ifelse->iffalse, lev+1);
+			prst(state, node->ifelse->iffalse, lev + 1);
 			break;
 
 		case ST_LOOP:
 			prlev(state, lev, "Stmt<Loop>:");
 			lev++;
 			prlev(state, lev, "Cond:");
-			prex(state, node->loop->cond, lev+1);
+			prex(state, node->loop->cond, lev + 1);
 			prlev(state, lev, "Loop:");
-			prst(state, node->loop->loop, lev+1);
+			prst(state, node->loop->loop, lev + 1);
 			break;
 
 		case ST_ITER:
@@ -56,23 +56,23 @@ void prst(sol_state_t *state, stmt_node *node, int lev) {
 			lev++;
 			prlev(state, lev, "Var: %s", node->iter->var);
 			prlev(state, lev, "Iter:");
-			prex(state, node->iter->iter, lev+1);
+			prex(state, node->iter->iter, lev + 1);
 			prlev(state, lev, "Loop:");
-			prst(state, node->iter->loop, lev+1);
+			prst(state, node->iter->loop, lev + 1);
 			break;
 
 		case ST_LIST:
 			prlev(state, lev, "Stmt<List>:");
 			stmtlist_node *cur = node->stmtlist;
 			while(cur && cur->stmt) {
-				prst(state, cur->stmt, lev+1);
+				prst(state, cur->stmt, lev + 1);
 				cur = cur->next;
 			}
 			break;
 
 		case ST_RET:
 			prlev(state, lev, "Stmt<Ret>:");
-			prex(state, node->ret->ret, lev+1);
+			prex(state, node->ret->ret, lev + 1);
 			break;
 
 		case ST_CONT:
@@ -120,7 +120,7 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			prlev(state, lev, "ListGen:");
 			cure = node->listgen->list;
 			while(cure && cure->expr) {
-				prex(state, cure->expr, lev+1);
+				prex(state, cure->expr, lev + 1);
 				cure = cure->next;
 			}
 			break;
@@ -131,9 +131,9 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			cura = node->mapgen->map;
 			while(cura && cura->item) {
 				prlev(state, lev, "<Key>:");
-				prex(state, cura->item->key, lev+1);
+				prex(state, cura->item->key, lev + 1);
 				prlev(state, lev, "<Value>:");
-				prex(state, cura->item->value, lev+1);
+				prex(state, cura->item->value, lev + 1);
 				cura = cura->next;
 			}
 			break;
@@ -215,9 +215,9 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 					break;
 			}
 			prlev(state, lev, "Left:");
-			prex(state, node->binop->left, lev+1);
+			prex(state, node->binop->left, lev + 1);
 			prlev(state, lev, "Right:");
-			prex(state, node->binop->right, lev+1);
+			prex(state, node->binop->right, lev + 1);
 			break;
 
 		case EX_UNOP:
@@ -241,27 +241,27 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 					break;
 			}
 			prlev(state, lev, "Expr:");
-			prex(state, node->unop->expr, lev+1);
+			prex(state, node->unop->expr, lev + 1);
 			break;
 
 		case EX_INDEX:
 			prlev(state, lev, "Index:");
 			lev++;
 			prlev(state, lev, "Expr:");
-			prex(state, node->index->expr, lev+1);
+			prex(state, node->index->expr, lev + 1);
 			prlev(state, lev, "Index:");
-			prex(state, node->index->index, lev+1);
+			prex(state, node->index->index, lev + 1);
 			break;
 
 		case EX_SETINDEX:
 			prlev(state, lev, "SetIndex:");
 			lev++;
 			prlev(state, lev, "Expr:");
-			prex(state, node->setindex->expr, lev+1);
+			prex(state, node->setindex->expr, lev + 1);
 			prlev(state, lev, "Index:");
-			prex(state, node->setindex->index, lev+1);
+			prex(state, node->setindex->index, lev + 1);
 			prlev(state, lev, "Value:");
-			prex(state, node->setindex->value, lev+1);
+			prex(state, node->setindex->value, lev + 1);
 			break;
 
 		case EX_ASSIGN:
@@ -269,7 +269,7 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			lev++;
 			prlev(state, lev, "Ident: %s", node->assign->ident);
 			prlev(state, lev, "Value:");
-			prex(state, node->assign->value, lev+1);
+			prex(state, node->assign->value, lev + 1);
 			break;
 
 		case EX_REF:
@@ -280,11 +280,11 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			prlev(state, lev, "Call:");
 			lev++;
 			prlev(state, lev, "Expr:");
-			prex(state, node->call->expr, lev+1);
+			prex(state, node->call->expr, lev + 1);
 			prlev(state, lev, "Args:");
 			cure = node->call->args;
 			while(cure && cure->expr) {
-				prex(state, cure->expr, lev+1);
+				prex(state, cure->expr, lev + 1);
 				cure = cure->next;
 			}
 			break;
@@ -296,11 +296,11 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			prlev(state, lev, "Args:");
 			curi = node->funcdecl->args;
 			while(curi && curi->ident) {
-				prlev(state, lev+1, curi->ident);
+				prlev(state, lev + 1, curi->ident);
 				curi = curi->next;
 			}
 			prlev(state, lev, "Body:");
-			prst(state, node->funcdecl->body, lev+1);
+			prst(state, node->funcdecl->body, lev + 1);
 			break;
 	}
 }

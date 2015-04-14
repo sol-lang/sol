@@ -303,23 +303,23 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					break;
 
 				case OP_EQUAL:
-					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival==0));
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival == 0));
 					break;
 
 				case OP_LESS:
-					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival<0));
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival < 0));
 					break;
 
 				case OP_GREATER:
-					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>0));
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival > 0));
 					break;
 
 				case OP_LESSEQ:
-					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival<=0));
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival <= 0));
 					break;
 
 				case OP_GREATEREQ:
-					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival>=0));
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival >= 0));
 					break;
 
 				case OP_LSHIFT:
@@ -533,7 +533,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 			} else {
 				iter = value;
 			}
-			if(!iter->ops->call || iter->ops->call==sol_f_not_impl) {
+			if(!iter->ops->call || iter->ops->call == sol_f_not_impl) {
 				sol_obj_free(sol_set_error_string(state, "Iterate over non-iterable"));
 				return;
 			}
@@ -656,7 +656,7 @@ sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_n
 	sol_object_t *obj = sol_alloc_object(state);
 	obj->func = body;
 	obj->args = identlist;
-	obj->fname = (name?strdup(name):NULL);
+	obj->fname = (name ? strdup(name) : NULL);
 	obj->closure = sol_new_map(state);
 	obj->udata = sol_new_map(state);
 	obj->type = SOL_FUNCTION;
