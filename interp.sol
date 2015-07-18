@@ -47,28 +47,32 @@ while __interp.running do
 					if !__interp.program[0] then
 						print('Syntax error')
 					else
-						if __interp.program[1].stmtlist[0].type == ast.ST_EXPR then
-							__interp.program[1] = __interp.program[1].stmtlist[0].expr
-							__interp.isexpr = 1
+						if !(try(func() __interp.program[1].stmtlist[0].type end)[0]) then
+							print('NULL program error')
 						else
-							__interp.isexpr = 0
-						end
-						__interp.result = try(__interp.program[1])
-						if !__interp.result[0] then
-							print(__interp.result[1])
-							print(__interp.result[2])
-							for ent in __interp.result[2] do
-								st = ent[0]
-								scope = ent[1]
-								if st.type == ast.ST_LIST then continue end
-								print('In', st, 'at', st.loc.line, ',', st.loc.col, ':')
-								ast.print(st)
-								print(scope)
-								print('---')
+							if __interp.program[1].stmtlist[0].type == ast.ST_EXPR then
+								__interp.program[1] = __interp.program[1].stmtlist[0].expr
+								__interp.isexpr = 1
+							else
+								__interp.isexpr = 0
 							end
-						else
-							if __interp.isexpr then
-								prepr(__interp.result[1])
+							__interp.result = try(__interp.program[1])
+							if !__interp.result[0] then
+								print(__interp.result[1])
+								print(__interp.result[2])
+								for ent in __interp.result[2] do
+									st = ent[0]
+									scope = ent[1]
+									if st.type == ast.ST_LIST then continue end
+									print('In', st, 'at', st.loc.line, ',', st.loc.col, ':')
+									ast.print(st)
+									print(scope)
+									print('---')
+								end
+							else
+								if __interp.isexpr then
+									prepr(__interp.result[1])
+								end
 							end
 						end
 					end

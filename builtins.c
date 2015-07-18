@@ -1458,6 +1458,12 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 	assoclist_node *cura;
 	identlist_node *curi;
 	int i = 0;
+	if(!stmt) {
+		sol_obj_free(obj);
+		sol_obj_free(key);
+		sol_obj_free(str);
+		return sol_set_error_string(state, "Access NULL AST node");
+	}
 	if(sol_is_aststmt(obj)) {
 		if(sol_string_eq(state, str, "type")) {
 			res = sol_new_int(state, stmt->type);
@@ -1664,6 +1670,13 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 	assoclist_node *cura, *preva = NULL;
 	identlist_node *curi, *previ = NULL;
 	int i = 0, len;
+	if(!stmt) {
+		sol_obj_free(obj);
+		sol_obj_free(key);
+		sol_obj_free(str);
+		sol_obj_free(val);
+		return sol_set_error_string(state, "Access NULL AST node");
+	}
 	if(sol_is_aststmt(obj)) {
 		if(sol_string_eq(state, str, "type")) {
 			ival = sol_cast_int(state, val);
@@ -1984,9 +1997,17 @@ sol_object_t *sol_f_astnode_tostring(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *res;
 	char s[64];
 	if(sol_is_aststmt(obj)) {
-		snprintf(s, 64, "<Stmt[%s]>", sol_StmtNames[((stmt_node *)obj->node)->type]);
+		if(!obj->node) {
+			snprintf(s, 64, "<NULL Stmt>");
+		} else {
+			snprintf(s, 64, "<Stmt[%s]>", sol_StmtNames[((stmt_node *)obj->node)->type]);
+		}
 	} else {
-		snprintf(s, 64, "<Expr[%s]>", sol_ExprNames[((expr_node *)obj->node)->type]);
+		if(!obj->node) {
+			snprintf(s, 64, "<NULL Expr>");
+		} else {
+			snprintf(s, 64, "<Expr[%s]>", sol_ExprNames[((expr_node *)obj->node)->type]);
+		}
 	}
 	sol_obj_free(obj);
 	return sol_new_string(state, s);
