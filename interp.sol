@@ -72,6 +72,7 @@ while __interp.running do
 							else
 								if __interp.isexpr then
 									prepr(__interp.result[1])
+									_ = __interp.result[1]
 								end
 							end
 						end
