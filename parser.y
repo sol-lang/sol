@@ -19,7 +19,7 @@
 %token INT FLOAT STRING
 %token PLUS MINUS STAR SLASH PERCENT DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
-%token EQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
+%token EQUAL NEQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
 %token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
 
 %parse-param {stmt_node **program}
@@ -258,6 +258,7 @@ ulogic_expr:
 
 rel_expr:
   term_expr EQUAL rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_EQUAL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| term_expr NEQUAL rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_NEQUAL; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | term_expr LESS rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESS; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | term_expr GREATER rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_GREATER; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | term_expr LESSEQ rel_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_LESSEQ; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }

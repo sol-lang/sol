@@ -189,6 +189,10 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 				case OP_EQUAL:
 					prlev(state, lev, "Op: ==");
 					break;
+					
+				case OP_NEQUAL:
+					prlev(state, lev, "Op: !=");
+					break;
 
 				case OP_LESS:
 					prlev(state, lev, "Op: <");

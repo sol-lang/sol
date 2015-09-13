@@ -164,6 +164,8 @@ None { return NONE; }
 
 "==" { return EQUAL; }
 
+"!=" { return NEQUAL; }
+
 "<" { return LESS; }
 
 ">" { return GREATER; }

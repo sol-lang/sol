@@ -9,8 +9,8 @@
 #include <stdarg.h>
 #include "dsl/dsl.h"
 
-#define VERSION "0.1a0"
-#define HEXVER 0x0001A00
+#define VERSION "0.1a1"
+#define HEXVER 0x0001A01
 
 // Forward declarations:
 struct sol_tag_object_t;
@@ -181,9 +181,6 @@ typedef struct sol_tag_state_t {
 	sol_object_t *modules;
 	sol_object_t *methods;
 	dsl_object_funcs obfuncs;
-#ifdef DEBUG_GC
-	dsl_seq *objects;
-#endif
 } sol_state_t;
 
 // state.c
@@ -506,13 +503,22 @@ sol_object_t *sol_util_call(sol_state_t *, sol_object_t *, int *, int, ...);
 
 sol_object_t *_int_sol_incref(const char *, sol_object_t *);
 void _int_sol_obj_free(const char *, sol_object_t *);
+sol_object_t *_sol_gc_dsl_copier(sol_object_t *);
+void _sol_gc_dsl_destructor(sol_object_t *);
+
+sol_object_t *_int_sol_alloc_object(const char *, sol_state_t *);
+
 #define sol_incref(obj) (_int_sol_incref(__func__, (obj)))
 #define sol_obj_free(obj) (_int_sol_obj_free(__func__, (obj)))
+
+#define sol_alloc_object(state) (_int_sol_alloc_object(__func__, (state)))
 
 #else
 
 #define sol_incref(obj) (++((obj)->refcnt), obj)
 void sol_obj_free(sol_object_t *);
+
+sol_object_t *sol_alloc_object(sol_state_t *);
 
 #endif
 
@@ -521,8 +527,7 @@ void sol_obj_free(sol_object_t *);
 sol_object_t *sol_obj_acquire(sol_object_t *);
 void sol_obj_release(sol_object_t *);
 
-sol_object_t *sol_alloc_object(sol_state_t *);
-
+void sol_mm_initialize(sol_state_t *);
 void sol_mm_finalize(sol_state_t *);
 
 #define AS_OBJ(x) ((sol_object_t *) (x))

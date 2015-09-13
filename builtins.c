@@ -538,8 +538,8 @@ sol_object_t *sol_f_singlet_tostring(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_add(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival + b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival + bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -550,8 +550,8 @@ sol_object_t *sol_f_int_add(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_sub(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival - b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival - bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -562,8 +562,8 @@ sol_object_t *sol_f_int_sub(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_mul(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival * b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival * bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -574,8 +574,8 @@ sol_object_t *sol_f_int_mul(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_div(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival / b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival / bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -586,8 +586,8 @@ sol_object_t *sol_f_int_div(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_mod(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival % b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival % bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -598,8 +598,8 @@ sol_object_t *sol_f_int_mod(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_pow(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, (long) pow((double) a->ival, b->ival));
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, (long) pow((double) a->ival, bint->ival));
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -610,8 +610,8 @@ sol_object_t *sol_f_int_pow(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_band(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival & b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival & bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -622,8 +622,8 @@ sol_object_t *sol_f_int_band(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_bor(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival | b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival | bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -634,8 +634,8 @@ sol_object_t *sol_f_int_bor(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_bxor(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival ^ b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival ^ bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -646,8 +646,8 @@ sol_object_t *sol_f_int_bxor(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_blsh(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival << b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival << bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -658,8 +658,8 @@ sol_object_t *sol_f_int_blsh(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_brsh(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival >> b->ival);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival >> bint->ival);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -677,10 +677,11 @@ sol_object_t *sol_f_int_bnot(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_cmp(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->ival == b->ival ? 0 : (a->ival < b->ival ? -1 : 1));
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	sol_object_t *res = sol_new_int(state, a->ival == bint->ival ? 0 : (a->ival < bint->ival ? -1 : 1));
 	sol_obj_free(a);
 	sol_obj_free(b);
+	sol_obj_free(bint);
 	return res;
 }
 
@@ -705,8 +706,8 @@ sol_object_t *sol_f_int_tostring(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_add(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_float(state, a->fval + b->fval);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+	sol_object_t *res = sol_new_float(state, a->fval + bflt->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -717,8 +718,8 @@ sol_object_t *sol_f_float_add(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_sub(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_float(state, a->fval - b->fval);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+	sol_object_t *res = sol_new_float(state, a->fval - bflt->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -729,8 +730,8 @@ sol_object_t *sol_f_float_sub(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_mul(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_float(state, a->fval * b->fval);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+	sol_object_t *res = sol_new_float(state, a->fval * bflt->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -741,8 +742,8 @@ sol_object_t *sol_f_float_mul(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_div(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_float(state, a->fval / b->fval);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+	sol_object_t *res = sol_new_float(state, a->fval / bflt->fval);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -753,8 +754,8 @@ sol_object_t *sol_f_float_div(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_pow(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_float(state, pow(a->fval, b->fval));
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+	sol_object_t *res = sol_new_float(state, pow(a->fval, bflt->fval));
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -765,11 +766,12 @@ sol_object_t *sol_f_float_pow(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_cmp(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_float(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, a->fval == b->fval ? 0 : (a->fval < b->fval ? -1 : 1));
-	sol_obj_free(a);
-	sol_obj_free(b);
-	return res;
+    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
+    sol_object_t *res = sol_new_int(state, a->fval==bflt->fval? 0 : (a->fval<bflt->fval? -1 : 1));
+    sol_obj_free(a);
+    sol_obj_free(b);
+	sol_obj_free(bflt);
+    return res;
 }
 
 sol_object_t *sol_f_float_toint(sol_state_t *state, sol_object_t *args) {
@@ -793,8 +795,8 @@ sol_object_t *sol_f_float_tostring(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_str_add(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_string(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_string_concat(state, a, b);
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bstr = sol_cast_string(state, b);
+	sol_object_t *res = sol_string_concat(state, a, bstr);
 	sol_obj_free(a);
 	sol_obj_free(b);
 	if(sol_has_error(state)) {
@@ -805,8 +807,8 @@ sol_object_t *sol_f_str_add(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_str_mul(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	int n = strlen(a->str) * b->ival + 1;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
+	int n = strlen(a->str) * bint->ival + 1;
 	char *s = malloc(n);
 	int i;
 	s[0] = '\0';
@@ -816,6 +818,7 @@ sol_object_t *sol_f_str_mul(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res = sol_new_string(state, s);
 	sol_obj_free(a);
 	sol_obj_free(b);
+	sol_obj_free(bint);
 	free(s);
 	if(sol_has_error(state)) {
 		sol_obj_free(res);
@@ -825,11 +828,12 @@ sol_object_t *sol_f_str_mul(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_str_cmp(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_string(state, sol_list_get_index(state, args, 1));
-	sol_object_t *res = sol_new_int(state, strcmp(a->str, b->str));
-	sol_obj_free(a);
-	sol_obj_free(b);
-	return res;
+    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bstr = sol_cast_string(state, b);
+    sol_object_t *res = sol_new_int(state, strcmp(a->str, bstr->str));
+    sol_obj_free(a);
+    sol_obj_free(b);
+	sol_obj_free(bstr);
+    return res;
 }
 
 sol_object_t *sol_f_str_len(sol_state_t *state, sol_object_t *args) {
@@ -990,11 +994,12 @@ sol_object_t *sol_f_list_add(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_mul(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args, 1)), *ls;
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b), *ls;
 	int i;
 	if(sol_has_error(state)) {
 		sol_obj_free(a);
 		sol_obj_free(b);
+		sol_obj_free(bint);
 		return sol_incref(state->None);
 	}
 	ls = sol_new_list(state);
@@ -1003,6 +1008,7 @@ sol_object_t *sol_f_list_mul(sol_state_t *state, sol_object_t *args) {
 		if(sol_has_error(state)) {
 			sol_obj_free(a);
 			sol_obj_free(b);
+			sol_obj_free(bint);
 			return sol_incref(state->None);
 		}
 	}
@@ -1027,11 +1033,12 @@ sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_setindex(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_cast_int(state, sol_list_get_index(state, args , 1));
+	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args ,1), *bint = sol_cast_int(state, b);
 	sol_object_t *val = sol_list_get_index(state, args, 2);
-	sol_list_set_index(state, ls, b->ival, val);
+	sol_list_set_index(state, ls, bint->ival, val);
 	sol_obj_free(ls);
 	sol_obj_free(b);
+	sol_obj_free(bint);
 	sol_obj_free(val);
 	return sol_incref(state->None);
 }
@@ -1084,24 +1091,31 @@ sol_object_t *sol_f_list_copy(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_insert(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1)), *obj = sol_list_get_index(state, args, 2);
-	sol_list_insert(state, list, idx->ival, obj);
-	sol_obj_free(list);
-	return sol_incref(state->None);
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx =  sol_list_get_index(state, args, 1), *iidx = sol_cast_int(state, idx), *obj = sol_list_get_index(state, args, 2);
+    sol_list_insert(state, list, iidx->ival, obj);
+    sol_obj_free(list);
+	sol_obj_free(idx);
+	sol_obj_free(iidx);
+	sol_obj_free(obj);
+    return sol_incref(state->None);
 }
 
 sol_object_t *sol_f_list_remove(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_cast_int(state, sol_list_get_index(state, args, 1));
-	sol_list_remove(state, list, idx->ival);
-	sol_obj_free(list);
-	return sol_incref(state->None);
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1), *iidx = sol_cast_int(state, idx);
+    sol_object_t *res = sol_list_remove(state, list, iidx->ival);
+    sol_obj_free(list);
+	sol_obj_free(idx);
+	sol_obj_free(iidx);
+    return res;
 }
 
 sol_object_t *sol_f_list_truncate(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1);
-	sol_object_t *res = sol_list_truncate(state, list, idx->ival);
-	sol_obj_free(list);
-	return res;
+    sol_object_t *list = sol_list_get_index(state, args, 0), *idx = sol_list_get_index(state, args, 1), *iidx = sol_cast_int(state, idx);
+    sol_object_t *res = sol_list_truncate(state, list, iidx->ival);
+    sol_obj_free(list);
+	sol_obj_free(idx);
+	sol_obj_free(iidx);
+    return res;
 }
 
 sol_object_t *sol_f_list_map(sol_state_t *state, sol_object_t *args) {
@@ -2304,7 +2318,7 @@ sol_object_t *sol_f_buffer_fromstring(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_buffer_fromobject(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0);
-	sol_object_t *buf = sol_new_buffer(state, obj, sizeof(sol_object_t), OWN_CALLF, (sol_freefunc_t) sol_obj_free, (sol_movefunc_t) sol_obj_acquire);
+	sol_object_t *buf = sol_new_buffer(state, obj, sizeof(sol_object_t), OWN_CALLF, (sol_freefunc_t) state->obfuncs.destr, (sol_movefunc_t) state->obfuncs.copy);
 	//Keep ref to obj so buf remains alive
 	return buf;
 }

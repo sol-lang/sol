@@ -6,6 +6,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_object_t *globals, *mod, *meths;
 	sol_object_t *btype, *bsize, *bobj;
 
+	sol_mm_initialize(state);
+
 	state->None = NULL;
 	state->OutOfMemory = NULL;
 	state->scopes = NULL;
@@ -13,6 +15,12 @@ int sol_state_init(sol_state_t *state) {
 	state->traceback = NULL;
 	state->ret = NULL;
 	state->sflag = SF_NORMAL;
+
+#ifdef DEBUG_GC
+	// This is necessary for DEBUG_GC's early allocation; it gets overwritten,
+	// unfortunately, during sol_ops_init below, so it's duplicated.
+	state->SingletOps.tname = "singlet";
+#endif
 
 	// If any of the following fail, some very weird things are happening.
 	if(!(state->None = sol_new_singlet(state, "None"))) {
@@ -155,8 +163,13 @@ int sol_state_init(sol_state_t *state) {
 	state->StreamOps.free = sol_f_stream_free;
 	state->StreamOps.tostring = sol_f_stream_tostring;
 
+#ifdef DEBUG_GC
+	state->obfuncs.copy = (dsl_copier) _sol_gc_dsl_copier;
+	state->obfuncs.destr = (dsl_destructor) _sol_gc_dsl_destructor;
+#else
 	state->obfuncs.copy = (dsl_copier) sol_obj_acquire;
 	state->obfuncs.destr = (dsl_destructor) sol_obj_free;
+#endif
 
 	state->error = state->None;
 	state->scopes = sol_new_list(state);
@@ -246,6 +259,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, mod, "OP_LAND", sol_new_int(state, OP_LAND));
 	sol_map_set_name(state, mod, "OP_LOR", sol_new_int(state, OP_LOR));
 	sol_map_set_name(state, mod, "OP_EQUAL", sol_new_int(state, OP_EQUAL));
+	sol_map_set_name(state, mod, "OP_NEQUAL", sol_new_int(state, OP_NEQUAL));
 	sol_map_set_name(state, mod, "OP_LESS", sol_new_int(state, OP_LESS));
 	sol_map_set_name(state, mod, "OP_GREATER", sol_new_int(state, OP_GREATER));
 	sol_map_set_name(state, mod, "OP_LESSEQ", sol_new_int(state, OP_LESSEQ));
@@ -417,6 +431,7 @@ void sol_state_cleanup(sol_state_t *state) {
 	}
 	sol_obj_free(state->modules);
 	sol_obj_free(state->methods);
+	sol_mm_finalize(state);
 }
 
 sol_object_t *sol_state_resolve(sol_state_t *state, sol_object_t *key) {
@@ -443,6 +458,7 @@ sol_object_t *sol_state_resolve(sol_state_t *state, sol_object_t *key) {
 	if(!sol_is_none(state, temp)) {
 		return temp;
 	}
+	// sol_obj_free(temp);
 
 	return sol_incref(state->None);
 }

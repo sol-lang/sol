@@ -55,6 +55,11 @@ int main(int argc, char **argv) {
 			ob_print(state.error);
 			printf("\n");
 		}
+		if(state.ret) {
+			printf("Toplevel return: ");
+			ob_print(state.ret);
+			printf("\n");
+		}
 		//st_free(program);
 		sol_state_cleanup(&state);
 		return 0;

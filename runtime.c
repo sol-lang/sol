@@ -306,6 +306,10 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival == 0));
 					break;
 
+				case OP_NEQUAL:
+					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival != 0));
+					break;
+
 				case OP_LESS:
 					res = sol_new_int(state, BOOL_TO_INT(sol_cast_int(state, left->ops->cmp(state, list))->ival < 0));
 					break;

@@ -3,3 +3,7 @@ sol
 stdout
 .submodule_stamp
 *.orig
+*.swp
+*.swo
+gclog.txt
+gcstat.txt

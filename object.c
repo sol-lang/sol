@@ -330,7 +330,7 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 int sol_map_has(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
 	sol_object_t *mcell = sol_map_mcell(state, map, key);
 	int res = sol_is_none(state, mcell);
-	sol_obj_free(mcell);
+	if(sol_is_none(state, mcell)) sol_decref(mcell);
 	return res;
 }
 
