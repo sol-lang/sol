@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ ! -f .submodule_stamp ]; then
     git submodule init && git submodule sync && git submodule update
     touch .submodule_stamp
