@@ -1,10 +1,15 @@
+#!/bin/sh
 if [ ! -f .submodule_stamp ]; then
     git submodule init && git submodule sync && git submodule update
     touch .submodule_stamp
 fi
 
 if [ -z "$CFLAGS" ]; then
-    CFLAGS="-g -DDEBUG_GC"
+	# Valid flags to add here:
+	# -DDEBUG_GC : Turn on debug GC (all memory allocates/frees go to a file, use gcstat.py to get statistics)
+	# -DSOL_ICACHE_MIN : Minimum integer to cache in the state
+	# -DSOL_ICACHE_MAX : Maximum integer to cache in the state (if MAX < MIN, caching is disabled)
+    CFLAGS="-g"
 fi
 
 gcc -c $CFLAGS dsl/seq.c
