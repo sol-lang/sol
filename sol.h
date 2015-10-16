@@ -12,6 +12,18 @@
 #define VERSION "0.1a1"
 #define HEXVER 0x0001A01
 
+#ifndef SOL_ICACHE_MIN
+#define SOL_ICACHE_MIN -128
+#endif
+
+#ifndef SOL_ICACHE_MAX
+#define SOL_ICACHE_MAX 256
+#endif
+
+#if !defined(SOL_ICACHE) && (SOL_ICACHE_MIN < SOL_ICACHE_MAX)
+#define SOL_ICACHE
+#endif
+
 // Forward declarations:
 struct sol_tag_object_t;
 typedef struct sol_tag_object_t sol_object_t;
@@ -160,6 +172,9 @@ typedef struct sol_tag_state_t {
 	sol_object_t *traceback; // The last stack of statement (nodes) in the last error, or NULL
 	sol_state_flag_t sflag; // Used to implement break/continue
 	sol_object_t *error; // Some arbitrary error descriptor, None if no error
+	sol_object_t *stdout; // Standard output stream object (for print())
+	sol_object_t *stdin; // Standard input stream object
+	sol_object_t *stderr; // Standard error stream object
 	sol_object_t *None;
 	sol_object_t *OutOfMemory;
 	sol_object_t *StopIteration;
@@ -181,6 +196,12 @@ typedef struct sol_tag_state_t {
 	sol_object_t *modules;
 	sol_object_t *methods;
 	dsl_object_funcs obfuncs;
+	const char *calling_type;
+	const char *calling_meth;
+#ifdef SOL_ICACHE
+	sol_object_t *icache[SOL_ICACHE_MAX - SOL_ICACHE_MIN + 1];
+	char icache_bypass;
+#endif
 } sol_state_t;
 
 // state.c
@@ -216,6 +237,7 @@ void sol_register_methods_name(sol_state_t *, char *, sol_object_t *);
 sol_object_t *sol_get_methods(sol_state_t *, sol_object_t *);
 sol_object_t *sol_get_methods_name(sol_state_t *, char *);
 
+sol_object_t *sol_f_io_setindex(sol_state_t *, sol_object_t *);
 sol_object_t *sol_get_stdin(sol_state_t *);
 sol_object_t *sol_get_stdout(sol_state_t *);
 sol_object_t *sol_get_stderr(sol_state_t *);

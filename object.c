@@ -1,4 +1,4 @@
-#include "sol.h"
+#include "ast.h"  // For CALL_METHOD
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +73,13 @@ void sol_init_object(sol_state_t *state, sol_object_t *obj) {
 }
 
 sol_object_t *sol_new_int(sol_state_t *state, long i) {
-	sol_object_t *res = sol_alloc_object(state);
+	sol_object_t *res;
+#ifdef SOL_ICACHE
+	if(!state->icache_bypass && i >= SOL_ICACHE_MIN && i <= SOL_ICACHE_MAX) {
+		return sol_incref(state->icache[i - SOL_ICACHE_MIN]);
+	}
+#endif
+	res = sol_alloc_object(state);
 	res->type = SOL_INTEGER;
 	res->ival = i;
 	res->ops = &(state->IntOps);
@@ -311,7 +317,7 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 	sol_list_insert(state, list, 1, state->None);
 	if(!dsl_seq_iter_is_invalid(iter)) do {
 			sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
-			cmp = key->ops->cmp(state, list);
+			cmp = CALL_METHOD(state, key, cmp, list);
 			icmp = sol_cast_int(state, cmp);
 			sol_obj_free(cmp);
 			if(icmp->ival == 0) {
@@ -488,7 +494,7 @@ sol_object_t *sol_f_buffer_free(sol_state_t *state, sol_object_t *buf) {
 			break;
 
 		case OWN_CALLF:
-			buf->freef(buf->buffer, buf->sz);
+			if(buf->freef) buf->freef(buf->buffer, buf->sz);
 			break;
 	}
 	return buf;

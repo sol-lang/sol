@@ -5,6 +5,7 @@
 int sol_state_init(sol_state_t *state) {
 	sol_object_t *globals, *mod, *meths;
 	sol_object_t *btype, *bsize, *bobj;
+	unsigned long i;
 
 	sol_mm_initialize(state);
 
@@ -171,6 +172,17 @@ int sol_state_init(sol_state_t *state) {
 	state->obfuncs.destr = (dsl_destructor) sol_obj_free;
 #endif
 
+#ifdef SOL_ICACHE
+	state->icache_bypass = 1;
+	for(i = 0; i <= (SOL_ICACHE_MAX - SOL_ICACHE_MIN); i++) {
+		state->icache[i] = sol_new_int(state, ((long) i) + SOL_ICACHE_MIN);
+	}
+	state->icache_bypass = 0;
+#endif
+
+	state->calling_type = "(none)";
+	state->calling_meth = "(none)";
+
 	state->error = state->None;
 	state->scopes = sol_new_list(state);
 	if(sol_has_error(state)) {
@@ -187,6 +199,11 @@ int sol_state_init(sol_state_t *state) {
 	if(sol_has_error(state)) {
 		goto cleanup;
 	}
+
+	state->stdin = sol_new_stream(state, stdin, MODE_READ);
+	state->stdout = sol_new_stream(state, stdout, MODE_WRITE);
+	state->stderr = sol_new_stream(state, stderr, MODE_WRITE);
+
 	// I'm going to buffer all of these together because I can.
 	sol_map_set_name(state, globals, "OutOfMemory", state->OutOfMemory);
 	sol_map_set_name(state, globals, "StopIteration", state->StopIteration);
@@ -217,6 +234,10 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes));
 	sol_map_set_name(state, mod, "version", sol_new_string(state, VERSION));
 	sol_map_set_name(state, mod, "hexversion", sol_new_int(state, HEXVER));
+#ifdef SOL_ICACHE
+	sol_map_set_name(state, mod, "icache_min", sol_new_int(state, SOL_ICACHE_MIN));
+	sol_map_set_name(state, mod, "icache_max", sol_new_int(state, SOL_ICACHE_MAX));
+#endif
 	sol_register_module_name(state, "debug", mod);
 	sol_obj_free(mod);
 
@@ -368,6 +389,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_set_name(state, mod, "stdout", sol_new_stream(state, stdout, MODE_WRITE));
 	sol_map_set_name(state, mod, "stderr", sol_new_stream(state, stderr, MODE_WRITE));
 	sol_map_set_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open));
+	sol_map_set_name(state, mod, "__setindex", sol_new_cfunc(state, sol_f_io_setindex));
 	sol_register_module_name(state, "io", mod);
 	sol_obj_free(mod);
 
@@ -442,7 +464,7 @@ sol_object_t *sol_state_resolve(sol_state_t *state, sol_object_t *key) {
 	sol_list_insert(state, args, 1, key);
 	while(!dsl_seq_iter_is_invalid(iter)) {
 		sol_list_set_index(state, args, 0, dsl_seq_iter_at(iter));
-		temp = ((sol_object_t *) dsl_seq_iter_at(iter))->ops->index(state, args);
+		temp = CALL_METHOD(state, ((sol_object_t *) dsl_seq_iter_at(iter)), index, args);
 		if(!sol_is_none(state, temp)) {
 			dsl_free_seq_iter(iter);
 			sol_obj_free(args);
@@ -494,7 +516,7 @@ void sol_state_assign(sol_state_t *state, sol_object_t *key, sol_object_t *val) 
 	sol_list_insert(state, args, 0, active);
 	sol_list_insert(state, args, 1, key);
 	sol_list_insert(state, args, 2, val);
-	sol_obj_free(active->ops->setindex(state, args));
+	sol_obj_free(CALL_METHOD(state, active, setindex, args));
 	sol_obj_free(args);
 }
 
@@ -523,7 +545,7 @@ void sol_state_assign_l(sol_state_t *state, sol_object_t *key, sol_object_t *val
 	sol_list_insert(state, args, 0, cur);
 	sol_list_insert(state, args, 1, key);
 	sol_list_insert(state, args, 2, val);
-	sol_obj_free(cur->ops->setindex(state, args));
+	sol_obj_free(CALL_METHOD(state, cur, setindex, args));
 	sol_obj_free(args);
 }
 
@@ -631,37 +653,41 @@ sol_object_t *sol_get_methods_name(sol_state_t *state, char *name) {
 	return sol_map_get_name(state, state->methods, name);
 }
 
-sol_object_t *sol_get_stdin(sol_state_t *state) {
-	sol_object_t *io = sol_state_resolve_name(state, "io");
-	sol_object_t *res = sol_map_get_name(state, io, "stdin");
-	sol_obj_free(io);
-	if(sol_is_none(state, res)) {
-		printf("WARNING: No io.stdin, returning a new ref\n");
-		return sol_new_stream(state, stdin, MODE_READ);
+sol_object_t *sol_f_io_setindex(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *name = sol_list_get_index(state, args, 1), *value = sol_list_get_index(state, args, 2);
+	sol_object_t *namestr = sol_cast_string(state, name), *io;
+	if(sol_string_eq(state, namestr, "stdin")) {
+		state->stdin = sol_incref(value);
+		goto done;
 	}
-	return res;
+	if(sol_string_eq(state, namestr, "stdout")) {
+		state->stdout = sol_incref(value);
+		goto done;
+	}
+	if(sol_string_eq(state, namestr, "stderr")) {
+		state->stderr = sol_incref(value);
+		goto done;
+	}
+	io = sol_list_get_index(state, args, 0);
+	sol_map_set(state, io, name, value);
+	sol_obj_free(io);
+done:
+	sol_obj_free(namestr);
+	sol_obj_free(value);
+	sol_obj_free(name);
+	return sol_incref(state->None);
+}
+
+sol_object_t *sol_get_stdin(sol_state_t *state) {
+	return sol_incref(state->stdin);
 }
 
 sol_object_t *sol_get_stdout(sol_state_t *state) {
-	sol_object_t *io = sol_state_resolve_name(state, "io");
-	sol_object_t *res = sol_map_get_name(state, io, "stdout");
-	sol_obj_free(io);
-	if(sol_is_none(state, res)) {
-		printf("WARNING: No io.stdout, returning a new ref\n");
-		return sol_new_stream(state, stdout, MODE_WRITE);
-	}
-	return res;
+	return sol_incref(state->stdout);
 }
 
 sol_object_t *sol_get_stderr(sol_state_t *state) {
-	sol_object_t *io = sol_state_resolve_name(state, "io");
-	sol_object_t *res = sol_map_get_name(state, io, "stderr");
-	sol_obj_free(io);
-	if(sol_is_none(state, res)) {
-		printf("WARNING: No io.stderr, returning a new ref\n");
-		return sol_new_stream(state, stderr, MODE_WRITE);
-	}
-	return res;
+	return sol_incref(state->stderr);
 }
 
 void sol_ops_init(sol_ops_t *ops) {

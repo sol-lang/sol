@@ -184,6 +184,15 @@ typedef struct tag_stmt_node {
 	nd->binop->left->index->index = idx; \
 	nd->binop->right = val
 #define BOOL_TO_INT(cond) ((cond)?1:0)
+#define CALL_METHOD(state, obj, meth, args) ({\
+		sol_object_t *res;\
+		state->calling_type = obj->ops->tname;\
+		state->calling_meth = #meth;\
+		res = obj->ops->meth(state, args);\
+		state->calling_type = "(none)";\
+		state->calling_meth = "(none)";\
+		res;\
+})
 
 sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
 sol_object_t *sol_new_stmtnode(sol_state_t *, stmt_node *);

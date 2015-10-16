@@ -4,7 +4,7 @@ if [ ! -f .submodule_stamp ]; then
 fi
 
 if [ -z "$CFLAGS" ]; then
-    CFLAGS="-g"
+    CFLAGS="-g -DDEBUG_GC"
 fi
 
 gcc -c $CFLAGS dsl/seq.c
