@@ -389,24 +389,26 @@ sol_object_t *sol_f_parse(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_ord(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *arg = sol_list_get_index(state, args, 0), *str = sol_cast_string(state, arg);
-	sol_object_t *idx = sol_new_int(state, 0), *arg2, *iarg, *res;
+	sol_object_t *arg2, *iarg, *res;
+	long idx = 0;
 	size_t len = strlen(str->str);
 	sol_obj_free(arg);
 	if(sol_list_len(state, args) > 1) {
 		arg2 = sol_list_get_index(state, args, 1);
 		iarg = sol_cast_int(state, arg2);
 		sol_obj_free(arg2);
-		idx->ival = iarg->ival;
+		idx = iarg->ival;
 		sol_obj_free(iarg);
 	}
-	if(idx->ival < 0 || idx->ival >= len) {
+	if(idx < 0) {
+		idx += len;
+	}
+	if(idx < 0 || idx >= len) {
 		sol_obj_free(str);
-		sol_obj_free(idx);
 		return sol_set_error_string(state, "Compute ord of out-of-bounds index");
 	}
-	res = sol_new_int(state, str->str[idx->ival]);
+	res = sol_new_int(state, str->str[idx]);
 	sol_obj_free(str);
-	sol_obj_free(idx);
 	return res;
 }
 
@@ -905,6 +907,7 @@ sol_object_t *sol_f_str_repr(sol_state_t *state, sol_object_t *args) {
 sol_object_t *sol_f_str_sub(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *str = sol_list_get_index(state, args, 0), *low = sol_list_get_index(state, args, 1), *high = sol_list_get_index(state, args, 2);
 	sol_object_t *ilow, *ihigh;
+	long l, h;
 	size_t len = strlen(str->str), i;
 	char *s;
 	if(sol_is_none(state, low)) {
@@ -919,37 +922,37 @@ sol_object_t *sol_f_str_sub(sol_state_t *state, sol_object_t *args) {
 	}
 	sol_obj_free(low);
 	sol_obj_free(high);
-	if(ilow->ival < 0) {
-		ilow->ival += len;
-		if(ilow->ival < 0) {
-			ilow->ival = 0;
+	l = ilow->ival;
+	h = ihigh->ival;
+	sol_obj_free(ihigh);
+	sol_obj_free(ilow);
+	if(l < 0) {
+		l += len;
+		if(l < 0) {
+			l = 0;
 		}
 	}
-	if(ilow->ival > len) {
-		ilow->ival = len;
+	if(l > len) {
+		l = len;
 	}
-	if(ihigh->ival < 0) {
-		ihigh->ival += len;
-		if(ihigh->ival < 0) {
-			ihigh->ival = 0;
+	if(h < 0) {
+		h += len;
+		if(h < 0) {
+			h = 0;
 		}
 	}
-	if(ihigh->ival > len) {
-		ihigh->ival = len;
+	if(h > len) {
+		h = len;
 	}
-	if(ilow->ival >= ihigh->ival) {
-		sol_obj_free(ilow);
-		sol_obj_free(ihigh);
+	if(l >= h) {
 		sol_obj_free(str);
 		return sol_new_string(state, "");
 	}
-	s = malloc(ihigh->ival - ilow->ival + 1);
-	for(i = ilow->ival; i < ihigh->ival; i++) {
-		s[i - ilow->ival] = str->str[i];
+	s = malloc(h - l + 1);
+	for(i = l; i < h; i++) {
+		s[i - l] = str->str[i];
 	}
-	s[ihigh->ival - ilow->ival] = '\0';
-	sol_obj_free(ihigh);
-	sol_obj_free(ilow);
+	s[h - l] = '\0';
 	sol_obj_free(str);
 	return sol_new_string(state, s);
 }

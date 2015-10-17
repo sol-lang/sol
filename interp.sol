@@ -26,6 +26,7 @@ while __interp.running do
 	__interp.line = io.stdin:read(io.LINE)
 	__interp.line = __interp.line:sub(0, -1)
 	--prepr(__interp.line)
+	--prepr(__interp)
 	if (__interp.line:sub(-4, None)=="then") then
 		__interp.buffer+=__interp.line+" "
 		__interp.stmt_stack+=1

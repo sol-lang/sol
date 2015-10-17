@@ -7,3 +7,4 @@ stdout
 gclog.txt
 gcstat.txt
 iss*
+*.sol

@@ -9,8 +9,8 @@
 #include <stdarg.h>
 #include "dsl/dsl.h"
 
-#define VERSION "0.1a2"
-#define HEXVER 0x0001A02
+#define VERSION "0.1a3"
+#define HEXVER 0x0001A03
 
 #ifndef SOL_ICACHE_MIN
 #define SOL_ICACHE_MIN -128

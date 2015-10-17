@@ -76,7 +76,12 @@ sol_object_t *sol_new_int(sol_state_t *state, long i) {
 	sol_object_t *res;
 #ifdef SOL_ICACHE
 	if(!state->icache_bypass && i >= SOL_ICACHE_MIN && i <= SOL_ICACHE_MAX) {
-		return sol_incref(state->icache[i - SOL_ICACHE_MIN]);
+		res = sol_incref(state->icache[i - SOL_ICACHE_MIN]);
+		if(res->ival != i) {
+			printf("WARNING: Integer at %ld mutated to %ld! Resetting...\n", i, res->ival);
+			res->ival = i;
+		}
+		return res;
 	}
 #endif
 	res = sol_alloc_object(state);
@@ -315,16 +320,17 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 	}
 	sol_list_insert(state, list, 0, key);
 	sol_list_insert(state, list, 1, state->None);
-	if(!dsl_seq_iter_is_invalid(iter)) do {
-			sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
-			cmp = CALL_METHOD(state, key, cmp, list);
-			icmp = sol_cast_int(state, cmp);
-			sol_obj_free(cmp);
-			if(icmp->ival == 0) {
-				res = AS_OBJ(dsl_seq_iter_at(iter));
-			}
-			sol_obj_free(icmp);
-		} while(dsl_seq_iter_next(iter));
+	while(!res && !dsl_seq_iter_is_invalid(iter)) {
+		sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
+		cmp = CALL_METHOD(state, key, cmp, list);
+		icmp = sol_cast_int(state, cmp);
+		sol_obj_free(cmp);
+		if(icmp->ival == 0) {
+			res = AS_OBJ(dsl_seq_iter_at(iter));
+		}
+		sol_obj_free(icmp);
+		dsl_seq_iter_next(iter);
+	} 
 	dsl_free_seq_iter(iter);
 	sol_obj_free(list);
 	if(res) {
