@@ -38,6 +38,11 @@ int main(int argc, char **argv) {
 	}
 
 	program = sol_compile_file(prgstream);
+	
+	if(!program) {
+		printf("NULL program (probably a syntax error)\n");
+		return 1;
+	}
 
 	if(prgstream != stdin) {
 		fclose(prgstream);
@@ -48,24 +53,21 @@ int main(int argc, char **argv) {
 		st_print(&state, program);
 	}
 
-	if(program) {
-		sol_exec(&state, program);
-		if(sol_has_error(&state)) {
-			printf("Error: ");
-			ob_print(state.error);
-			printf("\n");
-		}
-		if(state.ret) {
-			printf("Toplevel return: ");
-			ob_print(state.ret);
-			printf("\n");
-		}
-		//st_free(program);
-		sol_state_cleanup(&state);
-		return 0;
+	sol_exec(&state, program);
+
+	if(sol_has_error(&state)) {
+		printf("Error: ");
+		ob_print(state.error);
+		printf("\n");
 	}
 
-	printf("NULL program (probably a syntax error)\n");
+	if(state.ret) {
+		printf("Toplevel return: ");
+		ob_print(state.ret);
+		printf("\n");
+	}
+	st_free(program);
+	sol_state_cleanup(&state);
 
-	return 1;
+	return 0;
 }

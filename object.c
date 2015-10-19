@@ -64,6 +64,10 @@ sol_object_t *sol_new_singlet(sol_state_t *state, const char *name) {
 	return sol_incref(res); // XXX Segfault
 }
 
+sol_object_t *sol_f_singlet_free(sol_state_t *state, sol_object_t *singlet) {
+	free(singlet->str);
+}
+
 // And, now, for the rest of the checked stuff...
 
 void sol_init_object(sol_state_t *state, sol_object_t *obj) {
@@ -334,24 +338,27 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 	dsl_free_seq_iter(iter);
 	sol_obj_free(list);
 	if(res) {
-		return res;
+		return sol_incref(res);
 	}
 	return sol_incref(state->None);
 }
 
 int sol_map_has(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
 	sol_object_t *mcell = sol_map_mcell(state, map, key);
-	int res = sol_is_none(state, mcell);
-	if(sol_is_none(state, mcell)) sol_decref(mcell);
+	int res = !sol_is_none(state, mcell);
+	sol_decref(mcell);
 	return res;
 }
 
 sol_object_t *sol_map_get(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
-	sol_object_t *mcell = sol_map_mcell(state, map, key);
+	sol_object_t *mcell = sol_map_mcell(state, map, key), *ret;
 	if(sol_is_none(state, mcell)) {
-		return mcell;
+		ret = mcell;
+	} else {
+		ret = mcell->val;
 	}
-	return sol_incref(mcell->val);
+	sol_obj_free(mcell);
+	return sol_incref(ret);
 }
 
 sol_object_t *sol_map_get_name(sol_state_t *state, sol_object_t *map, char *name) {
@@ -376,6 +383,7 @@ void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_o
 		mcell->val = sol_incref(val);
 		sol_obj_free(temp);
 	}
+	sol_obj_free(mcell);
 }
 
 void sol_map_set_name(sol_state_t *state, sol_object_t *map, char *name, sol_object_t *val) {
@@ -391,6 +399,7 @@ void sol_map_set_existing(sol_state_t *state, sol_object_t *map, sol_object_t *k
 		mcell->val = sol_incref(val);
 		sol_obj_free(temp);
 	}
+	sol_obj_free(mcell);
 }
 
 sol_object_t *sol_map_copy(sol_state_t *state, sol_object_t *map) {
@@ -399,17 +408,19 @@ sol_object_t *sol_map_copy(sol_state_t *state, sol_object_t *map) {
 
 void sol_map_merge(sol_state_t *state, sol_object_t *dest, sol_object_t *src) {
 	dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
-	if(!dsl_seq_iter_is_invalid(iter)) do {
-			sol_map_set(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
-		} while(dsl_seq_iter_next(iter));
+	while(!dsl_seq_iter_is_invalid(iter)) {
+		sol_map_set(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
+		dsl_seq_iter_next(iter);
+	}
 	dsl_free_seq_iter(iter);
 }
 
 void sol_map_merge_existing(sol_state_t *state, sol_object_t *dest, sol_object_t *src) {
 	dsl_seq_iter *iter = dsl_new_seq_iter(src->seq);
-	if(!dsl_seq_iter_is_invalid(iter)) do {
-			sol_map_set_existing(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
-		} while(dsl_seq_iter_next(iter));
+	while(!dsl_seq_iter_is_invalid(iter)) {
+		sol_map_set_existing(state, dest, AS_OBJ(dsl_seq_iter_at(iter))->key, AS_OBJ(dsl_seq_iter_at(iter))->val);
+		dsl_seq_iter_next(iter);
+	}
 	dsl_free_seq_iter(iter);
 }
 
@@ -434,9 +445,13 @@ sol_object_t *sol_f_map_free(sol_state_t *state, sol_object_t *map) {
 sol_object_t *sol_f_mcell_free(sol_state_t *state, sol_object_t *mcell) {
 	if(mcell->key) {
 		sol_obj_free(mcell->key);
+	} else {
+		printf("WARNING: Freed mcell with NULL key\n");
 	}
 	if(mcell->val) {
 		sol_obj_free(mcell->val);
+	} else {
+		printf("WARNING: Freed mcell with NULL value\n");
 	}
 	return mcell;
 }
@@ -478,6 +493,19 @@ sol_object_t *sol_new_cdata(sol_state_t *state, void *cdata, sol_ops_t *ops) {
 	res->cdata = cdata;
 	sol_init_object(state, res);
 	return res;
+}
+
+sol_object_t *sol_f_astnode_free(sol_state_t *state, sol_object_t *node) {
+	switch(node->type) {
+		case SOL_STMT:
+			st_free((stmt_node *) node->node);
+			break;
+
+		case SOL_EXPR:
+			ex_free((expr_node *) node->node);
+			break;
+	}
+	return node;
 }
 
 sol_object_t *sol_new_buffer(sol_state_t *state, void *buffer, ssize_t sz, sol_owntype_t own, sol_freefunc_t freef, sol_movefunc_t movef) {

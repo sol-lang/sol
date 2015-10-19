@@ -8,3 +8,5 @@ gclog.txt
 gcstat.txt
 iss*
 *.sol
+_build
+doxyxml

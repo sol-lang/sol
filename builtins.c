@@ -100,6 +100,8 @@ sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 		sol_list_insert(state, ls, 0, zero);
 		sol_obj_free(zero);
 		sol_list_insert(state, ls, 2, state->traceback);
+		sol_obj_free(state->traceback);
+		state->traceback = NULL;
 		return ls;
 	}
 	sol_list_insert(state, ls, 0, res);
@@ -2026,13 +2028,23 @@ sol_object_t *sol_f_astnode_tostring(sol_state_t *state, sol_object_t *args) {
 		if(!obj->node) {
 			snprintf(s, 64, "<NULL Stmt>");
 		} else {
-			snprintf(s, 64, "<Stmt[%s]>", sol_StmtNames[((stmt_node *)obj->node)->type]);
+			stmt_t type = ((stmt_node *) obj->node)->type;
+			if(type < sizeof(sol_StmtNames)/sizeof(char *)) {
+				snprintf(s, 64, "<Stmt[%s]>", sol_StmtNames[type]);
+			} else {
+				snprintf(s, 64, "<Invalid Stmt>");
+			}
 		}
 	} else {
 		if(!obj->node) {
 			snprintf(s, 64, "<NULL Expr>");
 		} else {
-			snprintf(s, 64, "<Expr[%s]>", sol_ExprNames[((expr_node *)obj->node)->type]);
+			expr_t type = ((stmt_node *) obj->node)->type;
+			if(type < sizeof(sol_ExprNames)/sizeof(char *)) {
+				snprintf(s, 64, "<Expr[%s]>", sol_ExprNames[type]);
+			} else {
+				snprintf(s, 64, "<Invalid Expr>");
+			}
 		}
 	}
 	sol_obj_free(obj);

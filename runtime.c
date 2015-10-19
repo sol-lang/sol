@@ -480,7 +480,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			return res;
 			break;
 	}
-	printf("WARNING: Unhandled expression returning None");
+	printf("WARNING: Unhandled expression (type %d) returning None\n", expr->type);
 	return sol_incref(state->None);
 }
 

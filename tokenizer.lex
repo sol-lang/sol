@@ -108,6 +108,8 @@ do { return DO; }
 
 func { return FUNC; }
 
+lambda { return LAMBDA; }
+
 return { return RETURN; }
 
 break { return BREAK; }

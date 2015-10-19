@@ -13,7 +13,7 @@
 
 %token IF THEN ELSE
 %token WHILE FOR IN DO
-%token FUNC RETURN BREAK CONTINUE
+%token FUNC LAMBDA RETURN BREAK CONTINUE
 %token END NONE
 %token IDENT
 %token INT FLOAT STRING
@@ -341,6 +341,17 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->name = NULL;
 	AS_EX($$)->funcdecl->args = $3;
 	AS_EX($$)->funcdecl->body = $5;
+}
+| LAMBDA LPAREN ident_list RPAREN expr END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_FUNCDECL;
+	AS_EX($$)->funcdecl = NEW(funcdecl_node);
+	AS_EX($$)->funcdecl->name = NULL;
+	AS_EX($$)->funcdecl->args = $3;
+	AS_EX($$)->funcdecl->body = NEW_ST();
+	AS_EX($$)->funcdecl->body->type = ST_RET;
+	AS_EX($$)->funcdecl->body->ret = NEW(ret_node);
+	AS_EX($$)->funcdecl->body->ret->ret = $5;
 }
 | index_expr { $$ = $1; }
 ;
