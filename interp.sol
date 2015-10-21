@@ -19,12 +19,12 @@ quit = exit
 
 while __interp.running do
 	if #__interp.buffer then
-		io.stdout << __interp.ps2
+		__interp.prompt = __interp.ps2
 	else
-		io.stdout << __interp.ps1
+		__interp.prompt = __interp.ps1
 	end
-	__interp.line = io.stdin:read(io.LINE)
-	__interp.line = __interp.line:sub(0, -1)
+	__interp.line = readline.readline(__interp.prompt)
+	if #__interp.line then readline.add_history(__interp.line) end
 	--prepr(__interp.line)
 	--prepr(__interp)
 	if (__interp.line:sub(-4, None)=="then") then

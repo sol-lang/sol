@@ -4,6 +4,8 @@
 #include <math.h>
 #include <stdint.h>
 #include <dlfcn.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "ast.h"
 #include "dsl/dsl.h"
 
@@ -456,6 +458,35 @@ sol_object_t *sol_f_debug_locals(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_debug_scopes(sol_state_t *state, sol_object_t *args) {
 	return sol_incref(state->scopes);
+}
+
+sol_object_t *sol_f_readline_readline(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *obj, *objstr, *res;
+	char *line;
+	if(sol_list_len(state, args) > 0) {
+		obj = sol_list_get_index(state, args, 0);
+		objstr = sol_cast_string(state, obj);
+		line = readline(objstr->str);
+		sol_obj_free(obj);
+		sol_obj_free(objstr);
+	} else {
+		line = readline("");
+	}
+	if(line) {
+		res = sol_new_string(state, line);
+		free(line);
+	} else {
+		res = sol_new_string(state, "");
+	}
+	return res;
+}
+
+sol_object_t *sol_f_readline_add_history(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *line = sol_list_get_index(state, args, 0), *linestr = sol_cast_string(state, line);
+	add_history(linestr->str);
+	sol_obj_free(linestr);
+	sol_obj_free(line);
+	return sol_incref(state->None);
 }
 
 void _sol_freef_seq_iter(void *iter, size_t sz) {

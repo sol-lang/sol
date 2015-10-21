@@ -9,8 +9,8 @@
 #include <stdarg.h>
 #include "dsl/dsl.h"
 
-#define VERSION "0.1a4"
-#define HEXVER 0x0001A04
+#define VERSION "0.1a5"
+#define HEXVER 0x0001A05
 
 #ifndef SOL_ICACHE_MIN
 #define SOL_ICACHE_MIN -128
@@ -281,6 +281,9 @@ sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_list(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_map(sol_state_t *, sol_object_t *);
+
+sol_object_t *sol_f_readline_readline(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_readline_add_history(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_ast_print(sol_state_t *, sol_object_t *);
 

@@ -252,6 +252,12 @@ int sol_state_init(sol_state_t *state) {
 	sol_obj_free(mod);
 
 	mod = sol_new_map(state);
+	sol_map_borrow_name(state, mod, "readline", sol_new_cfunc(state, sol_f_readline_readline));
+	sol_map_borrow_name(state, mod, "add_history", sol_new_cfunc(state, sol_f_readline_add_history));
+	sol_register_module_name(state, "readline", mod);
+	sol_obj_free(mod);
+
+	mod = sol_new_map(state);
 	sol_map_borrow_name(state, mod, "ST_EXPR", sol_new_int(state, ST_EXPR));
 	sol_map_borrow_name(state, mod, "ST_IFELSE", sol_new_int(state, ST_IFELSE));
 	sol_map_borrow_name(state, mod, "ST_LOOP", sol_new_int(state, ST_LOOP));
