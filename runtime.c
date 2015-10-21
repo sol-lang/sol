@@ -14,6 +14,275 @@ void sol_comp_free(stmt_node *stmt) {
 	st_free(stmt);
 }
 
+expr_node *ex_copy(expr_node *);
+
+stmt_node *st_copy(stmt_node *old) {
+	stmt_node *new;
+	stmtlist_node *curn, *curo;
+	if(!old) {
+		printf("WARNING: Copying NULL statement\n");
+		return NULL;
+	}
+	new = NEW(stmt_node);
+	new->type = old->type;
+	switch(old->type) {
+		case ST_EXPR:
+			new->expr = ex_copy(old->expr);
+			break;
+
+		case ST_IFELSE:
+			new->ifelse = NEW(ifelse_node);
+			new->ifelse->cond = ex_copy(old->ifelse->cond);
+			if(old->ifelse->iftrue)
+				new->ifelse->iftrue = st_copy(old->ifelse->iftrue);
+			else
+				new->ifelse->iftrue = NULL;
+			if(old->ifelse->iffalse)
+				new->ifelse->iffalse = st_copy(old->ifelse->iffalse);
+			else
+				new->ifelse->iffalse = NULL;
+			break;
+
+		case ST_LOOP:
+			new->loop = NEW(loop_node);
+			new->loop->cond = ex_copy(old->loop->cond);
+			new->loop->loop = st_copy(old->loop->loop);
+			break;
+
+		case ST_ITER:
+			new->iter = NEW(iter_node);
+			new->iter->var = strdup(old->iter->var);
+			new->iter->iter = ex_copy(old->iter->iter);
+			new->iter->loop = st_copy(old->iter->loop);
+			break;
+
+		case ST_LIST:
+			
+			new->stmtlist = stl_copy(old->stmtlist);
+			break;
+
+		case ST_RET:
+			new->ret = NEW(ret_node);
+			new->ret->ret = ex_copy(old->ret->ret);
+			break;
+
+		case ST_CONT:
+		case ST_BREAK:
+			break;
+
+		default:
+			printf("WARNING: Unknown statement type to copy: %d\n", old->type);
+			break;
+	}
+	return new;
+}
+
+stmtlist_node *stl_copy(stmtlist_node *old) {
+	stmtlist_node *new, *curn, *curo;
+	if(!old) {
+		return NULL;
+	}
+	new = NEW(stmtlist_node);
+	curn = new;
+	curo = old;
+	while(curo) {
+		if(curo->stmt) {
+			curn->stmt = st_copy(curo->stmt);
+		} else {
+			curn->stmt = NULL;
+		}
+		if(curo->next) {
+			curn->next = NEW(stmtlist_node);
+			curn = curn->next;
+		}
+		curo = curo->next;
+	}
+	curn->next = NULL;
+	return new;
+}
+
+expr_node *ex_copy(expr_node *old) {
+	expr_node *new;
+	exprlist_node *cureo, *curen;
+	assoclist_node *curao, *curan;
+	identlist_node *curio, *curin;
+	if(!old) {
+		printf("WARNING: Copying NULL expression\n");
+		return NULL;
+	}
+	new = NEW(expr_node);
+	new->type = old->type;
+	switch(old->type) {
+		case EX_LIT:
+			new->lit = NEW(lit_node);
+			new->lit->type = old->lit->type;
+			switch(old->lit->type) {
+				case LIT_INT:
+					new->lit->ival = old->lit->ival;
+					break;
+
+				case LIT_FLOAT:
+					new->lit->fval = old->lit->fval;
+					break;
+
+				case LIT_STRING:
+					new->lit->str = strdup(old->lit->str);
+					break;
+
+				case LIT_NONE:
+					break;
+
+				default:
+					printf("WARNING: Unknown literal type %d in copy\n", old->lit->type);
+					break;
+			}
+			break;
+
+		case EX_LISTGEN:
+			new->listgen = NEW(listgen_node);
+			new->listgen->list = exl_copy(old->listgen->list);
+			break;
+
+		case EX_MAPGEN:
+			new->mapgen = NEW(mapgen_node);
+			new->mapgen->map = asl_copy(old->mapgen->map);
+			break;
+
+		case EX_BINOP:
+			new->binop = NEW(binop_node);
+			new->binop->type = old->binop->type;
+			new->binop->left = ex_copy(old->binop->left);
+			new->binop->right = ex_copy(old->binop->right);
+			break;
+
+		case EX_UNOP:
+			new->unop = NEW(unop_node);
+			new->unop->type = old->unop->type;
+			new->unop->expr = ex_copy(old->unop->expr);
+			break;
+
+		case EX_INDEX:
+			new->index = NEW(index_node);
+			new->index->expr = ex_copy(old->index->expr);
+			new->index->index = ex_copy(old->index->index);
+			break;
+
+		case EX_SETINDEX:
+			new->setindex = NEW(setindex_node);
+			new->setindex->expr = ex_copy(old->setindex->expr);
+			new->setindex->index = ex_copy(old->setindex->index);
+			new->setindex->value = ex_copy(old->setindex->value);
+			break;
+
+		case EX_ASSIGN:
+			new->assign = NEW(assign_node);
+			new->assign->ident = strdup(old->assign->ident);
+			new->assign->value = ex_copy(old->assign->value);
+			break;
+
+		case EX_REF:
+			new->ref = NEW(ref_node);
+			new->ref->ident = strdup(old->ref->ident);
+			break;
+
+		case EX_CALL:
+			new->call = NEW(call_node);
+			new->call->expr = ex_copy(old->call->expr);
+			new->call->args = exl_copy(old->call->args);
+			break;
+
+		case EX_FUNCDECL:
+			new->funcdecl = NEW(funcdecl_node);
+			if(old->funcdecl->name) {
+				new->funcdecl->name = strdup(old->funcdecl->name);
+			} else {
+				new->funcdecl->name = NULL;
+			}
+			new->funcdecl->args = idl_copy(old->funcdecl->args);
+			new->funcdecl->body = st_copy(old->funcdecl->body);
+			break;
+
+		default:
+			printf("WARNING: Unknown expression type to copy: %d\n", old->type);
+			break;
+	}
+	return new;
+}
+
+assoclist_node *asl_copy(assoclist_node *old) {
+	assoclist_node *new, *curn, *curo;
+	if(!old) {
+		return NULL;
+	}
+	new = NEW(assoclist_node);
+	curn = new;
+	curo = old;
+	while(curo) {
+		if(curo->item && curo->item->key && curo->item->value) {
+			curn->item = NEW(associtem_node);
+			curn->item->key = ex_copy(curo->item->key);
+			curn->item->value = ex_copy(curo->item->value);
+		} else {
+			curn->item = NULL;
+		}
+		if(curo->next) {
+			curn->next = NEW(assoclist_node);
+			curn = curn->next;
+		}
+		curo = curo->next;
+	}
+	curn->next = NULL;
+	return new;
+}
+
+exprlist_node *exl_copy(exprlist_node *old) {
+	exprlist_node *new, *curn, *curo;
+	if(!old) {
+		return NULL;
+	}
+	new = NEW(exprlist_node);
+	curn = new;
+	curo = old;
+	while(curo) {
+		if(curo->expr) {
+			curn->expr = ex_copy(curo->expr);
+		} else {
+			curn->expr = NULL;
+		}
+		if(curo->next) {
+			curn->next = NEW(exprlist_node);
+			curn = curn->next;
+		}
+		curo = curo->next;
+	}
+	curn->next = NULL;
+	return new;
+}
+
+identlist_node *idl_copy(identlist_node *old) {
+	identlist_node *new, *curn, *curo;
+	if(!old) {
+		return NULL;
+	}
+	new = NEW(identlist_node);
+	curn = new;
+	curo = old;
+	while(curo) {
+		if(curo->ident) {
+			curn->ident = strdup(curo->ident);
+		} else {
+			curn->ident = NULL;
+		}
+		if(curo->next) {
+			curn->next = NEW(identlist_node);
+			curn = curn->next;
+		}
+		curo = curo->next;
+	}
+	curn->next = NULL;
+	return new;
+}
+
 void ex_free(expr_node *);
 
 void st_free(stmt_node *stmt) {
@@ -47,15 +316,7 @@ void st_free(stmt_node *stmt) {
 			break;
 
 		case ST_LIST:
-			curs = stmt->stmtlist;
-			while(curs) {
-				if(curs->stmt) {
-					st_free(curs->stmt);
-				}
-				prevs = curs;
-				curs = curs->next;
-				free(prevs);
-			}
+			stl_free(stmt->stmtlist);
 			break;
 
 		case ST_RET:
@@ -68,6 +329,18 @@ void st_free(stmt_node *stmt) {
 			break; // Make the compiler happy :D
 	}
 	free(stmt);
+}
+
+void stl_free(stmtlist_node *list) {
+	stmtlist_node *cur = list, *prev;
+	while(cur) {
+		if(cur->stmt) {
+			free(cur->stmt);
+		}
+		prev = cur;
+		cur = cur->next;
+		free(prev);
+	}
 }
 
 void ex_free(expr_node *expr) {
@@ -86,30 +359,12 @@ void ex_free(expr_node *expr) {
 			break;
 
 		case EX_LISTGEN:
-			cure = expr->listgen->list;
-			while(cure) {
-				if(cure->expr) {
-					ex_free(cure->expr);
-				}
-				preve = cure;
-				cure = cure->next;
-				free(preve);
-			}
+			exl_free(expr->listgen->list);
 			free(expr->listgen);
 			break;
 
 		case EX_MAPGEN:
-			cura = expr->mapgen->map;
-			while(cura) {
-				if(cura->item) {
-					ex_free(cura->item->key);
-					ex_free(cura->item->value);
-					free(cura->item);
-				}
-				preva = cura;
-				cura = cura->next;
-				free(preva);
-			}
+			asl_free(expr->mapgen->map);
 			free(expr->mapgen);
 			break;
 
@@ -150,34 +405,56 @@ void ex_free(expr_node *expr) {
 
 		case EX_CALL:
 			ex_free(expr->call->expr);
-			cure = expr->call->args;
-			while(cure) {
-				if(cure->expr) {
-					ex_free(cure->expr);
-				}
-				preve = cure;
-				cure = cure->next;
-				free(preve);
-			}
+			exl_free(expr->call->args);
 			free(expr->call);
 			break;
 
 		case EX_FUNCDECL:
 			free(expr->funcdecl->name);
 			st_free(expr->funcdecl->body);
-			curi = expr->funcdecl->args;
-			while(curi) {
-				if(curi->ident) {
-					free(curi->ident);
-				}
-				previ = curi;
-				curi = curi->next;
-				free(previ);
-			}
+			idl_free(expr->funcdecl->args);
 			free(expr->funcdecl);
 			break;
 	}
 	free(expr);
+}
+
+void exl_free(exprlist_node *list) {
+	exprlist_node *cur = list, *prev;
+	while(cur) {
+		if(cur->expr) {
+			free(cur->expr);
+		}
+		prev = cur;
+		cur = cur->next;
+		free(prev);
+	}
+}
+
+void asl_free(assoclist_node *list) {
+	assoclist_node *cur = list, *prev;
+	while(cur) {
+		if(cur->item) {
+			free(cur->item->key);
+			free(cur->item->value);
+			free(cur->item);
+		}
+		prev = cur;
+		cur = cur->next;
+		free(prev);
+	}
+}
+
+void idl_free(identlist_node *list) {
+	identlist_node *cur = list, *prev;
+	while(cur) {
+		if(cur->ident) {
+			free(cur->ident);
+		}
+		prev = cur;
+		cur = cur->next;
+		free(prev);
+	}
 }
 
 #define ERR_CHECK(state) do { if(sol_has_error(state)) longjmp(jmp, 1); } while(0)
@@ -504,7 +781,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 		case ST_EXPR:
 			sol_obj_free(sol_eval(state, stmt->expr));
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			break;
 
@@ -523,7 +800,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 			sol_obj_free(value);
 			sol_obj_free(vint);
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			break;
 
@@ -545,7 +822,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 			}
 			state->sflag = SF_NORMAL;
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			sol_obj_free(value);
 			sol_obj_free(vint);
@@ -582,7 +859,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 			}
 			state->sflag = SF_NORMAL;
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			sol_obj_free(iter);
 			sol_obj_free(value);
@@ -599,7 +876,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 				curs = curs->next;
 			}
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			break;
 
@@ -610,7 +887,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 				state->ret = sol_incref(state->None);
 			}
 			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, stmt));
+				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
 			break;
 
@@ -682,8 +959,8 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name) {
 	sol_object_t *obj = sol_alloc_object(state);
-	obj->func = body;
-	obj->args = identlist;
+	obj->func = st_copy(body);
+	obj->args = idl_copy(identlist);
 	obj->fname = (name ? strdup(name) : NULL);
 	obj->closure = sol_new_map(state);
 	obj->udata = sol_new_map(state);
@@ -692,11 +969,20 @@ sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_n
 	return obj;
 }
 
+sol_object_t *sol_f_func_free(sol_state_t *state, sol_object_t *func) {
+	st_free((stmt_node *) func->func);
+	idl_free((identlist_node *) func->args);
+	if(func->fname) free(func->fname);
+	sol_obj_free(func->closure);
+	sol_obj_free(func->udata);
+	return func;
+}
+
 sol_object_t *sol_new_stmtnode(sol_state_t *state, stmt_node *stmt) {
 	sol_object_t *obj = sol_alloc_object(state);
 	obj->type = SOL_STMT;
 	obj->ops = &(state->ASTNodeOps);
-	obj->node = stmt;
+	obj->node = st_copy(stmt);
 	return obj;
 }
 
@@ -704,6 +990,6 @@ sol_object_t *sol_new_exprnode(sol_state_t *state, expr_node *expr) {
 	sol_object_t *obj = sol_alloc_object(state);
 	obj->type = SOL_EXPR;
 	obj->ops = &(state->ASTNodeOps);
-	obj->node = expr;
+	obj->node = ex_copy(expr);
 	return obj;
 }

@@ -73,35 +73,35 @@ void sol_mm_finalize(sol_state_t *state) {
 }
 
 sol_object_t *_int_sol_alloc_object(const char *func, sol_state_t *state) {
-	fprintf(gclog, "%s\t%s\tALLOC\n", prtime(), func);
+	fprintf(gclog, "%s\tA\n", func);
 	return _sol_gc_alloc_object(state);
 }
 
 sol_object_t *_int_sol_incref(const char *func, sol_object_t *obj) {
 	int oldref = obj->refcnt++;
-	fprintf(gclog, "%s\t%s\tINCREF\t%s\t%p\t%d\t->\t%d\n", prtime(), func, obj->ops->tname, obj, oldref, obj->refcnt);
+	fprintf(gclog, "%s\tI\t%s\t%p\t%d\t->\t%d\n", func, obj->ops->tname, obj, oldref, obj->refcnt);
 	return obj;
 }
 
 void _int_sol_obj_free(const char *func, sol_object_t *obj) {
-	fprintf(gclog, "%s\t%s\tDECREF\t%s\t%p\t%d\t->\t%d\n", prtime(), func, obj->ops->tname, obj, obj->refcnt, obj->refcnt - 1);
+	fprintf(gclog, "%s\tD\t%s\t%p\t%d\t->\t%d\n", func, obj->ops->tname, obj, obj->refcnt, obj->refcnt - 1);
 	_sol_gc_obj_free(obj);
 }
 
 
 void sol_obj_release(sol_object_t *obj) {
-	fprintf(gclog, "%s\t\tFREE\t%s\t%p\n", prtime(), obj->ops->tname, obj);
+	fprintf(gclog, "\tF\t%s\t%p\n", obj->ops->tname, obj);
     if(obj->ops->free) obj->ops->free(NULL, obj);
     free(obj);
 }
 
 sol_object_t *_sol_gc_dsl_copier(sol_object_t *obj) {
-	fprintf(gclog, "%s\t<dsl>\tINCREF\t%s\t%p\t%d\t->\t%d\n", prtime(), obj->ops->tname, obj, obj->refcnt, ++obj->refcnt);
+	fprintf(gclog, "<dsl>\tI\t%s\t%p\t%d\t->\t%d\n", obj->ops->tname, obj, obj->refcnt, ++obj->refcnt);
 	return obj;
 }
 
 void _sol_gc_dsl_destructor(sol_object_t *obj) {
-	fprintf(gclog, "%s\t<dsl>\tDECREF\t%s\t%p\t%d\t->\t%d\n", prtime(), obj->ops->tname, obj, obj->refcnt, obj->refcnt - 1);
+	fprintf(gclog, "<dsl>\tD\t%s\t%p\t%d\t->\t%d\n", obj->ops->tname, obj, obj->refcnt, obj->refcnt - 1);
 	_sol_gc_obj_free(obj);
 }
 

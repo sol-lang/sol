@@ -14,7 +14,7 @@ sol_object_t *sol_cast_int(sol_state_t *state, sol_object_t *obj) {
 	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
-	res = obj->ops->toint(state, ls);
+	res = CALL_METHOD(state, obj, toint, ls);
 	sol_obj_free(ls);
 	return res;
 }
@@ -26,7 +26,7 @@ sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
-	res = obj->ops->tofloat(state, ls);
+	res = CALL_METHOD(state, obj, tofloat, ls);
 	sol_obj_free(ls);
 	return res;
 }
@@ -38,7 +38,7 @@ sol_object_t *sol_cast_string(sol_state_t *state, sol_object_t *obj) {
 	}
 	ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
-	res = obj->ops->tostring(state, ls);
+	res = CALL_METHOD(state, obj, tostring, ls);
 	sol_obj_free(ls);
 	return res;
 }
@@ -46,7 +46,7 @@ sol_object_t *sol_cast_string(sol_state_t *state, sol_object_t *obj) {
 sol_object_t *sol_cast_repr(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls = sol_new_list(state);
 	sol_list_insert(state, ls, 0, obj);
-	res = obj->ops->repr(state, ls);
+	res = CALL_METHOD(state, obj, repr, ls);
 	sol_obj_free(ls);
 	return res;
 }
@@ -322,11 +322,16 @@ sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t 
 		sol_obj_free(list);
 		return sol_incref(state->None);
 	}
-	sol_list_insert(state, list, 0, key);
-	sol_list_insert(state, list, 1, state->None);
+	sol_list_insert(state, list, 0, state->None);
+	sol_list_insert(state, list, 1, key);
 	while(!res && !dsl_seq_iter_is_invalid(iter)) {
-		sol_list_set_index(state, list, 1, AS_OBJ(dsl_seq_iter_at(iter))->key);
-		cmp = CALL_METHOD(state, key, cmp, list);
+		sol_list_set_index(state, list, 0, AS_OBJ(dsl_seq_iter_at(iter))->key);
+		cmp = CALL_METHOD(state, AS_OBJ(dsl_seq_iter_at(iter))->key, cmp, list);
+		if(sol_has_error(state)) {
+			sol_obj_free(cmp);
+			sol_clear_error(state);
+			continue;
+		}
 		icmp = sol_cast_int(state, cmp);
 		sol_obj_free(cmp);
 		if(icmp->ival == 0) {
@@ -583,7 +588,8 @@ size_t sol_stream_printf(sol_state_t *state, sol_object_t *stream, const char *f
 		return 0;
 	}
 	va_start(va, fmt);
-	res = vfprintf(stream->stream, fmt, va);
+	//res = vfprintf(stream->stream, fmt, va);
+	res = vprintf(fmt, va);
 	va_end(va);
 	return res;
 }
@@ -595,7 +601,8 @@ size_t sol_stream_vprintf(sol_state_t *state, sol_object_t *stream, const char *
 		}
 		return 0;
 	}
-	return vfprintf(stream->stream, fmt, va);
+	//return vfprintf(stream->stream, fmt, va);
+	return vprintf(fmt, va);
 }
 
 size_t sol_stream_scanf(sol_state_t *state, sol_object_t *stream, const char *fmt, ...) {

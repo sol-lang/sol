@@ -133,10 +133,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     AS_EX($$)->setindex->value = $3;
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNPLUS expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -146,10 +146,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_ADD, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNMINUS expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -159,10 +159,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_SUB, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNSTAR expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -172,10 +172,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_MUL, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNSLASH expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -185,10 +185,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_DIV, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNDSTAR expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -198,10 +198,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_POW, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNBAND expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -211,10 +211,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BAND, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNBOR expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -224,10 +224,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BOR, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | ex_index_expr ASSIGNBXOR expr {
     if(AS_EX($1)->type != EX_INDEX) {
@@ -237,10 +237,10 @@ expr:
     $$ = NEW_EX();
     AS_EX($$)->type = EX_SETINDEX;
     AS_EX($$)->setindex = NEW(setindex_node);
-    AS_EX($$)->setindex->expr = AS_EX($1)->index->expr;
-    AS_EX($$)->setindex->index = AS_EX($1)->index->index;
+    AS_EX($$)->setindex->expr = ex_copy(AS_EX($1)->index->expr);
+    AS_EX($$)->setindex->index = ex_copy(AS_EX($1)->index->index);
     MAKE_IDX_BINOP(AS_EX($$)->setindex->value, OP_BXOR, AS_EX($1)->index->expr, AS_EX($1)->index->index, $3);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX($1));
 }
 | logic_expr { $$ = $1; }
 ;
@@ -319,7 +319,7 @@ call_expr:
 	AS_EX($$)->call->expr->index->index->lit->type = LIT_STRING;
 	AS_EX($$)->call->expr->index->index->lit->str = $3;
 	AS_EX($$)->call->args = NEW(exprlist_node);
-	AS_EX($$)->call->args->expr = $1;
+	AS_EX($$)->call->args->expr = ex_copy($1);
 	AS_EX($$)->call->args->next = $5;
 }
 | funcdecl_expr { $$ = $1; }

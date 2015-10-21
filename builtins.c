@@ -690,11 +690,15 @@ sol_object_t *sol_f_int_bnot(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_int_cmp(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bint = sol_cast_int(state, b);
-	sol_object_t *res = sol_new_int(state, a->ival == bint->ival ? 0 : (a->ival < bint->ival ? -1 : 1));
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
+	sol_object_t *res;
+	if(sol_is_int(b)) {
+		res = sol_new_int(state, a->ival == b->ival ? 0 : (a->ival < b->ival ? -1 : 1));
+	} else {
+		res = sol_new_int(state, 1);
+	}
 	sol_obj_free(a);
 	sol_obj_free(b);
-	sol_obj_free(bint);
 	return res;
 }
 
@@ -779,11 +783,15 @@ sol_object_t *sol_f_float_pow(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_float_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bflt = sol_cast_float(state, b);
-    sol_object_t *res = sol_new_int(state, a->fval==bflt->fval? 0 : (a->fval<bflt->fval? -1 : 1));
+    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
+    sol_object_t *res;
+	if(sol_is_float(b)) {
+		res = sol_new_int(state, a->fval==b->fval? 0 : (a->fval<b->fval? -1 : 1));
+	} else {
+		res = sol_new_int(state, 1);
+	}
     sol_obj_free(a);
     sol_obj_free(b);
-	sol_obj_free(bflt);
     return res;
 }
 
@@ -841,11 +849,15 @@ sol_object_t *sol_f_str_mul(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_str_cmp(sol_state_t *state, sol_object_t *args) {
-    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *bstr = sol_cast_string(state, b);
-    sol_object_t *res = sol_new_int(state, strcmp(a->str, bstr->str));
+    sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
+    sol_object_t *res;
+	if(sol_is_string(b)) {
+		res = sol_new_int(state, strcmp(a->str, b->str));
+	} else {
+		res = sol_new_int(state, 1);
+	}
     sol_obj_free(a);
     sol_obj_free(b);
-	sol_obj_free(bstr);
     return res;
 }
 
@@ -1388,7 +1400,7 @@ sol_object_t *sol_f_func_index(sol_state_t *state, sol_object_t *args) {
 		} else if(sol_string_eq(state, key, "udata")) {
 			res = sol_incref(func->udata);
 		} else if(sol_string_eq(state, key, "stmt")) {
-			res = sol_new_stmtnode(state, (stmt_node *) func->func);
+			res = sol_new_stmtnode(state, st_copy((stmt_node *) func->func));
 		} else if(sol_string_eq(state, key, "args")) {
 			res = sol_new_list(state);
 			curi = func->args;
@@ -1406,7 +1418,9 @@ sol_object_t *sol_f_func_index(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_func_setindex(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *func = sol_list_get_index(state, args, 0), *key = sol_list_get_index(state, args, 1), *val = sol_list_get_index(state, args, 2), *temp;
+	sol_object_t *func = sol_list_get_index(state, args, 0), *key = sol_list_get_index(state, args, 1), *val = sol_list_get_index(state, args, 2), *temp, *str;
+	size_t i, len;
+	identlist_node *cur, *prev;
 	if(sol_string_eq(state, key, "name") && sol_is_string(val)) {
 		free(func->fname);
 		func->fname = strdup(val->str);
@@ -1419,7 +1433,27 @@ sol_object_t *sol_f_func_setindex(sol_state_t *state, sol_object_t *args) {
 		func->udata = sol_incref(val);
 		sol_obj_free(temp);
 	} else if(sol_string_eq(state, key, "stmt") && sol_is_aststmt(val)) {
-		func->func = val->node;
+		st_free(func->func);
+		func->func = st_copy(val->node);
+	} else if(sol_string_eq(state, key, "args") && sol_is_list(val)) {
+		idl_free(func->args);
+		func->args = NEW(identlist_node);
+		cur = func->args;
+		prev = cur;
+		len = sol_list_len(state, val);
+		for(i = 0; i < len; i++ ) {
+			temp = sol_list_get_index(state, val, i);
+			str = sol_cast_string(state, temp);
+			cur->ident = strdup(str->str);
+			sol_obj_free(temp);
+			sol_obj_free(str);
+			prev = cur;
+			cur->next = NEW(identlist_node);
+			cur = cur->next;
+		} 
+		prev->next = NULL;
+		if(cur == func->args) func->args = NULL;
+		free(cur);
 	} else {
 		sol_map_set(state, func->udata, key, val);
 	}
@@ -1503,25 +1537,25 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 			switch(stmt->type) {
 				case ST_EXPR:
 					if(sol_string_eq(state, str, "expr")) {
-						res = sol_new_exprnode(state, stmt->expr);
+						res = sol_new_exprnode(state, ex_copy(stmt->expr));
 					}
 					break;
 
 				case ST_IFELSE:
 					if(sol_string_eq(state, str, "cond")) {
-						res = sol_new_exprnode(state, stmt->ifelse->cond);
+						res = sol_new_exprnode(state, ex_copy(stmt->ifelse->cond));
 					} else if(sol_string_eq(state, str, "iftrue")) {
-						res = sol_new_stmtnode(state, stmt->ifelse->iftrue);
+						res = sol_new_stmtnode(state, st_copy(stmt->ifelse->iftrue));
 					} else if(sol_string_eq(state, str, "iffalse")) {
-						res = sol_new_stmtnode(state, stmt->ifelse->iffalse);
+						res = sol_new_stmtnode(state, st_copy(stmt->ifelse->iffalse));
 					}
 					break;
 
 				case ST_LOOP:
 					if(sol_string_eq(state, str, "cond")) {
-						res = sol_new_exprnode(state, stmt->loop->cond);
+						res = sol_new_exprnode(state, ex_copy(stmt->loop->cond));
 					} else if(sol_string_eq(state, str, "loop")) {
-						res = sol_new_stmtnode(state, stmt->loop->loop);
+						res = sol_new_stmtnode(state, st_copy(stmt->loop->loop));
 					}
 					break;
 
@@ -1529,9 +1563,9 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 					if(sol_string_eq(state, str, "var")) {
 						res = sol_new_string(state, stmt->iter->var);
 					} else if(sol_string_eq(state, str, "iter")) {
-						res = sol_new_exprnode(state, stmt->iter->iter);
+						res = sol_new_exprnode(state, ex_copy(stmt->iter->iter));
 					} else if(sol_string_eq(state, str, "loop")) {
-						res = sol_new_stmtnode(state, stmt->iter->loop);
+						res = sol_new_stmtnode(state, st_copy(stmt->iter->loop));
 					}
 					break;
 
@@ -1540,7 +1574,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_list(state);
 						curs = stmt->stmtlist;
 						while(curs) {
-							sol_list_insert(state, res, i++, sol_new_stmtnode(state, curs->stmt));
+							sol_list_insert(state, res, i++, sol_new_stmtnode(state, st_copy(curs->stmt)));
 							curs = curs->next;
 						}
 					}
@@ -1548,7 +1582,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 
 				case ST_RET:
 					if(sol_string_eq(state, str, "ret")) {
-						res = sol_new_exprnode(state, stmt->ret->ret);
+						res = sol_new_exprnode(state, ex_copy(stmt->ret->ret));
 					}
 					break;
 			}
@@ -1579,7 +1613,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_list(state);
 						cure = expr->listgen->list;
 						while(cure) {
-							sol_list_insert(state, res, i++, sol_new_exprnode(state, cure->expr));
+							sol_list_insert(state, res, i++, sol_new_exprnode(state, ex_copy(cure->expr)));
 							cure = cure->next;
 						}
 					}
@@ -1591,8 +1625,8 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						cura = expr->mapgen->map;
 						while(cura) {
 							pair = sol_new_list(state);
-							sol_list_insert(state, pair, 0, sol_new_exprnode(state, cura->item->key));
-							sol_list_insert(state, pair, 1, sol_new_exprnode(state, cura->item->value));
+							sol_list_insert(state, pair, 0, sol_new_exprnode(state, ex_copy(cura->item->key)));
+							sol_list_insert(state, pair, 1, sol_new_exprnode(state, ex_copy(cura->item->value)));
 							sol_list_insert(state, res, i++, pair);
 							sol_obj_free(pair);
 						}
@@ -1603,9 +1637,9 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 					if(sol_string_eq(state, str, "binoptype")) {
 						res = sol_new_int(state, expr->binop->type);
 					} else if(sol_string_eq(state, str, "left")) {
-						res = sol_new_exprnode(state, expr->binop->left);
+						res = sol_new_exprnode(state, ex_copy(expr->binop->left));
 					} else if(sol_string_eq(state, str, "right")) {
-						res = sol_new_exprnode(state, expr->binop->right);
+						res = sol_new_exprnode(state, ex_copy(expr->binop->right));
 					}
 					break;
 
@@ -1613,25 +1647,25 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 					if(sol_string_eq(state, str, "unoptype")) {
 						res = sol_new_int(state, expr->unop->type);
 					} else if(sol_string_eq(state, str, "expr")) {
-						res = sol_new_exprnode(state, expr->unop->expr);
+						res = sol_new_exprnode(state, ex_copy(expr->unop->expr));
 					}
 					break;
 
 				case EX_INDEX:
 					if(sol_string_eq(state, str, "expr")) {
-						res = sol_new_exprnode(state, expr->index->expr);
+						res = sol_new_exprnode(state, ex_copy(expr->index->expr));
 					} else if(sol_string_eq(state, str, "index")) {
-						res = sol_new_exprnode(state, expr->index->index);
+						res = sol_new_exprnode(state, ex_copy(expr->index->index));
 					}
 					break;
 
 				case EX_SETINDEX:
 					if(sol_string_eq(state, str, "expr")) {
-						res = sol_new_exprnode(state, expr->setindex->expr);
+						res = sol_new_exprnode(state, ex_copy(expr->setindex->expr));
 					} else if(sol_string_eq(state, str, "index")) {
-						res = sol_new_exprnode(state, expr->setindex->index);
+						res = sol_new_exprnode(state, ex_copy(expr->setindex->index));
 					} else if(sol_string_eq(state, str, "value")) {
-						res = sol_new_exprnode(state, expr->setindex->value);
+						res = sol_new_exprnode(state, ex_copy(expr->setindex->value));
 					}
 					break;
 
@@ -1639,7 +1673,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 					if(sol_string_eq(state, str, "ident")) {
 						res = sol_new_string(state, expr->assign->ident);
 					} else if(sol_string_eq(state, str, "value")) {
-						res = sol_new_exprnode(state, expr->assign->value);
+						res = sol_new_exprnode(state, ex_copy(expr->assign->value));
 					}
 					break;
 
@@ -1651,12 +1685,12 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 
 				case EX_CALL:
 					if(sol_string_eq(state, str, "expr")) {
-						res = sol_new_exprnode(state, expr->call->expr);
+						res = sol_new_exprnode(state, ex_copy(expr->call->expr));
 					} else if(sol_string_eq(state, str, "args")) {
 						res = sol_new_list(state);
 						cure = expr->call->args;
 						while(cure) {
-							sol_list_insert(state, res, i++, sol_new_exprnode(state, cure->expr));
+							sol_list_insert(state, res, i++, sol_new_exprnode(state, ex_copy(cure->expr)));
 							cure = cure->next;
 						}
 					}
@@ -1673,7 +1707,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 							curi = curi->next;
 						}
 					} else if(sol_string_eq(state, str, "body")) {
-						res = sol_new_stmtnode(state, expr->funcdecl->body);
+						res = sol_new_stmtnode(state, st_copy(expr->funcdecl->body));
 					}
 					break;
 			}
@@ -1725,25 +1759,31 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 			switch(stmt->type) {
 				case ST_EXPR:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
-						stmt->expr = val->node;
+						ex_free(stmt->expr);
+						stmt->expr = ex_copy(val->node);
 					}
 					break;
 
 				case ST_IFELSE:
 					if(sol_string_eq(state, str, "cond") && sol_is_astexpr(val)) {
-						stmt->ifelse->cond = val->node;
+						ex_free(stmt->ifelse->cond);
+						stmt->ifelse->cond = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "iftrue") && sol_is_aststmt(val)) {
-						stmt->ifelse->iftrue = val->node;
+						st_free(stmt->ifelse->iftrue);
+						stmt->ifelse->iftrue = st_copy(val->node);
 					} else if(sol_string_eq(state, str, "iffalse") && sol_is_aststmt(val)) {
-						stmt->ifelse->iffalse = val->node;
+						st_free(stmt->ifelse->iffalse);
+						stmt->ifelse->iffalse = st_copy(val->node);
 					}
 					break;
 
 				case ST_LOOP:
 					if(sol_string_eq(state, str, "cond") && sol_is_astexpr(val)) {
-						stmt->loop->cond = val->node;
+						ex_free(stmt->loop->cond);
+						stmt->loop->cond = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "loop") && sol_is_aststmt(val)) {
-						stmt->loop->loop = val->node;
+						st_free(stmt->loop->loop);
+						stmt->loop->loop = st_copy(val->node);
 					}
 					break;
 
@@ -1753,21 +1793,24 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						stmt->iter->var = strdup(sval->str);
 						sol_obj_free(sval);
 					} else if(sol_string_eq(state, str, "iter") && sol_is_astexpr(val)) {
-						stmt->iter->iter = val->node;
+						ex_free(stmt->iter->iter);
+						stmt->iter->iter = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "loop") && sol_is_aststmt(val)) {
-						stmt->iter->loop = val->node;
+						st_free(stmt->iter->loop);
+						stmt->iter->loop = st_copy(val->node);
 					}
 					break;
 
 				case ST_LIST:
 					if(sol_string_eq(state, str, "stmtlist") && sol_is_list(val)) {
+						stl_free(stmt->stmtlist);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							curs = malloc(sizeof(stmtlist_node));
 							stmt->stmtlist = curs;
 							for(i = 0; i < len; i++) {
 								if(sol_is_aststmt(sol_list_get_index(state, val, i))) {
-									curs->stmt = sol_list_get_index(state, val, i)->node;
+									curs->stmt = st_copy(sol_list_get_index(state, val, i)->node);
 									prevs = curs;
 									curs = malloc(sizeof(stmtlist_node));
 									prevs->next = curs;
@@ -1788,7 +1831,8 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 
 				case ST_RET:
 					if(sol_string_eq(state, str, "ret") && sol_is_astexpr(val)) {
-						stmt->ret->ret = val->node;
+						ex_free(stmt->ret->ret);
+						stmt->ret->ret = ex_copy(val->node);
 					}
 					break;
 			}
@@ -1833,6 +1877,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 
 				case EX_LISTGEN:
 					if(sol_string_eq(state, str, "list") && sol_is_list(val)) {
+						exl_free(expr->listgen->list);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							cure = malloc(sizeof(exprlist_node));
@@ -1860,6 +1905,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 
 				case EX_MAPGEN:
 					if(sol_string_eq(state, str, "map") && sol_is_list(val)) {
+						asl_free(expr->mapgen->map);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							cura = malloc(sizeof(assoclist_node));
@@ -1896,9 +1942,11 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->binop->type = ival->ival;
 						sol_obj_free(ival);
 					} else if(sol_string_eq(state, str, "left") && sol_is_astexpr(val)) {
-						expr->binop->left = val->node;
+						ex_free(expr->binop->left);
+						expr->binop->left = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "right") && sol_is_astexpr(val)) {
-						expr->binop->right = val->node;
+						ex_free(expr->binop->right);
+						expr->binop->right = ex_copy(val->node);
 					}
 					break;
 
@@ -1908,25 +1956,31 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->unop->type = ival->ival;
 						sol_obj_free(ival);
 					} else if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
-						expr->unop->expr = val->node;
+						ex_free(expr->unop->expr);
+						expr->unop->expr = ex_copy(val->node);
 					}
 					break;
 
 				case EX_INDEX:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
-						expr->index->expr = val->node;
+						ex_free(expr->index->expr);
+						expr->index->expr = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "index") && sol_is_astexpr(val)) {
-						expr->index->index = val->node;
+						ex_free(expr->index->index);
+						expr->index->index = ex_copy(val->node);
 					}
 					break;
 
 				case EX_SETINDEX:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
-						expr->setindex->expr = val->node;
+						ex_free(expr->setindex->expr);
+						expr->setindex->expr = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "index") && sol_is_astexpr(val)) {
-						expr->setindex->index = val->node;
+						ex_free(expr->setindex->index);
+						expr->setindex->index = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "value") && sol_is_astexpr(val)) {
-						expr->setindex->value = val->node;
+						ex_free(expr->setindex->value);
+						expr->setindex->value = ex_copy(val->node);
 					}
 					break;
 
@@ -1936,7 +1990,8 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->assign->ident = strdup(sval->str);
 						sol_obj_free(sval);
 					} else if(sol_string_eq(state, str, "value") && sol_is_astexpr(val)) {
-						expr->assign->value = val->node;
+						ex_free(expr->assign->value);
+						expr->assign->value = ex_copy(val->node);
 					}
 					break;
 
@@ -1950,8 +2005,10 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 
 				case EX_CALL:
 					if(sol_string_eq(state, str, "expr") && sol_is_astexpr(val)) {
-						expr->call->expr = val->node;
+						ex_free(expr->call->expr);
+						expr->call->expr = ex_copy(val->node);
 					} else if(sol_string_eq(state, str, "args") && sol_is_list(val)) {
+						exl_free(expr->call->args);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							cure = malloc(sizeof(exprlist_node));
@@ -1983,6 +2040,7 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->funcdecl->name = strdup(sval->str);
 						sol_obj_free(sval);
 					} else if(sol_string_eq(state, str, "args") && sol_is_list(val)) {
+						idl_free(expr->funcdecl->args);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							curi = malloc(sizeof(identlist_node));
@@ -2006,7 +2064,8 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 							expr->funcdecl->args = NULL;
 						}
 					} else if(sol_string_eq(state, str, "body") && sol_is_aststmt(val)) {
-						expr->funcdecl->body = val->node;
+						st_free(expr->funcdecl->body);
+						expr->funcdecl->body = st_copy(val->node);
 					}
 					break;
 			}

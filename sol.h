@@ -237,6 +237,7 @@ void sol_register_methods_name(sol_state_t *, char *, sol_object_t *);
 sol_object_t *sol_get_methods(sol_state_t *, sol_object_t *);
 sol_object_t *sol_get_methods_name(sol_state_t *, char *);
 
+sol_object_t *sol_f_io_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_io_setindex(sol_state_t *, sol_object_t *);
 sol_object_t *sol_get_stdin(sol_state_t *);
 sol_object_t *sol_get_stdout(sol_state_t *);
@@ -458,15 +459,15 @@ sol_object_t *sol_map_get(sol_state_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_get_name(sol_state_t *, sol_object_t *, char *);
 void sol_map_set(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
 #define sol_map_borrow(state, map, key, object) do {\
-	sol_object_t *_obj = (object);\
-	sol_map_set((state), (map), (key), _obj);\
-	sol_obj_free(_obj);\
+	sol_object_t *__obj = (object);\
+	sol_map_set((state), (map), (key), __obj);\
+	sol_obj_free(__obj);\
 } while(0)
 void sol_map_set_name(sol_state_t *, sol_object_t *, char *, sol_object_t *);
 #define sol_map_borrow_name(state, map, str, object) do {\
-	sol_object_t *_obj = (object);\
-	sol_map_set_name((state), (map), (str), _obj);\
-	sol_obj_free(_obj);\
+	sol_object_t *__obj = (object);\
+	sol_map_set_name((state), (map), (str), __obj);\
+	sol_obj_free(__obj);\
 } while(0)
 void sol_map_set_existing(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
 sol_object_t *sol_map_copy(sol_state_t *, sol_object_t *);
@@ -497,9 +498,9 @@ size_t sol_stream_fwrite(sol_state_t *, sol_object_t *, char *, size_t, size_t);
 char *sol_stream_fgets(sol_state_t *, sol_object_t *, char *, size_t);
 int sol_stream_fputc(sol_state_t *, sol_object_t *, int);
 #define _sol_io_on(state, op, strname, ...) do {\
-	sol_object_t *str = sol_get_##strname(state);\
-	sol_stream_##op((state), str, __VA_ARGS__);\
-	sol_obj_free(str);\
+	sol_object_t *__str = sol_get_##strname(state);\
+	sol_stream_##op((state), __str, __VA_ARGS__);\
+	sol_obj_free(__str);\
 } while(0)
 #define sol_printf(state, ...) _sol_io_on(state, printf, stdout, __VA_ARGS__)
 #define sol_vprintf(state, ...) _sol_io_on(state, vprintf, stdout, __VA_ARGS__)
@@ -524,6 +525,7 @@ sol_object_t *sol_f_str_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_mcell_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_func_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_astnode_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_dylib_free(sol_state_t *, sol_object_t *);

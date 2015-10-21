@@ -171,7 +171,7 @@ typedef struct tag_stmt_node {
 	nd->binop->left = NEW_EX(); \
 	nd->binop->left->type = EX_REF; \
 	nd->binop->left->ref = NEW(ref_node); \
-	nd->binop->left->ref->ident = name; \
+	nd->binop->left->ref->ident = strdup(name); \
 	nd->binop->right = val
 #define MAKE_IDX_BINOP(nd, tp, obj, idx, val) nd = NEW_EX(); \
 	nd->type = EX_BINOP; \
@@ -180,8 +180,8 @@ typedef struct tag_stmt_node {
 	nd->binop->left = NEW_EX(); \
 	nd->binop->left->type = EX_INDEX; \
 	nd->binop->left->index = NEW(index_node); \
-	nd->binop->left->index->expr = obj; \
-	nd->binop->left->index->index = idx; \
+	nd->binop->left->index->expr = ex_copy(obj); \
+	nd->binop->left->index->index = ex_copy(idx); \
 	nd->binop->right = val
 #define BOOL_TO_INT(cond) ((cond)?1:0)
 #define CALL_METHOD(state, obj, meth, args) ({\
@@ -205,8 +205,19 @@ stmt_node *sol_compile_file(FILE *);
 expr_node *sol_comp_as_expr(stmt_node *);
 void sol_compile_free(stmt_node *);
 
+stmt_node *st_copy(stmt_node *);
+expr_node *ex_copy(expr_node *);
+stmtlist_node *stl_copy(stmtlist_node *);
+exprlist_node *exl_copy(exprlist_node *);
+assoclist_node *asl_copy(assoclist_node *);
+identlist_node *idl_copy(identlist_node *);
+
 void st_free(stmt_node *);
 void ex_free(expr_node *);
+void stl_free(stmtlist_node *);
+void exl_free(exprlist_node *);
+void asl_free(assoclist_node *);
+void idl_free(identlist_node *);
 
 void st_print(sol_state_t *, stmt_node *);
 void ex_print(sol_state_t *, expr_node *);

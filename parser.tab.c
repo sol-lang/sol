@@ -1838,10 +1838,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     AS_EX((yyval))->setindex->value = (yyvsp[0]);
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1847 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1856,10 +1856,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_ADD, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1865 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1874,10 +1874,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_SUB, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1883 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1892,10 +1892,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_MUL, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1901 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1910,10 +1910,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_DIV, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1919 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1928,10 +1928,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_POW, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1937 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1946,10 +1946,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_BAND, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1955 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1964,10 +1964,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_BOR, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1973 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -1982,10 +1982,10 @@ yyreduce:
     (yyval) = NEW_EX();
     AS_EX((yyval))->type = EX_SETINDEX;
     AS_EX((yyval))->setindex = NEW(setindex_node);
-    AS_EX((yyval))->setindex->expr = AS_EX((yyvsp[-2]))->index->expr;
-    AS_EX((yyval))->setindex->index = AS_EX((yyvsp[-2]))->index->index;
+    AS_EX((yyval))->setindex->expr = ex_copy(AS_EX((yyvsp[-2]))->index->expr);
+    AS_EX((yyval))->setindex->index = ex_copy(AS_EX((yyvsp[-2]))->index->index);
     MAKE_IDX_BINOP(AS_EX((yyval))->setindex->value, OP_BXOR, AS_EX((yyvsp[-2]))->index->expr, AS_EX((yyvsp[-2]))->index->index, (yyvsp[0]));
-    //ex_free(AS_EX($1));
+    ex_free(AS_EX((yyvsp[-2])));
 }
 #line 1991 "parser.tab.c" /* yacc.c:1646  */
     break;
@@ -2204,7 +2204,7 @@ yyreduce:
 	AS_EX((yyval))->call->expr->index->index->lit->type = LIT_STRING;
 	AS_EX((yyval))->call->expr->index->index->lit->str = (yyvsp[-3]);
 	AS_EX((yyval))->call->args = NEW(exprlist_node);
-	AS_EX((yyval))->call->args->expr = (yyvsp[-5]);
+	AS_EX((yyval))->call->args->expr = ex_copy((yyvsp[-5]));
 	AS_EX((yyval))->call->args->next = (yyvsp[-1]);
 }
 #line 2211 "parser.tab.c" /* yacc.c:1646  */

@@ -153,6 +153,6 @@ class SolObjectPrettyPrinter(object):
 # pp.add_printer('sol_object_t', '^sol_object_t.*$', SolObjectPrettyPrinter)
 # pp.add_printer('sol_tag_object_t', '^struct sol_tag_object_t.*$', SolObjectPrettyPrinter)
 # gdb.printing.register_pretty_printer(gdb.current_objfile(), pp)
-gdb.current_objfile().pretty_printers.append(SolObjectPrettyPrinter.check_printable)
+gdb.pretty_printers.append(SolObjectPrettyPrinter.check_printable)
 
 print('Sol extensions loaded!')

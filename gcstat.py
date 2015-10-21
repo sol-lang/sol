@@ -18,16 +18,16 @@ for line in f:
 	if line[0] == '=':
 		continue
 	parts = line.split('\t')
-	if parts[2] == 'INCREF':
-		incs[parts[1]] += 1
-		refs[parts[4]] += 1
-		types[parts[4]] = parts[3]
-		seenrefs[parts[4]] = parts[7]
-	elif parts[2] == 'DECREF':
-		decs[parts[1]] += 1
-		refs[parts[4]] -= 1
-		types[parts[4]] = parts[3]
-		seenrefs[parts[4]] = parts[7]
+	if parts[1] == 'I':
+		incs[parts[0]] += 1
+		refs[parts[3]] += 1
+		types[parts[3]] = parts[2]
+		seenrefs[parts[3]] = parts[6]
+	elif parts[1] == 'D':
+		decs[parts[0]] += 1
+		refs[parts[3]] -= 1
+		types[parts[3]] = parts[2]
+		seenrefs[parts[3]] = parts[6]
 
 incpairs = incs.items()
 decpairs = decs.items()

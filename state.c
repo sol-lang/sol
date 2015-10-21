@@ -131,6 +131,7 @@ int sol_state_init(sol_state_t *state) {
 	state->FuncOps.index = sol_f_func_index;
 	state->FuncOps.setindex = sol_f_func_setindex;
 	state->FuncOps.tostring = sol_f_func_tostring;
+	state->FuncOps.free = sol_f_func_free;
 
 	state->CFuncOps.tname = "cfunction";
 	state->CFuncOps.call = sol_f_cfunc_call;
@@ -387,11 +388,9 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "SEEK_END", sol_new_int(state, SEEK_END));
 	sol_map_borrow_name(state, mod, "ALL", sol_new_string(state, "ALL"));
 	sol_map_borrow_name(state, mod, "LINE", sol_new_string(state, "LINE"));
-	sol_map_borrow_name(state, mod, "stdin", sol_new_stream(state, stdin, MODE_READ));
-	sol_map_borrow_name(state, mod, "stdout", sol_new_stream(state, stdout, MODE_WRITE));
-	sol_map_borrow_name(state, mod, "stderr", sol_new_stream(state, stderr, MODE_WRITE));
 	sol_map_borrow_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open));
 	sol_map_borrow_name(state, mod, "__setindex", sol_new_cfunc(state, sol_f_io_setindex));
+	sol_map_borrow_name(state, mod, "__index", sol_new_cfunc(state, sol_f_io_index));
 	sol_register_module_name(state, "io", mod);
 	sol_obj_free(mod);
 
@@ -664,18 +663,45 @@ sol_object_t *sol_get_methods_name(sol_state_t *state, char *name) {
 	return sol_map_get_name(state, state->methods, name);
 }
 
+sol_object_t *sol_f_io_index(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *self = sol_list_get_index(state, args, 0), *name = sol_list_get_index(state, args, 1), *namestr = sol_cast_string(state, name), *res;
+	if(sol_string_eq(state, namestr, "stdin")) {
+		sol_obj_free(name);
+		sol_obj_free(namestr);
+		return sol_incref(state->stdin);
+	}
+	if(sol_string_eq(state, namestr, "stdout")) {
+		sol_obj_free(name);
+		sol_obj_free(namestr);
+		return sol_incref(state->stdout);
+	}
+	if(sol_string_eq(state, namestr, "stderr")) {
+		sol_obj_free(name);
+		sol_obj_free(namestr);
+		return sol_incref(state->stderr);
+	}
+	sol_obj_free(namestr);
+	res = sol_map_get(state, self, name);
+	sol_obj_free(self);
+	sol_obj_free(name);
+	return res;
+}
+
 sol_object_t *sol_f_io_setindex(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *name = sol_list_get_index(state, args, 1), *value = sol_list_get_index(state, args, 2);
 	sol_object_t *namestr = sol_cast_string(state, name), *io;
 	if(sol_string_eq(state, namestr, "stdin")) {
+		sol_obj_free(state->stdin);
 		state->stdin = sol_incref(value);
 		goto done;
 	}
 	if(sol_string_eq(state, namestr, "stdout")) {
+		sol_obj_free(state->stdout);
 		state->stdout = sol_incref(value);
 		goto done;
 	}
 	if(sol_string_eq(state, namestr, "stderr")) {
+		sol_obj_free(state->stderr);
 		state->stderr = sol_incref(value);
 		goto done;
 	}
