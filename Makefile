@@ -5,6 +5,7 @@ OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astpri
 all: $(OBJ)
 	git submodule init && git submodule sync && git submodule update
 	gcc $(CFLAGS) $? $(LDFLAGS) -o sol 
+	rm -rf *.o
 
 %.o: %.c
 	gcc -c -o $@ $? $(CFLAGS)

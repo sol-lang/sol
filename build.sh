@@ -26,3 +26,4 @@ gcc -c $CFLAGS state.c
 gcc -c $CFLAGS builtins.c
 gcc -c $CFLAGS solrun.c
 gcc $CFLAGS *.o -o sol -lm -ldl
+rm -rf *.o
