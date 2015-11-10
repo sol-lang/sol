@@ -25,4 +25,4 @@ gcc -c $CFLAGS object.c
 gcc -c $CFLAGS state.c
 gcc -c $CFLAGS builtins.c
 gcc -c $CFLAGS solrun.c
-gcc $CFLAGS *.o -o sol -lm -ldl
+gcc $CFLAGS *.o -o solace -lm -ldl

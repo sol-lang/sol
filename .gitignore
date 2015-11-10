@@ -1,4 +1,5 @@
 sol
+solace
 *.o
 stdout
 .submodule_stamp
