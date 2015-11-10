@@ -130,6 +130,8 @@ None { return NONE; }
 
 "%" { return PERCENT; }
 
+"mod" { return PERCENT; }
+
 "**" { return DSTAR; }
 
 "&" { return BAND; }
@@ -142,9 +144,23 @@ None { return NONE; }
 
 "&&" { return LAND; }
 
+"and" { return LAND; }
+
 "||" { return LOR; }
 
+"or" { return LOR; }
+
 "!" { return LNOT; }
+
+"not" { return LNOT; }
+
+"true" { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 1; return INT;  }
+
+"True" { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 1; return INT;  }
+
+"false" { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 0; return INT;  }
+
+"False" { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 0; return INT;  }
 
 "=" { return ASSIGN; }
 
