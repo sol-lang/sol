@@ -11,5 +11,6 @@ the documentation on "doxygenfile".
 
 .. toctree::
     
+    api_conventions
     sol_h
     ast_h

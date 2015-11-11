@@ -9,14 +9,26 @@
 #include <stdarg.h>
 #include "dsl/dsl.h"
 
+/** The version of the project, as made available through `debug.version`. */
 #define VERSION "0.2a0"
+/** The hexadecimal version of the project, formatted 0xAAIIRPP where:
+ * 
+ * - AA is the two-digit major version
+ * - II is the two-digit minor version
+ * - R is 'A' for alpha, 'B' for beta, 'C' for candidate, and 'F' for final
+ * - PP is the two-digit patch
+ *
+ * This value is guaranteed to always increase by revision.
+ */
 #define HEXVER 0x0002A00
 
 #ifndef SOL_ICACHE_MIN
+/** The smallest integer to cache. */
 #define SOL_ICACHE_MIN -128
 #endif
 
 #ifndef SOL_ICACHE_MAX
+/** The largest integer to cache. */
 #define SOL_ICACHE_MAX 256
 #endif
 
@@ -31,7 +43,27 @@ typedef struct sol_tag_object_t sol_object_t;
 struct sol_tag_state_t;
 typedef struct sol_tag_state_t sol_state_t;
 
+/** CFunction type.
+ *
+ * This is the essential type for most C interface routines. It receives two
+ * parameters:
+ *
+ * - The state under which the function is invoked, and
+ * - A list object containing a set of parameters, which are generally
+ *   well-defined per location or operation.
+ *
+ * The function should return a new reference to an object. If the value is
+ * unimportant or otherwise ignored, the canonical return value is
+ * `sol_incref`(state->None).
+ */
+
 typedef sol_object_t *(*sol_cfunc_t)(sol_state_t *, sol_object_t *);
+
+/** Print function type.
+ *
+ * \deprecated This is not used anywhere and is likely to be removed in the
+ * near future.
+ */
 
 typedef void (*sol_printfunc_t)(sol_object_t *);
 
