@@ -61,140 +61,319 @@ typedef sol_object_t *(*sol_cfunc_t)(sol_state_t *, sol_object_t *);
 
 /** Print function type.
  *
- * \deprecated This is not used anywhere and is likely to be removed in the
- * near future.
+ * \rst
+ * .. admonition:: Deprecated
+ *
+ *     This is not used anywhere and is likely to be removed in the
+ *     near future.
+ * \endrst
  */
 
 typedef void (*sol_printfunc_t)(sol_object_t *);
 
+/** Type methods structure.
+ *
+ * Sol bases most of its object behavior on methods defined on so-called "ops
+ * structures" of this type pointed to by the objects themselves. In general,
+ * these contain the address of one such structure stored directly in the state
+ * (each state has its own set of these structures for all the builtin types,
+ * initialized in `sol_state_init`), but they can conceivably be allocated and
+ * initialized elsewhere, e.g., in extension modules.
+ *
+ * Nearly all of the fields in this structure are function pointers to
+ * `sol_cfunc_t` that are called when an operator is invoked on an object. In
+ * the case of binary operators, only the left operand is considered.
+ *
+ * In member documentation of these functions, the list [in brackets]
+ * represents, visually, the list that the function can expect to receive as
+ * the second argument (where "rhs" is right-hand-side of a binary operator,
+ * and "this" is the object whose ops structure was indexed). Note that the
+ * runtime does not use nor take advantage of the returns of all of these
+ * methods.
+ */
+
 typedef struct {
+	/** A C-string naming the type, for use by the built-in `type` function. */
 	char *tname;
+	/** Called with [this, rhs] to perform binary addition ("+"). */
 	sol_cfunc_t add;
+	/** Called with [this, rhs] to perform binary subtraction ("-"). */
 	sol_cfunc_t sub;
+	/** Called with [this, rhs] to perform binary multiplication ("*"). */
 	sol_cfunc_t mul;
+	/** Called with [this, rhs] to perform binary division ("/"). */
 	sol_cfunc_t div;
+	/** Called with [this, rhs] to perform binary modulus ("%"). */
 	sol_cfunc_t mod;
+	/** Called with [this, rhs] to perform binary exponentiation ("**"). */
 	sol_cfunc_t pow;
+	/** Called with [this, rhs] to perform binary bitwise AND ("&") */
 	sol_cfunc_t band;
+	/** Called with [this, rhs] to perform binary bitwise OR ("|") */
 	sol_cfunc_t bor;
+	/** Called with [this, rhs] to perform binary bitwise XOR ("^") */
 	sol_cfunc_t bxor;
+	/** Called with [this, rhs] to perform binary bitwise left shift ("<<") */
 	sol_cfunc_t blsh;
+	/** Called with [this, rhs] to perform binary bitwise right shift (">>") */
 	sol_cfunc_t brsh;
+	/** Called with [this] to perform bitwise not ("~") */
 	sol_cfunc_t bnot;
+	/** Called with [this, rhs] to perform comparison; the result should be an integer object of value -1 (this < rhs), 0 (this == rhs), or 1 (this > rhs) */
 	sol_cfunc_t cmp;
+	/** Called with [this, arg1, arg2, ...] to perform a call (as "this(arg1, arg2, ...)") */
 	sol_cfunc_t call;
+	/** Called with [this, index] to perform an index like "this[index]" or "this.index" (in the latter, index will be a string object) */
 	sol_cfunc_t index;
+	/** Called with [this, index, value] to perform a setindex (like "this[index] = value" or "this.index = value" for index being a string object) */
 	sol_cfunc_t setindex;
+	/** Called with [this] to perform a length predicate (like "#this") */
 	sol_cfunc_t len;
+	/** Called with [this] to return a function object (or cfunction object) that will iterate over "this" (see the iterator protocol for more details) */
 	sol_cfunc_t iter;
+	/** Called with [this] to cast "this" to an integer object. This may raise an error, which should be checked. */
 	sol_cfunc_t toint;
+	/** Called with [this] to cast "this" to a float object. This may raise an error, which should be checked. */
 	sol_cfunc_t tofloat;
+	/** Called with [this] to cast "this" to a string object. This generally shouldn't raise an error, and usually falls back to a simple representation. */
 	sol_cfunc_t tostring;
+	/** Called with [this] to provide a representation of "this", in the sense that it is human-readable and informative. This usually falls back to tostring. */
 	sol_cfunc_t repr;
+	/** Called with this (*not a list*) as a result of calling `sol_init_object`. Since this is usually called from a constructor anyway, it's usually fairly useless. It should return this. */
 	sol_cfunc_t init;
+	/** Called with this (*not a list*) and *with a NULL state* before an object is freed; it should free any resources this object exclusively holds, and return this. */
 	sol_cfunc_t free;
 } sol_ops_t;
 
+/** Object types known to Sol.
+ *
+ * This is rarely checked and generally only used where necessary, as there is
+ * no way to extend this list naturally for an extension developer.
+ *
+ * For each of these types, there is almost certainly a test macro for it.
+ */
+
 typedef enum {
+	/** The singlet type--the type of None, as well as StopIteration and OutOfMemory. It is also the "default" type. */
 	SOL_SINGLET,
+	/** The integer type, implemented as a long. */
 	SOL_INTEGER,
+	/** The floating point type, implemented as a double. */
 	SOL_FLOAT,
+	/** The string type, implemented as a C string. */
 	SOL_STRING,
+	/** The list type, implemented as a DSL sequence of object pointers. */
 	SOL_LIST,
+	/** The map type, implemented as a DSL sequence of MCELL object pointers arranged as an associative array.. */
 	SOL_MAP,
+	/** The mcell type, a simple key-value pair only to be found in a map. */
 	SOL_MCELL,
+	/** The function type, the type of all user-defined functions in Sol. */
 	SOL_FUNCTION,
+	/** The cfunction type, the type of objects wrapping a `sol_cfunc_t`. */
 	SOL_CFUNCTION,
+	/** The statement type, the type of objects wrapping a `stmt_node`. */
 	SOL_STMT,
+	/** The expression type, the type of objects wrapping an `expr_node`. */
 	SOL_EXPR,
+	/** The buffer type, a type designed to access arbitrary memory. */
 	SOL_BUFFER,
+	/** The dylib type, the type of dynamically-loaded shared libraries. */
 	SOL_DYLIB,
+	/** The dysym type, the type of symbols resolved in dylib objects. */
 	SOL_DYSYM,
+	/** The stream type, the type wrapping FILE *. */
 	SOL_STREAM,
+	/** The cdata type, the type used for extension by various modules. */
 	SOL_CDATA
 } sol_objtype_t;
 
+
+/** Buffer types.
+ *
+ * These types indicate what a buffer or subsection of a buffer may refer to.
+ */
+
 typedef enum {
+	/** The region is typeless. This is the default, and prohibits access unless it is retyped. */
 	BUF_NONE,
+	/** The region contains an 8-bit signed integer. */
 	BUF_INT8,
+	/** The region contains a 16-bit signed integer. */
 	BUF_INT16,
+	/** The region contains a 32-bit signed integer. */
 	BUF_INT32,
+	/** The region contains a 64-bit signed integer. */
 	BUF_INT64,
+	/** The region contains an 8-bit unsigned integer. */
 	BUF_UINT8,
+	/** The region contains a 16-bit unsigned integer. */
 	BUF_UINT16,
+	/** The region contains a 32-bit unsigned integer. */
 	BUF_UINT32,
+	/** The region contains a 64-bit unsigned integer. */
 	BUF_UINT64,
+	/** The region contains an ASCII character. */
 	BUF_CHAR,
+	/** The region contains exactly one addressable unit. */
 	BUF_BYTE,
+	/** The region contains a platform-sized signed integer. */
 	BUF_INT,
+	/** The region contains a platform-sized unsigned integer. */
 	BUF_UINT,
+	/** The region contains a platform-sized signed long integer. */
 	BUF_LONG,
+	/** The region contains a platform-sized unsigned long integer. */
 	BUF_ULONG,
+	/** The region contains a platform single-precision floating point. */
 	BUF_FLOAT,
+	/** The region contains a platform double-precision floating point. */
 	BUF_DOUBLE,
+	/** The region contains a pointer to a NUL-terminated C string. */
 	BUF_CSTR,
+	/** The region contains a generic pointer (which will instantiate another buffer). */
 	BUF_PTR
 } sol_buftype_t;
 
+/** Ownership types.
+ *
+ * These functions determine what happens to the memory region aliased by a
+ * buffer when that object is freed or copied.
+ */
+
 typedef enum {
+	/** Nothing happens; the object is freed or copied normally. */
 	OWN_NONE,
+	/** The libc `free` function is called on the buffer. Nothing happens when a new buffer is made to alias it. */
 	OWN_FREE,
+	/** The movefunc and freefunc are respectively consulted. */
 	OWN_CALLF
 } sol_owntype_t;
 
+/**
+ * Transput modes.
+ *
+ * These constants are defined (by the same name) on the `io` module as valid bits for the second argument to `io.open`.
+ */
+
 typedef enum {
+	/** Permit reading. If this is not set, any attempt to read will raise an error. */
 	MODE_READ = 1,
+	/** Permit writing. If this is not set, any attempt to write will raise an error. */
 	MODE_WRITE = 2,
+	/** When opening for writing, direct all writes to the end of the file. This has no effect on read positions, when opened in both modes. */
 	MODE_APPEND = 4,
+	/** When opened for writing, truncate the file to zero size. Previous contents are lost. */
 	MODE_TRUNCATE = 8,
+	/** Prepare the file for reading or writing binary data as opposed to text. */
 	MODE_BINARY = 16
 } sol_modes_t;
 
+/** Buffer freeing function.
+ *
+ * This is called with the buffer region and given size when a buffer object is
+ * freed (from state.BufferOps.free) when the `sol_owntype_t` is set to
+ * `OWN_CALLF`. It should do whatever is needed to release this one alias of
+ * memory. Note that care should be taken if multiple buffer objects alias the
+ * same region.
+ */
+
 typedef void (*sol_freefunc_t)(void *, size_t);
+
+/** Buffer moving function.
+ *
+ * This is called with the buffer region and given size when a buffer object is
+ * somehow copied (usually by dereferencing a `BUF_PTR`). It should return the
+ * region that the new buffer object should refer to. The size is assumed to
+ * not change.
+ */
+
 typedef void *(*sol_movefunc_t)(void *, size_t);
 
+/** Object structure.
+ *
+ * This structure defines the interface of every Sol object. Just as well (and
+ * as an implementation detail), it contains the operative members of every
+ * built-in type.
+ */
+
 typedef struct sol_tag_object_t {
+	/** The type of this object. */
 	sol_objtype_t type;
+	/** The number of living references to this object, increased by `sol_incref` and decreased by `sol_obj_free`. */
 	int refcnt;
+	/** The ops structure defining the behavior of this object under certain operations (more or less, its behavioral "type"). */
 	sol_ops_t *ops;
 	union {
+		/** For `SOL_INTEGER`, the value of the integer. */
 		long ival;
+		/** For `SOL_FLOAT`, the value of the floating point number. */
 		double fval;
+		/** For `SOL_STRING`, the C string pointer. For `SOL_SINGLET`, the name of this singlet. */
 		char *str;
+		/** For `SOL_LIST` and `SOL_MAP`, the DSL sequence that contains the items or pairs. */
 		dsl_seq *seq;
 		struct {
+			/** For `SOL_MCELL`, the key of the pair. */
 			struct sol_tag_object_t *key;
+			/** For `SOL_MCELL`, the value of the pair. */
 			struct sol_tag_object_t *val;
 		};
 		struct {
+			/** For `SOL_FUNCTION`, the `stmt_node` pointer representing the function's body. */
 			void *func; // Actually a stmt_node *
+			/** For `SOL_FUNCTION`, the `identlist_node` pointer representing the list of the functions argument names. */
 			void *args; // Actually an identlist_node *
+			/** For `SOL_FUNCTION`, a map representing the closure (initial scope, updated on exit) of the function. */
 			struct sol_tag_object_t *closure;
+			/** For `SOL_FUNCTION`, a map of data defined by the user on this function object. */
 			struct sol_tag_object_t *udata;
+			/** For `SOL_FUNCTION`, the name of the function if it was not declared anonymously (otherwise NULL). */
 			char *fname;
 		};
+		/** For `SOL_CFUNCTION`, the C function pointer. */
 		sol_cfunc_t cfunc;
+		/** For `SOL_STMT` and `SOL_EXPR`, the `stmt_node` or `expr_node` pointer, respectively. */
 		void *node;
 		struct {
+			/** For `SOL_BUFFER`, the memory region referred to by this buffer. */
 			void *buffer;
+			/** For `SOL_BUFFER`, the size of this memory region. Negative values indicate no or unknown size. */
 			ssize_t sz;
+			/** For `SOL_BUFFER`, the ownership type of this buffer's region. */
 			sol_owntype_t own;
+			/** For `SOL_BUFFER`, the freeing function if own == `OWN_CALLF` */
 			sol_freefunc_t freef;
+			/** For `SOL_BUFFER`, the moving function if own == `OWN_CALLF` */
 			sol_movefunc_t movef;
 		};
+		/** For `SOL_DYLIB`, the handle as returned by `dlopen`. */
 		void *dlhandle;
 		struct {
+			/** For `SOL_DYSYM`, the symbol as resolved by `dlsym`. */
 			void *dlsym;
+			/** For `SOL_DYSYM`, a sequence of the types of the arguments (a set of `sol_buftype_t` cast to void *, the native type of DSL), if the symbol is a function. */
 			dsl_seq *argtp;
+			/** For `SOL_DYSYM`, the return type of the symbol if it is a function; otherwise, the type of the symbol if it is a variable. */
 			sol_buftype_t rettp;
 		};
 		struct {
+			/** For `SOL_STREAM`, the actual file object. */
 			FILE *stream;
+			/** For `SOL_STREAM`, the modes for which this stream is open. */
 			sol_modes_t modes;
 		};
+		/** For `SOL_CDATA`, an arbitrary, user-defined pointer. */
 		void *cdata;
 	};
 } sol_object_t;
+
+/** State flags.
+ *
+ * These flags get set during execution and indicate an altered state of
+ * interpretation (other than the altered state of interpretation that comes
+ * about due to an error propagation).
+ */
 
 typedef enum {SF_NORMAL, SF_BREAKING, SF_CONTINUING} sol_state_flag_t;
 
