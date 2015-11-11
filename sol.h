@@ -9,8 +9,8 @@
 #include <stdarg.h>
 #include "dsl/dsl.h"
 
-#define VERSION "0.1a5"
-#define HEXVER 0x0001A05
+#define VERSION "0.2a0"
+#define HEXVER 0x0002A00
 
 #ifndef SOL_ICACHE_MIN
 #define SOL_ICACHE_MIN -128
@@ -202,6 +202,8 @@ typedef struct sol_tag_state_t {
 	sol_object_t *icache[SOL_ICACHE_MAX - SOL_ICACHE_MIN + 1];
 	char icache_bypass;
 #endif
+	sol_object_t *lastvalue;
+	sol_object_t *loopvalue;
 } sol_state_t;
 
 // state.c

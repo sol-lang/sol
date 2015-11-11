@@ -98,25 +98,6 @@ typedef struct {
 	stmt_node *body;
 } funcdecl_node;
 
-typedef enum {EX_LIT, EX_LISTGEN, EX_MAPGEN, EX_BINOP, EX_UNOP, EX_INDEX, EX_SETINDEX, EX_ASSIGN, EX_REF, EX_CALL, EX_FUNCDECL} expr_t;
-typedef struct tag_expr_node {
-	expr_t type;
-	loc_t loc;
-	union {
-		lit_node *lit;
-		listgen_node *listgen;
-		mapgen_node *mapgen;
-		binop_node *binop;
-		unop_node *unop;
-		index_node *index;
-		setindex_node *setindex;
-		assign_node *assign;
-		ref_node *ref;
-		call_node *call;
-		funcdecl_node *funcdecl;
-	};
-} expr_node;
-
 typedef struct {
 	expr_node *cond;
 	stmt_node *iftrue;
@@ -134,26 +115,55 @@ typedef struct {
 	stmt_node *loop;
 } iter_node;
 
+typedef enum {EX_LIT, EX_LISTGEN, EX_MAPGEN, EX_BINOP, EX_UNOP, EX_INDEX, EX_SETINDEX, EX_ASSIGN, EX_REF, EX_CALL, EX_FUNCDECL, EX_IFELSE, EX_LOOP, EX_ITER} expr_t;
+typedef struct tag_expr_node {
+	expr_t type;
+	loc_t loc;
+	union {
+		lit_node *lit;
+		listgen_node *listgen;
+		mapgen_node *mapgen;
+		binop_node *binop;
+		unop_node *unop;
+		index_node *index;
+		setindex_node *setindex;
+		assign_node *assign;
+		ref_node *ref;
+		call_node *call;
+		funcdecl_node *funcdecl;
+		ifelse_node *ifelse;
+		loop_node *loop;
+		iter_node *iter;
+	};
+} expr_node;
+
 typedef struct {
 	expr_node *ret;
 } ret_node;
+
+typedef struct {
+	expr_node *val;
+} cont_node;
+
+typedef struct {
+	expr_node *val;
+} break_node;
 
 typedef struct tag_stmtlist_node {
 	stmt_node *stmt;
 	struct tag_stmtlist_node *next;
 } stmtlist_node;
 
-typedef enum {ST_EXPR, ST_IFELSE, ST_LOOP, ST_ITER, ST_LIST, ST_RET, ST_CONT, ST_BREAK} stmt_t;
+typedef enum {ST_EXPR, ST_LIST, ST_RET, ST_CONT, ST_BREAK} stmt_t;
 typedef struct tag_stmt_node {
 	stmt_t type;
 	loc_t loc;
 	union {
 		expr_node *expr;
-		ifelse_node *ifelse;
-		loop_node *loop;
-		iter_node *iter;
 		stmtlist_node *stmtlist;
 		ret_node *ret;
+		cont_node *cont;
+		break_node *brk;
 	};
 } stmt_node;
 

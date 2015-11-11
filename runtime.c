@@ -20,7 +20,7 @@ stmt_node *st_copy(stmt_node *old) {
 	stmt_node *new;
 	stmtlist_node *curn, *curo;
 	if(!old) {
-		printf("WARNING: Copying NULL statement\n");
+		// printf("WARNING: Copying NULL statement\n");
 		return NULL;
 	}
 	new = NEW(stmt_node);
@@ -30,34 +30,7 @@ stmt_node *st_copy(stmt_node *old) {
 			new->expr = ex_copy(old->expr);
 			break;
 
-		case ST_IFELSE:
-			new->ifelse = NEW(ifelse_node);
-			new->ifelse->cond = ex_copy(old->ifelse->cond);
-			if(old->ifelse->iftrue)
-				new->ifelse->iftrue = st_copy(old->ifelse->iftrue);
-			else
-				new->ifelse->iftrue = NULL;
-			if(old->ifelse->iffalse)
-				new->ifelse->iffalse = st_copy(old->ifelse->iffalse);
-			else
-				new->ifelse->iffalse = NULL;
-			break;
-
-		case ST_LOOP:
-			new->loop = NEW(loop_node);
-			new->loop->cond = ex_copy(old->loop->cond);
-			new->loop->loop = st_copy(old->loop->loop);
-			break;
-
-		case ST_ITER:
-			new->iter = NEW(iter_node);
-			new->iter->var = strdup(old->iter->var);
-			new->iter->iter = ex_copy(old->iter->iter);
-			new->iter->loop = st_copy(old->iter->loop);
-			break;
-
 		case ST_LIST:
-			
 			new->stmtlist = stl_copy(old->stmtlist);
 			break;
 
@@ -67,7 +40,13 @@ stmt_node *st_copy(stmt_node *old) {
 			break;
 
 		case ST_CONT:
+			new->cont = NEW(cont_node);
+			new->cont->val = ex_copy(old->cont->val);
+			break;
+
 		case ST_BREAK:
+			new->brk = NEW(break_node);
+			new->brk->val = ex_copy(old->cont->val);
 			break;
 
 		default:
@@ -107,7 +86,7 @@ expr_node *ex_copy(expr_node *old) {
 	assoclist_node *curao, *curan;
 	identlist_node *curio, *curin;
 	if(!old) {
-		printf("WARNING: Copying NULL expression\n");
+		// printf("WARNING: Copying NULL expression\n");
 		return NULL;
 	}
 	new = NEW(expr_node);
@@ -200,6 +179,32 @@ expr_node *ex_copy(expr_node *old) {
 			}
 			new->funcdecl->args = idl_copy(old->funcdecl->args);
 			new->funcdecl->body = st_copy(old->funcdecl->body);
+			break;
+
+		case EX_IFELSE:
+			new->ifelse = NEW(ifelse_node);
+			new->ifelse->cond = ex_copy(old->ifelse->cond);
+			if(old->ifelse->iftrue)
+				new->ifelse->iftrue = st_copy(old->ifelse->iftrue);
+			else
+				new->ifelse->iftrue = NULL;
+			if(old->ifelse->iffalse)
+				new->ifelse->iffalse = st_copy(old->ifelse->iffalse);
+			else
+				new->ifelse->iffalse = NULL;
+			break;
+
+		case EX_LOOP:
+			new->loop = NEW(loop_node);
+			new->loop->cond = ex_copy(old->loop->cond);
+			new->loop->loop = st_copy(old->loop->loop);
+			break;
+
+		case EX_ITER:
+			new->iter = NEW(iter_node);
+			new->iter->var = strdup(old->iter->var);
+			new->iter->iter = ex_copy(old->iter->iter);
+			new->iter->loop = st_copy(old->iter->loop);
 			break;
 
 		default:
@@ -295,26 +300,6 @@ void st_free(stmt_node *stmt) {
 			ex_free(stmt->expr);
 			break;
 
-		case ST_IFELSE:
-			ex_free(stmt->ifelse->cond);
-			st_free(stmt->ifelse->iftrue);
-			st_free(stmt->ifelse->iffalse);
-			free(stmt->ifelse);
-			break;
-
-		case ST_LOOP:
-			ex_free(stmt->loop->cond);
-			st_free(stmt->loop->loop);
-			free(stmt->loop);
-			break;
-
-		case ST_ITER:
-			free(stmt->iter->var);
-			ex_free(stmt->iter->iter);
-			st_free(stmt->iter->loop);
-			free(stmt->iter);
-			break;
-
 		case ST_LIST:
 			stl_free(stmt->stmtlist);
 			break;
@@ -325,8 +310,12 @@ void st_free(stmt_node *stmt) {
 			break;
 
 		case ST_CONT:
+			ex_free(stmt->cont->val);
+			break;
+
 		case ST_BREAK:
-			break; // Make the compiler happy :D
+			ex_free(stmt->brk->val);
+			break; 
 	}
 	free(stmt);
 }
@@ -415,6 +404,26 @@ void ex_free(expr_node *expr) {
 			idl_free(expr->funcdecl->args);
 			free(expr->funcdecl);
 			break;
+
+		case EX_IFELSE:
+			ex_free(expr->ifelse->cond);
+			st_free(expr->ifelse->iftrue);
+			st_free(expr->ifelse->iffalse);
+			free(expr->ifelse);
+			break;
+
+		case EX_LOOP:
+			ex_free(expr->loop->cond);
+			st_free(expr->loop->loop);
+			free(expr->loop);
+			break;
+
+		case EX_ITER:
+			free(expr->iter->var);
+			ex_free(expr->iter->iter);
+			st_free(expr->iter->loop);
+			free(expr->iter);
+			break;
 	}
 	free(expr);
 }
@@ -459,7 +468,7 @@ void idl_free(identlist_node *list) {
 
 #define ERR_CHECK(state) do { if(sol_has_error(state)) longjmp(jmp, 1); } while(0)
 sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
-	sol_object_t *res, *left, *right, *lint, *rint, *value, *list;
+	sol_object_t *res, *left, *right, *lint, *rint, *value, *list, *vint, *iter, *item;
 	exprlist_node *cure;
 	assoclist_node *cura;
 	if(!expr) {
@@ -756,6 +765,86 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			}
 			return res;
 			break;
+
+		case EX_IFELSE:
+			value = sol_eval(state, expr->ifelse->cond);
+			vint = sol_cast_int(state, value);
+			if(vint->ival) {
+				if(expr->ifelse->iftrue) {
+					sol_exec(state, expr->ifelse->iftrue);
+				}
+			} else {
+				if(expr->ifelse->iffalse) {
+					sol_exec(state, expr->ifelse->iffalse);
+				}
+			}
+			sol_obj_free(value);
+			sol_obj_free(vint);
+			return sol_incref(state->lastvalue);
+			break;
+
+		case EX_LOOP:
+			sol_obj_free(state->loopvalue);
+			state->loopvalue = sol_new_list(state);
+			value = sol_eval(state, expr->loop->cond);
+			vint = sol_cast_int(state, value);
+			while(vint->ival) {
+				sol_obj_free(value);
+				sol_obj_free(vint);
+				sol_exec(state, expr->loop->loop);
+				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
+					value = sol_incref(state->None);
+					vint = sol_new_int(state, 0);
+					continue;
+				}
+				state->sflag = SF_NORMAL;
+				value = sol_eval(state, expr->loop->cond);
+				vint = sol_cast_int(state, value);
+			}
+			state->sflag = SF_NORMAL;
+			sol_obj_free(value);
+			sol_obj_free(vint);
+			return sol_incref(state->loopvalue);
+			break;
+
+		case EX_ITER:
+			sol_obj_free(state->loopvalue);
+			state->loopvalue = sol_new_list(state);
+			value = sol_eval(state, expr->iter->iter);
+			if(value->ops->iter && value->ops->iter != sol_f_not_impl) {
+				list = sol_new_list(state);
+				sol_list_insert(state, list, 0, value);
+				iter = CALL_METHOD(state, value, iter, list);
+				sol_obj_free(list);
+			} else {
+				iter = value;
+			}
+			if(!iter->ops->call || iter->ops->call == sol_f_not_impl) {
+				sol_obj_free(sol_set_error_string(state, "Iterate over non-iterable"));
+				return sol_incref(state->None);
+			}
+			list = sol_new_list(state);
+			sol_list_insert(state, list, 0, iter);
+			sol_list_insert(state, list, 1, value);
+			sol_list_insert(state, list, 2, sol_new_map(state));
+			item = CALL_METHOD(state, iter, call, list);
+			while(item != state->StopIteration) {
+				sol_state_assign_l_name(state, expr->iter->var, item);
+				sol_exec(state, expr->iter->loop);
+				sol_obj_free(item);
+				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
+					item = sol_incref(state->StopIteration);
+				}
+				state->sflag = SF_NORMAL;
+				item = CALL_METHOD(state, iter, call, list);
+			}
+			state->sflag = SF_NORMAL;
+			sol_obj_free(iter);
+			sol_obj_free(value);
+			sol_obj_free(list);
+			sol_obj_free(item);
+			return sol_incref(state->loopvalue);
+			break;
 	}
 	printf("WARNING: Unhandled expression (type %d) returning None\n", expr->type);
 	return sol_incref(state->None);
@@ -779,92 +868,12 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 	}
 	switch(stmt->type) {
 		case ST_EXPR:
-			sol_obj_free(sol_eval(state, stmt->expr));
-			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
-			}
-			break;
-
-		case ST_IFELSE:
-			value = sol_eval(state, stmt->ifelse->cond);
-			vint = sol_cast_int(state, value);
-			if(vint->ival) {
-				if(stmt->ifelse->iftrue) {
-					sol_exec(state, stmt->ifelse->iftrue);
-				}
-			} else {
-				if(stmt->ifelse->iffalse) {
-					sol_exec(state, stmt->ifelse->iffalse);
-				}
-			}
+			value = state->lastvalue;
+			state->lastvalue = sol_eval(state, stmt->expr);
 			sol_obj_free(value);
-			sol_obj_free(vint);
 			if(sol_has_error(state)) {
 				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}
-			break;
-
-		case ST_LOOP:
-			value = sol_eval(state, stmt->loop->cond);
-			vint = sol_cast_int(state, value);
-			while(vint->ival) {
-				sol_obj_free(value);
-				sol_obj_free(vint);
-				sol_exec(state, stmt->loop->loop);
-				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
-					value = sol_incref(state->None);
-					vint = sol_new_int(state, 0);
-					continue;
-				}
-				state->sflag = SF_NORMAL;
-				value = sol_eval(state, stmt->loop->cond);
-				vint = sol_cast_int(state, value);
-			}
-			state->sflag = SF_NORMAL;
-			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
-			}
-			sol_obj_free(value);
-			sol_obj_free(vint);
-			break;
-
-		case ST_ITER:
-			value = sol_eval(state, stmt->iter->iter);
-			if(value->ops->iter && value->ops->iter != sol_f_not_impl) {
-				list = sol_new_list(state);
-				sol_list_insert(state, list, 0, value);
-				iter = CALL_METHOD(state, value, iter, list);
-				sol_obj_free(list);
-			} else {
-				iter = value;
-			}
-			if(!iter->ops->call || iter->ops->call == sol_f_not_impl) {
-				sol_obj_free(sol_set_error_string(state, "Iterate over non-iterable"));
-				return;
-			}
-			list = sol_new_list(state);
-			sol_list_insert(state, list, 0, iter);
-			sol_list_insert(state, list, 1, value);
-			sol_list_insert(state, list, 2, sol_new_map(state));
-			item = CALL_METHOD(state, iter, call, list);
-			while(item != state->StopIteration) {
-				sol_state_assign_l_name(state, stmt->iter->var, item);
-				sol_exec(state, stmt->iter->loop);
-				sol_obj_free(item);
-				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
-					item = sol_incref(state->StopIteration);
-				}
-				state->sflag = SF_NORMAL;
-				item = CALL_METHOD(state, iter, call, list);
-			}
-			state->sflag = SF_NORMAL;
-			if(sol_has_error(state)) {
-				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
-			}
-			sol_obj_free(iter);
-			sol_obj_free(value);
-			sol_obj_free(list);
-			sol_obj_free(item);
 			break;
 
 		case ST_LIST:
@@ -892,10 +901,23 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 			break;
 
 		case ST_CONT:
+			if(stmt->cont->val && sol_is_list(state->loopvalue)) {
+				value = sol_eval(state, stmt->cont->val);
+				sol_list_insert(state, state->loopvalue, sol_list_len(state, state->loopvalue), value);
+				sol_obj_free(value);
+			}
 			state->sflag = SF_CONTINUING;
 			break;
 
 		case ST_BREAK:
+			if(stmt->brk->val) {
+				value = sol_eval(state, stmt->brk->val);
+			} else {
+				value = sol_incref(state->None);
+			}
+			vint = state->loopvalue;
+			state->loopvalue = sol_incref(value);
+			sol_obj_free(vint);
 			state->sflag = SF_BREAKING;
 			break;
 

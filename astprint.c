@@ -31,36 +31,6 @@ void prst(sol_state_t *state, stmt_node *node, int lev) {
 			prex(state, node->expr, lev + 1);
 			break;
 
-		case ST_IFELSE:
-			prlev(state, lev, "Stmt<IfElse>:");
-			lev++;
-			prlev(state, lev, "Cond:");
-			prex(state, node->ifelse->cond, lev + 1);
-			prlev(state, lev, "IfTrue:");
-			prst(state, node->ifelse->iftrue, lev + 1);
-			prlev(state, lev, "IfFalse:");
-			prst(state, node->ifelse->iffalse, lev + 1);
-			break;
-
-		case ST_LOOP:
-			prlev(state, lev, "Stmt<Loop>:");
-			lev++;
-			prlev(state, lev, "Cond:");
-			prex(state, node->loop->cond, lev + 1);
-			prlev(state, lev, "Loop:");
-			prst(state, node->loop->loop, lev + 1);
-			break;
-
-		case ST_ITER:
-			prlev(state, lev, "Stmt<Iter>:");
-			lev++;
-			prlev(state, lev, "Var: %s", node->iter->var);
-			prlev(state, lev, "Iter:");
-			prex(state, node->iter->iter, lev + 1);
-			prlev(state, lev, "Loop:");
-			prst(state, node->iter->loop, lev + 1);
-			break;
-
 		case ST_LIST:
 			prlev(state, lev, "Stmt<List>:");
 			stmtlist_node *cur = node->stmtlist;
@@ -76,11 +46,13 @@ void prst(sol_state_t *state, stmt_node *node, int lev) {
 			break;
 
 		case ST_CONT:
-			prlev(state, lev, "Stmt<Continue>");
+			prlev(state, lev, "Stmt<Continue>:");
+			prex(state, node->cont->val, lev + 1);
 			break;
 
 		case ST_BREAK:
-			prlev(state, lev, "Stmt<Break>");
+			prlev(state, lev, "Stmt<Break>:");
+			prex(state, node->brk->val, lev + 1);
 			break;
 	}
 }
@@ -305,6 +277,36 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			}
 			prlev(state, lev, "Body:");
 			prst(state, node->funcdecl->body, lev + 1);
+			break;
+
+		case EX_IFELSE:
+			prlev(state, lev, "Expr<IfElse>:");
+			lev++;
+			prlev(state, lev, "Cond:");
+			prex(state, node->ifelse->cond, lev + 1);
+			prlev(state, lev, "IfTrue:");
+			prst(state, node->ifelse->iftrue, lev + 1);
+			prlev(state, lev, "IfFalse:");
+			prst(state, node->ifelse->iffalse, lev + 1);
+			break;
+
+		case EX_LOOP:
+			prlev(state, lev, "Expr<Loop>:");
+			lev++;
+			prlev(state, lev, "Cond:");
+			prex(state, node->loop->cond, lev + 1);
+			prlev(state, lev, "Loop:");
+			prst(state, node->loop->loop, lev + 1);
+			break;
+
+		case EX_ITER:
+			prlev(state, lev, "Expr<Iter>:");
+			lev++;
+			prlev(state, lev, "Var: %s", node->iter->var);
+			prlev(state, lev, "Iter:");
+			prex(state, node->iter->iter, lev + 1);
+			prlev(state, lev, "Loop:");
+			prst(state, node->iter->loop, lev + 1);
 			break;
 	}
 }
