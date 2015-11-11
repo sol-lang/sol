@@ -16,6 +16,8 @@ int sol_state_init(sol_state_t *state) {
 	state->traceback = NULL;
 	state->ret = NULL;
 	state->sflag = SF_NORMAL;
+	state->lastvalue = NULL;
+	state->loopvalue = NULL;
 
 #ifdef DEBUG_GC
 	// This is necessary for DEBUG_GC's early allocation; it gets overwritten,
@@ -186,6 +188,9 @@ int sol_state_init(sol_state_t *state) {
 	state->calling_type = "(none)";
 	state->calling_meth = "(none)";
 
+	state->lastvalue = sol_incref(state->None);
+	state->loopvalue = sol_incref(state->None);
+
 	state->error = state->None;
 	state->scopes = sol_new_list(state);
 	if(sol_has_error(state)) {
@@ -259,9 +264,6 @@ int sol_state_init(sol_state_t *state) {
 
 	mod = sol_new_map(state);
 	sol_map_borrow_name(state, mod, "ST_EXPR", sol_new_int(state, ST_EXPR));
-	sol_map_borrow_name(state, mod, "ST_IFELSE", sol_new_int(state, ST_IFELSE));
-	sol_map_borrow_name(state, mod, "ST_LOOP", sol_new_int(state, ST_LOOP));
-	sol_map_borrow_name(state, mod, "ST_ITER", sol_new_int(state, ST_ITER));
 	sol_map_borrow_name(state, mod, "ST_LIST", sol_new_int(state, ST_LIST));
 	sol_map_borrow_name(state, mod, "ST_RET", sol_new_int(state, ST_RET));
 	sol_map_borrow_name(state, mod, "ST_CONT", sol_new_int(state, ST_CONT));
@@ -277,6 +279,9 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "EX_REF", sol_new_int(state, EX_LIT));
 	sol_map_borrow_name(state, mod, "EX_CALL", sol_new_int(state, EX_LIT));
 	sol_map_borrow_name(state, mod, "EX_FUNCDECL", sol_new_int(state, EX_LIT));
+	sol_map_borrow_name(state, mod, "EX_IFELSE", sol_new_int(state, EX_IFELSE));
+	sol_map_borrow_name(state, mod, "EX_LOOP", sol_new_int(state, EX_LOOP));
+	sol_map_borrow_name(state, mod, "EX_ITER", sol_new_int(state, EX_ITER));
 	sol_map_borrow_name(state, mod, "OP_ADD", sol_new_int(state, OP_ADD));
 	sol_map_borrow_name(state, mod, "OP_SUB", sol_new_int(state, OP_SUB));
 	sol_map_borrow_name(state, mod, "OP_MUL", sol_new_int(state, OP_MUL));

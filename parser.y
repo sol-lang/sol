@@ -56,18 +56,55 @@ stmt_list:
 
 stmt:
   expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
-| IF expr THEN stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = NULL; }
-| IF expr THEN stmt_list ELSE stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_IFELSE; AS_ST($$)->ifelse = NEW(ifelse_node); AS_ST($$)->ifelse->cond = $2; AS_ST($$)->ifelse->iftrue = $4; AS_ST($$)->ifelse->iffalse = $6; }
-| WHILE expr DO stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_LOOP; AS_ST($$)->loop = NEW(loop_node); AS_ST($$)->loop->cond = $2; AS_ST($$)->loop->loop = $4; }
-| FOR IDENT IN expr DO stmt_list END { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_ITER; AS_ST($$)->iter = NEW(iter_node); AS_ST($$)->iter->var = $2; AS_ST($$)->iter->iter = $4; AS_ST($$)->iter->loop = $6; }
 | RETURN expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
 | RETURN { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
-| BREAK { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; }
-| CONTINUE { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; }
+| BREAK { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; AS_ST($$)->brk = NEW(break_node); }
+| BREAK expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; AS_ST($$)->brk = NEW(break_node); AS_ST($$)->brk->val = $2; }
+| CONTINUE { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; AS_ST($$)->cont = NEW(cont_node); }
+| CONTINUE expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; AS_ST($$)->cont = NEW(cont_node); AS_ST($$)->cont->val = $2; }
 | stmt SEMICOLON { $$ = $1; }
 ;
 
 expr:
+  control_expr { $$ = $1; }
+;
+
+control_expr:
+  IF expr THEN stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_IFELSE;
+	AS_EX($$)->ifelse = NEW(ifelse_node);
+	AS_EX($$)->ifelse->cond = $2;
+	AS_EX($$)->ifelse->iftrue = $4;
+	AS_EX($$)->ifelse->iffalse = NULL;
+}
+| IF expr THEN stmt_list ELSE stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_IFELSE;
+	AS_EX($$)->ifelse = NEW(ifelse_node);
+	AS_EX($$)->ifelse->cond = $2;
+	AS_EX($$)->ifelse->iftrue = $4;
+	AS_EX($$)->ifelse->iffalse = $6;
+}
+| WHILE expr DO stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_LOOP;
+	AS_EX($$)->loop = NEW(loop_node);
+	AS_EX($$)->loop->cond = $2;
+	AS_EX($$)->loop->loop = $4;
+}
+| FOR IDENT IN expr DO stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_ITER;
+	AS_EX($$)->iter = NEW(iter_node);
+	AS_EX($$)->iter->var = $2;
+	AS_EX($$)->iter->iter = $4;
+	AS_EX($$)->iter->loop = $6;
+}
+| assign_expr { $$ = $1; }
+;
+
+assign_expr:
   IDENT ASSIGN expr { $$ = NEW_EX(); AS_EX($$)->type = EX_ASSIGN; AS_EX($$)->assign = NEW(assign_node); AS_EX($$)->assign->ident = $1; AS_EX($$)->assign->value = $3; }
 | IDENT ASSIGNPLUS expr {
 	$$ = NEW_EX();
