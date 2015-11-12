@@ -218,6 +218,8 @@ None { return NONE; }
 
 "#" { return POUND; }
 
+"!!!" { return TBANG; }
+
 {IDENT} { *yylval = (void *) strdup(yytext); return IDENT; }
 
 --[^\n]*\n /* Skip comments */

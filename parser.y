@@ -21,6 +21,7 @@
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
 %token EQUAL NEQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
 %token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
+%token TBANG
 
 %parse-param {stmt_node **program}
 
@@ -317,9 +318,15 @@ factor_expr:
 ;
 
 power_expr:
-  power_expr DSTAR power_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_POW; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+  tbang_expr DSTAR power_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_POW; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
+| tbang_expr { $$ = $1; }
+;
+
+tbang_expr:
+  binary_expr TBANG tbang_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_TBANG; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
 | binary_expr { $$ = $1; }
 ;
+
 
 binary_expr:
   binary_expr BAND binary_expr { $$ = NEW_EX(); AS_EX($$)->type = EX_BINOP; AS_EX($$)->binop = NEW(binop_node); AS_EX($$)->binop->type = OP_BAND; AS_EX($$)->binop->left = $1; AS_EX($$)->binop->right = $3; }
