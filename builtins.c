@@ -57,9 +57,12 @@ sol_object_t *sol_f_default_repr(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_tbang(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1);
+	int refa = a->refcnt, refb = b->refcnt;
 	sol_object_t c = *b;
 	*b = *a;
 	*a = c;
+	b->refcnt = refa;
+	a->refcnt = refb;
 	sol_obj_free(a);
 	sol_obj_free(b);
 	return sol_incref(state->None);
