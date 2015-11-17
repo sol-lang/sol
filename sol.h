@@ -107,6 +107,8 @@ typedef struct {
 	sol_cfunc_t mod;
 	/** Called with [this, rhs] to perform binary exponentiation ("**"). */
 	sol_cfunc_t pow;
+	/** TODO: document me!*/
+	sol_cfunc_t tbang;
 	/** Called with [this, rhs] to perform binary bitwise AND ("&") */
 	sol_cfunc_t band;
 	/** Called with [this, rhs] to perform binary bitwise OR ("|") */
@@ -461,6 +463,7 @@ void sol_ops_init(sol_ops_t *);
 // builtins.c
 
 sol_object_t *sol_f_not_impl(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_tbang(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_no_op(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_default_cmp(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_default_tostring(sol_state_t *, sol_object_t *);

@@ -103,7 +103,8 @@ extern int yydebug;
     COLON = 313,
     SEMICOLON = 314,
     COMMA = 315,
-    POUND = 316
+    POUND = 316,
+    TBANG = 317
   };
 #endif
 

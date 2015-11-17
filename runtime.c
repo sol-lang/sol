@@ -556,6 +556,10 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					res = CALL_METHOD(state, left, pow, list);
 					break;
 
+				case OP_TBANG:
+					res = CALL_METHOD(state, left, tbang, list);
+					break;
+
 				case OP_BAND:
 					res = CALL_METHOD(state, left, band, list);
 					break;
