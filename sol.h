@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define VERSION "0.2a0"
+#define VERSION "0.2a1"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -20,7 +20,7 @@
  *
  * This value is guaranteed to always increase by revision.
  */
-#define HEXVER 0x0002A00
+#define HEXVER 0x0002A01
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */
@@ -380,111 +380,327 @@ typedef struct sol_tag_object_t {
 typedef enum {SF_NORMAL, SF_BREAKING, SF_CONTINUING} sol_state_flag_t;
 
 typedef struct sol_tag_state_t {
-	sol_object_t *scopes; // A list of scope maps, innermost out, ending at the global scope
-	sol_object_t *ret; // Return value of this function, for early return
-	sol_object_t *traceback; // The last stack of statement (nodes) in the last error, or NULL
-	sol_state_flag_t sflag; // Used to implement break/continue
-	sol_object_t *error; // Some arbitrary error descriptor, None if no error
-	sol_object_t *stdout; // Standard output stream object (for print())
-	sol_object_t *stdin; // Standard input stream object
-	sol_object_t *stderr; // Standard error stream object
-	sol_object_t *None;
-	sol_object_t *OutOfMemory;
-	sol_object_t *StopIteration;
-	sol_ops_t NullOps;
-	sol_ops_t SingletOps;
-	sol_ops_t IntOps;
-	sol_ops_t FloatOps;
-	sol_ops_t StringOps;
-	sol_ops_t ListOps;
-	sol_ops_t MapOps;
-	sol_ops_t MCellOps;
-	sol_ops_t FuncOps;
-	sol_ops_t CFuncOps;
-	sol_ops_t ASTNodeOps;
-	sol_ops_t BufferOps;
-	sol_ops_t DyLibOps;
-	sol_ops_t DySymOps;
-	sol_ops_t StreamOps;
-	sol_object_t *modules;
-	sol_object_t *methods;
-	dsl_object_funcs obfuncs;
-	const char *calling_type;
-	const char *calling_meth;
+	sol_object_t *scopes; ///< A list of scope maps, innermost out, ending at the global scope
+	sol_object_t *ret; ///< Return value of this function, for early return
+	sol_object_t *traceback; ///< The last stack of statement (nodes) in the last error, or NULL
+	sol_state_flag_t sflag; ///< Used to implement break/continue
+	sol_object_t *error; ///< Some arbitrary error descriptor, `None` if no error
+	sol_object_t *stdout; ///< Standard output stream object (for print(), type `SOL_STREAM`)
+	sol_object_t *stdin; ///< Standard input stream object (type `SOL_STREAM`)
+	sol_object_t *stderr; ///< Standard error stream object (type `SOL_STREAM`)
+	sol_object_t *None; ///< The all-important `None` object
+	sol_object_t *OutOfMemory; ///< The semi-important `OutOfMemory` object
+	sol_object_t *StopIteration; ///< The somewhat-important `StopIteration` object
+	sol_ops_t NullOps; ///< Basic, initialized operations. Not used by any extant object type.
+	sol_ops_t SingletOps; ///< Operations on singlets (`None`, `OutOfMemory`, `StopIteration`, etc.)
+	sol_ops_t IntOps; ///< Operations on integers
+	sol_ops_t FloatOps; ///< Operations on floats
+	sol_ops_t StringOps; ///< Operations on strings
+	sol_ops_t ListOps; ///< Operations on lists
+	sol_ops_t MapOps; ///< Operations on maps
+	sol_ops_t MCellOps; ///< Operations on map cells (rarely used)
+	sol_ops_t FuncOps; ///< Operations on functions
+	sol_ops_t CFuncOps; ///< Operations on C functions
+	sol_ops_t ASTNodeOps; ///< Operations on AST nodes
+	sol_ops_t BufferOps; ///< Operations on buffers
+	sol_ops_t DyLibOps; ///< Operations on dynamic library objects
+	sol_ops_t DySymOps; ///< Operations on dynamic symbol objects
+	sol_ops_t StreamOps; ///< Operations on streams
+	sol_object_t *modules; ///< A map of modules, string name to contents, resolved at "super-global" scope (and thus overrideable)
+	sol_object_t *methods; ///< A map of string names to methods (like "list" -> {insert=<CFunction>, remove=<CFunction>, ...}) free for private use by extension developers
+	dsl_object_funcs obfuncs; ///< The set of object functions that allows DSL to integrate with Sol's reference counting
+	const char *calling_type; ///< Set (during `CALL_METHOD`) to determine the type (ops structure) being invoked for this method (mostly for sol_f_not_impl)
+	const char *calling_meth; ///< Set (during `CALL_METHOD`) to determine the method name being invoked (mostly for sol_f_not_impl)
 #ifdef SOL_ICACHE
-	sol_object_t *icache[SOL_ICACHE_MAX - SOL_ICACHE_MIN + 1];
-	char icache_bypass;
+	sol_object_t *icache[SOL_ICACHE_MAX - SOL_ICACHE_MIN + 1]; ///< The integer cache (holds integers from `SOL_ICACHE_MIN` to `SOL_ICACHE_MAX` indexed by `[i - SOL_ICACHE_MIN]`)
+	char icache_bypass; ///< Set to true to bypass caching--needed to avoid infinite recursion when initially populating the cache
 #endif
-	sol_object_t *lastvalue;
-	sol_object_t *loopvalue;
+	sol_object_t *lastvalue; ///< Holds the value of the last expression evaluated, returned by an `if` expression
+	sol_object_t *loopvalue; ///< Holds an initially-empty list appended to by `continue <expr>` or set to another object by `break <expr>`
 } sol_state_t;
 
 // state.c
 
+/** Initializes the state.
+ *
+ * This should be called once (and only once!) for every state; it does the important
+ * work of ensuring that the state is ready to execute code, including:
+ * 
+ * - Creating the initial singlet values `None`, `OutOfMemory`, and `StopIteration`,
+ * - Creating and populating the operations on all internally-defined object types.
+ * - Initializing all built-in modules and methods.
+ * - Running any "init.sol" files.
+ * - Recognizing early-init errors and aborting.
+ *
+ * It is the singular, monolithic place where most pre-execution occurs, and language
+ * developers may thus use it at their discretion. Extension developers should provide
+ * their own documented initializers, and embedders should do their own initialization
+ * immediately after calling this function.
+ */
 int sol_state_init(sol_state_t *);
+/** Cleans up the state.
+ *
+ * In theory, after calling this, the state should be ready to be released (e.g., freed
+ * if it was allocated on the heap). Importantly, it should NOT be used for any code
+ * execution after this call (it WILL segfault).
+ */
 void sol_state_cleanup(sol_state_t *);
 
+/** Resolve a name.
+ *
+ * Technically, a "name" can be anything (any key in a map, more precisely), but the
+ * runtime (and most sane code) generally depends on names being strings. It is, however,
+ * emphatically possible to populate the scopes with non-string names--for potential use
+ * cases, see `programs/monty.sol`
+ */
 sol_object_t *sol_state_resolve(sol_state_t *, sol_object_t *);
+/** Resolve a string name, given as a C string.
+ *
+ * This handles the popular case where a C program would like to resolve the value of a
+ * variable by (string) name. In particular, it handles the memory of doing so properly.
+ */
 sol_object_t *sol_state_resolve_name(sol_state_t *, const char *);
+/** Assign to a global name.
+ *
+ * This is rarely used, except in `sol_state_init`. It sets the value of the given name
+ * (as an object) in the global (outermost) scope. Code execution generally uses the
+ * local scope instead.
+ */
 void sol_state_assign(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Assign to a global string name, given as a C string.
+ *
+ * This is a convenience for `sol_state_assign`, which handles the creation and destruction
+ * of the Sol string.
+ */
 void sol_state_assign_name(sol_state_t *, const char *, sol_object_t *);
+/** Assign to a local name.
+ *
+ * Sets the name to the value in the local (innermost) scope. It has the functional equivalent
+ * of the Sol code `<name> = <value>` in whatever context the state is in.
+ */
 void sol_state_assign_l(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Assign to a local string name, given as a C string.
+ *
+ * Another convenience for `sol_state_assign_l`.
+ */
 void sol_state_assign_l_name(sol_state_t *, const char *, sol_object_t *);
 
+/** Push a scope.
+ *
+ * This adds a new (more-local) scope to the scope stack (`state->scopes`). This permits values
+ * in such a scope to be manipulated independently of those in enclosing scopes, and their references
+ * are discarded during the next `sol_state_pop_scope`. (The values may, of course, be present via
+ * other references.)
+ *
+ * Scope stack manipulation MUST be balanced; egregious errors will occur otherwise.
+ * 
+ * Scope stack manipulation is generally only necessary where another environment is expected for the
+ * code running in that context; e.g., the body of a function, or an AST node from an imported file. In
+ * particular, most control structures do NOT introduce scopes, due to the deleterious effects of having
+ * no direct influence on enclosing scopes.
+ */
 void sol_state_push_scope(sol_state_t *, sol_object_t *);
+/** Pops a scope.
+ *
+ * Removes and discards the local scope. All names and associated value references are lost.
+ *
+ * This MUST be balanced with `sol_state_push_scope`.
+ */
 sol_object_t *sol_state_pop_scope(sol_state_t *);
 
+/** Returns the current error.
+ *
+ * This object is `None` if there is no error. See `sol_has_error`.
+ */
 sol_object_t *sol_get_error(sol_state_t *);
+/** Set the current error.
+ *
+ * Sets the current error object. Clears the error if the object is `None`.
+ */
 sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
+/** Set the current error to a string, given a C string.
+ *
+ * Conveniently sets the error to a string object created from the given C string.
+ */
 sol_object_t *sol_set_error_string(sol_state_t *, const char *);
+/** Clear the current error.
+ *
+ * Equivalent to `sol_set_error(state, state->None)`.
+ */
 void sol_clear_error(sol_state_t *);
 
+/** Prepares a traceback.
+ *
+ * Initializes the traceback stack to an empty list in preparation of `sol_add_traceback`.
+ * Typically used by the runtime while recovering from an error; the value is ultimately
+ * returned as the third element of the return list from `try`.
+ */
 void sol_init_traceback(sol_state_t *);
+/** Adds an object to a traceback.
+ *
+ * This object is usually an ASTNode; typically, it is a statement which was being executed
+ * when the relevant error occurred. This object is made the first item of the traceback pair
+ * (the second element is the current local scope).
+ */
 void sol_add_traceback(sol_state_t *, sol_object_t *);
+/** Gets the traceback.
+ *
+ * This will be a list of traceback pairs; each such pair will be [<value given to `sol_add_traceback`>,
+ * <local scope>].
+ */
 sol_object_t *sol_traceback(sol_state_t *);
 
+/** Registers a module.
+ *
+ * Creates a module entry by name, referring to its value. Modules resolve after globals, and
+ * therefore form a sort of untouchable "super-global" scope. Most built-in modules reside in
+ * this namespace.
+ */
 void sol_register_module(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Registers a module by string name, given a C string.
+ *
+ * A convenience for `sol_register_module`.
+ */
 void sol_register_module_name(sol_state_t *, char *, sol_object_t *);
+/** Gets a module.
+ *
+ * Retrieves a module by its given name. Its value will be as it was registered.
+ */
 sol_object_t *sol_get_module(sol_state_t *, sol_object_t *);
+/** Gets a module by string name, given a C string.
+ *
+ * A convenience for `sol_get_module`.
+ */
 sol_object_t *sol_get_module_name(sol_state_t *, char *);
+/** Registers methods.
+ *
+ * Creates a methods entry by name, referring to its value. Methods are never resolved directly
+ * by (non-debug) code, but are used liberally throughout the C interface for implementing named
+ * methods on objects (such as lists, buffers, etc.) that wouldn't normally resolve names--thus
+ * the name. Thus, the mapping forms a sort of private namespace that may freely be used by
+ * developers as they see fit.
+ */
 void sol_register_methods(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Registers a method by string name, given a C string.
+ *
+ * A convenience for `sol_register_methods`.
+ */
 void sol_register_methods_name(sol_state_t *, char *, sol_object_t *);
+/** Gets methods.
+ *
+ * Retrieves the methods by its name, returning the value that was registered.
+ */
 sol_object_t *sol_get_methods(sol_state_t *, sol_object_t *);
+/** Gets methods by string name, given a C string.
+ *
+ * A convenience for `sol_get_methods`.
+ */
 sol_object_t *sol_get_methods_name(sol_state_t *, char *);
 
+/** Index operation override for the `io` module.
+ *
+ * This hook virtually provides `stdin`, `stdout`, and `stderr` by returning the relevant
+ * values on the states.
+ */
 sol_object_t *sol_f_io_index(sol_state_t *, sol_object_t *);
+/** Setindex operation override for the `io` module.
+ *
+ * This hook intercepts and specially handles attempts to set `stdin`, `stdout`, and `stderr`
+ * by setting the relevant values on the state.
+ */
 sol_object_t *sol_f_io_setindex(sol_state_t *, sol_object_t *);
+/** Retrieves the stdin stream.
+ *
+ * Returns the stream object used to read program input.
+ */
 sol_object_t *sol_get_stdin(sol_state_t *);
+/** Retrieves the stdout stream.
+ *
+ * Returns the stream object used to write program output.
+ */
 sol_object_t *sol_get_stdout(sol_state_t *);
+/** Retrieves the stderr stream.
+ *
+ * Returns the stream object used to write program errors or out-of-band data.
+ */
 sol_object_t *sol_get_stderr(sol_state_t *);
 
+/** Initializes an ops structure.
+ *
+ * This sets all the fields of a `sol_ops_t` to their sensible defaults. Such an initialized
+ * structure is available on the state as `state->NullOps`.
+ */
 void sol_ops_init(sol_ops_t *);
 
 // builtins.c
 
+/** Not implemented handler.
+ *
+ * This raises the "Undefined method" error.
+ */
 sol_object_t *sol_f_not_impl(sol_state_t *, sol_object_t *);
+/** !!! handler.
+ *
+ * Swaps objects by value.
+ */
 sol_object_t *sol_f_tbang(sol_state_t *, sol_object_t *);
+/** No operation handler.
+ *
+ * Does nothing.
+ */
 sol_object_t *sol_f_no_op(sol_state_t *, sol_object_t *);
+/** Default comparison handler.
+ *
+ * Returns 0 (equal) if the references refer to exactly the same object, or
+ * 1 (greater) otherwise.
+ *
+ * Note that this is not a partial order.
+ */
 sol_object_t *sol_f_default_cmp(sol_state_t *, sol_object_t *);
+/** Default tostring handler.
+ *
+ * Returns a string formatted as "<<typename> object at <address>>".
+ */
 sol_object_t *sol_f_default_tostring(sol_state_t *, sol_object_t *);
+/** Default torepr handler.
+ *
+ * Returns tostring(object).
+ */
 sol_object_t *sol_f_default_repr(sol_state_t *, sol_object_t *);
 
+/// Built-in function toint
 sol_object_t *sol_f_toint(sol_state_t *, sol_object_t *);
+/// Built-in function tofloat
 sol_object_t *sol_f_tofloat(sol_state_t *, sol_object_t *);
+/// Built-in function tostring
 sol_object_t *sol_f_tostring(sol_state_t *, sol_object_t *);
+/// Built-in function try
 sol_object_t *sol_f_try(sol_state_t *, sol_object_t *);
+/// Built-in function error
 sol_object_t *sol_f_error(sol_state_t *, sol_object_t *);
+/// Built-in function type
 sol_object_t *sol_f_type(sol_state_t *, sol_object_t *);
+/// Built-in function prepr
 sol_object_t *sol_f_prepr(sol_state_t *, sol_object_t *);
+/// Built-in function print
 sol_object_t *sol_f_print(sol_state_t *, sol_object_t *);
+/// Built-in function rawget
 sol_object_t *sol_f_rawget(sol_state_t *, sol_object_t *);
+/// Built-in function rawset
 sol_object_t *sol_f_rawset(sol_state_t *, sol_object_t *);
+/// Built-in function range
 sol_object_t *sol_f_range(sol_state_t *, sol_object_t *);
+/// Built-in function exec
 sol_object_t *sol_f_exec(sol_state_t *, sol_object_t *);
+/// Built-in function eval
 sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *);
+/// Built-in function execfile
 sol_object_t *sol_f_execfile(sol_state_t *, sol_object_t *);
+/// Built-in function parse
 sol_object_t *sol_f_parse(sol_state_t *, sol_object_t *);
+/// Built-in function ord
 sol_object_t *sol_f_ord(sol_state_t *, sol_object_t *);
+/// Built-in function chr
 sol_object_t *sol_f_chr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_debug_getref(sol_state_t *, sol_object_t *);
