@@ -5,6 +5,10 @@
 
 #include <stdio.h>
 
+/** Locator structure.
+ *
+ * Contains the location of a symbol; available on all `stmt_node`s and `expr_node`s as `loc`.
+ */
 typedef struct {
 	size_t line;
 	size_t col;
@@ -16,38 +20,70 @@ typedef struct tag_expr_node expr_node;
 struct tag_stmt_node;
 typedef struct tag_stmt_node stmt_node;
 
+/** Literal type
+ *
+ * Defines the types of literals that may appear in a source program.
+ */
 typedef enum {LIT_INT, LIT_FLOAT, LIT_STRING, LIT_NONE} lit_t;
+/** Literal node
+ *
+ * Represents a literal in a source program.
+ */
 typedef struct {
-	lit_t type;
+	lit_t type; ///< The type of literal.
 	union {
-		long ival;
-		double fval;
-		char *str;
+		long ival; ///< Integer value for `LIT_INT`.
+		double fval; ///< Floating-point value for `LIT_FLOAT`.
+		char *str; ///< String value for `LIT_STRING`.
 	};
 } lit_node;
 
+/** Binary operation type
+ *
+ * Defines the types of binary operators that may occur in a source program.
+ */
 typedef enum {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_POW, OP_BAND, OP_BOR, OP_BXOR, OP_LAND, OP_LOR, OP_EQUAL, OP_NEQUAL, OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ, OP_LSHIFT, OP_RSHIFT, OP_TBANG} binop_t;
+/** Binary operation node
+ *
+ * Represents a binary operator in a source program.
+ */
 typedef struct {
-	binop_t type;
-	expr_node *left;
-	expr_node *right;
+	binop_t type; ///< The type of binary operation
+	expr_node *left; ///< The left hand side.
+	expr_node *right; ///< The right hand side.
 } binop_node;
 
+/** Unary operation type
+ *
+ * Defines the types of unary operators that may occur in a source program.
+ */
 typedef enum {OP_NEG, OP_BNOT, OP_LNOT, OP_LEN} unop_t;
+/** Unary opreation node
+ *
+ * Represents a unary operator in a source program.
+ */
 typedef struct {
-	unop_t type;
-	expr_node *expr;
+	unop_t type; ///< The type of unary operation.
+	expr_node *expr; ///< The value to which it is applied.
 } unop_node;
 
+/** Index node
+ *
+ * Represents an index operation in a source program.
+ */
 typedef struct {
-	expr_node *expr;
-	expr_node *index;
+	expr_node *expr; ///< Expression to index.
+	expr_node *index; ///< Expression to index by.
 } index_node;
 
+/** Setindex node
+ *
+ * Represents a setindex operation in a source program.
+ */
 typedef struct {
-	expr_node *expr;
-	expr_node *index;
-	expr_node *value;
+	expr_node *expr; ///< Expression to set the index of.
+	expr_node *index; ///< Expression to index by.
+	expr_node *value; ///< Value to set said index to.
 } setindex_node;
 
 typedef struct {

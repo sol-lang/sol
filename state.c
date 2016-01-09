@@ -1,11 +1,31 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ast.h"
+
+#define TMP_PATH_SZ 256
+
+char *sol_AbsInitPaths[] = {
+	"/etc/sol/init.sol",
+	"/opt/sol/init.sol",
+};
+
+char *sol_HomeInitPaths[] = {
+	"/.config/sol/init.sol",
+};
+
+char sol_TempPath[TMP_PATH_SZ];
+
+#define LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
 int sol_state_init(sol_state_t *state) {
 	sol_object_t *globals, *mod, *meths;
 	sol_object_t *btype, *bsize, *bobj;
 	unsigned long i;
+	FILE *fp;
+	stmt_node *stmt;
+	char *suffix;
 
 	sol_mm_initialize(state);
 
@@ -441,6 +461,39 @@ int sol_state_init(sol_state_t *state) {
 	sol_register_methods_name(state, "string", meths);
 	sol_obj_free(meths);
 
+	if(sol_has_error(state)) {
+		goto cleanup;
+	}
+
+	// Perform initialization based on the user profile, if so requested.
+	// TODO: Make this switchable at runtime.
+	
+	for(i = 0; i < LENGTH(sol_AbsInitPaths); i++) {
+		fp = fopen(sol_AbsInitPaths[i], "r");
+		if(fp) {
+			stmt = sol_compile_file(fp);
+			sol_exec(state, stmt);
+			st_free(stmt);
+			fclose(fp);
+		}
+	}
+
+	suffix = getenv("HOME");
+	if(suffix) {
+		strncpy(sol_TempPath, suffix, TMP_PATH_SZ);
+		suffix = sol_TempPath + strlen(sol_TempPath);
+		for(i = 0; i < LENGTH(sol_HomeInitPaths); i++) {
+			strncpy(suffix, sol_HomeInitPaths[i], TMP_PATH_SZ - (suffix - sol_TempPath));
+			fp = fopen(sol_TempPath, "r");
+			if(fp) {
+				stmt = sol_compile_file(fp);
+				sol_exec(state, stmt);
+				st_free(stmt);
+				fclose(fp);
+			}
+		}
+	}
+	
 	if(sol_has_error(state)) {
 		goto cleanup;
 	}
