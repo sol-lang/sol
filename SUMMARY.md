@@ -1,4 +1,4 @@
 # Summary
 
-* Install Sol
+* [Install Sol](install_sol.md)
 
