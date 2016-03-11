@@ -1,0 +1,2 @@
+job make:
+    script: "./build.sh"
