@@ -5,7 +5,8 @@ if [ ! -f .submodule_stamp ]; then
 fi
 
 if [ -z "$CFLAGS" ]; then
-	# Valid flags to add here:
+	-lreadline
+    # Valid flags to add here:
 	# -DDEBUG_GC : Turn on debug GC (all memory allocates/frees go to a file, use gcstat.py to get statistics)
 	# -DSOL_ICACHE_MIN : Minimum integer to cache in the state
 	# -DSOL_ICACHE_MAX : Maximum integer to cache in the state (if MAX < MIN, caching is disabled)
