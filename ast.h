@@ -24,7 +24,7 @@ typedef struct tag_stmt_node stmt_node;
  *
  * Defines the types of literals that may appear in a source program.
  */
-typedef enum {LIT_INT, LIT_FLOAT, LIT_STRING, LIT_NONE} lit_t;
+typedef enum {LIT_INT=1024, LIT_FLOAT, LIT_STRING, LIT_NONE} lit_t;
 /** Literal node
  *
  * Represents a literal in a source program.
@@ -42,7 +42,7 @@ typedef struct {
  *
  * Defines the types of binary operators that may occur in a source program.
  */
-typedef enum {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_POW, OP_BAND, OP_BOR, OP_BXOR, OP_LAND, OP_LOR, OP_EQUAL, OP_NEQUAL, OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ, OP_LSHIFT, OP_RSHIFT, OP_TBANG} binop_t;
+typedef enum {OP_ADD=512, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_POW, OP_BAND, OP_BOR, OP_BXOR, OP_LAND, OP_LOR, OP_EQUAL, OP_NEQUAL, OP_LESS, OP_GREATER, OP_LESSEQ, OP_GREATEREQ, OP_LSHIFT, OP_RSHIFT, OP_TBANG} binop_t;
 /** Binary operation node
  *
  * Represents a binary operator in a source program.
@@ -57,7 +57,7 @@ typedef struct {
  *
  * Defines the types of unary operators that may occur in a source program.
  */
-typedef enum {OP_NEG, OP_BNOT, OP_LNOT, OP_LEN} unop_t;
+typedef enum {OP_NEG=768, OP_BNOT, OP_LNOT, OP_LEN} unop_t;
 /** Unary opreation node
  *
  * Represents a unary operator in a source program.
@@ -151,7 +151,7 @@ typedef struct {
 	stmt_node *loop;
 } iter_node;
 
-typedef enum {EX_LIT, EX_LISTGEN, EX_MAPGEN, EX_BINOP, EX_UNOP, EX_INDEX, EX_SETINDEX, EX_ASSIGN, EX_REF, EX_CALL, EX_FUNCDECL, EX_IFELSE, EX_LOOP, EX_ITER} expr_t;
+typedef enum {EX_LIT=256, EX_LISTGEN, EX_MAPGEN, EX_BINOP, EX_UNOP, EX_INDEX, EX_SETINDEX, EX_ASSIGN, EX_REF, EX_CALL, EX_FUNCDECL, EX_IFELSE, EX_LOOP, EX_ITER} expr_t;
 typedef struct tag_expr_node {
 	expr_t type;
 	loc_t loc;

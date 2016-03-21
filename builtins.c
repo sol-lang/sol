@@ -1571,7 +1571,9 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 		return sol_set_error_string(state, "Access NULL AST node");
 	}
 	if(sol_is_aststmt(obj)) {
-		if(sol_string_eq(state, str, "type")) {
+		if(sol_string_eq(state, str, "kind")) {
+			res = sol_new_int(state, -1);
+		} else if(sol_string_eq(state, str, "type")) {
 			res = sol_new_int(state, stmt->type);
 		} else if(sol_string_eq(state, str, "loc")) {
 			res = sol_new_map(state);
@@ -1616,7 +1618,9 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 			}
 		}
 	} else {
-		if(sol_string_eq(state, str, "type")) {
+		if(sol_string_eq(state, str, "kind")) {
+			res = sol_new_int(state, -2);
+		} else if(sol_string_eq(state, str, "type")) {
 			res = sol_new_int(state, expr->type);
 		} else if(sol_string_eq(state, str, "loc")) {
 			res = sol_new_map(state);
