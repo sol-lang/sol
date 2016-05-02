@@ -107,7 +107,7 @@ typedef struct {
 	sol_cfunc_t mod;
 	/** Called with [this, rhs] to perform binary exponentiation ("**"). */
 	sol_cfunc_t pow;
-	/** TODO: document me!*/
+	/** Called with [this, rhs] to perform the triple-bang operation ("!!!"), defaults to identity-swapping two objects. */
 	sol_cfunc_t tbang;
 	/** Called with [this, rhs] to perform binary bitwise AND ("&") */
 	sol_cfunc_t band;
@@ -862,28 +862,73 @@ sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 
 #define sol_has_error(state) (!sol_is_none((state), (state)->error))
 
+/** Creates a new singlet object with the specified name (or NULL).
+ *
+ * Singlets are special objects that are equal only by identity. They are used
+ * wherever a particular value has special meaning (e.g. None).  Other than
+ * that, their lack of function makes them difficult to manipulate, and many
+ * internal routines are special-cased for certain singlets.
+ */
 sol_object_t *sol_new_singlet(sol_state_t *, const char *);
+/** Creates a new integer object with the specified value. */
 sol_object_t *sol_new_int(sol_state_t *, long);
+/** Creates a new float object with the specified value. */
 sol_object_t *sol_new_float(sol_state_t *, double);
 
+/** Creates a new string object with the specified value. */
 sol_object_t *sol_new_string(sol_state_t *, const char *);
+/** Utility function to compare a Sol string and a C string, used often in
+ *   builtin and extension code. */
 int sol_string_cmp(sol_state_t *, sol_object_t *, const char *);
+/** Utility macro wrapping `sol_string_cmp`. */
 #define sol_string_eq(state, string, cstr) (sol_string_cmp((state), (string), (cstr))==0)
+/** Internal routine that returns a new Sol string that results from the
+ *   concatenation of two Sol strings (in the order given). */
 sol_object_t *sol_string_concat(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Utility function for conveniently concatenating a Sol string and a C string
+ *   (and returning a Sol string). */
 sol_object_t *sol_string_concat_cstr(sol_state_t *, sol_object_t *, char *);
 
+/** Creates a new empty Sol list. */
 sol_object_t *sol_new_list(sol_state_t *);
+/** Creates a new Sol list populated with objects obtained by iterating over a
+ *   DSL sequence. */
 sol_object_t *sol_list_from_seq(sol_state_t *, dsl_seq *);
+/** Internal routine to get the length of a Sol list */
 int sol_list_len(sol_state_t *, sol_object_t *);
+/** Internal routine to return a new Sol list equivalent to its input with the
+ *   first n elements skipped. */
 sol_object_t *sol_list_sublist(sol_state_t *, sol_object_t *, int);
+/** Internal routine to get the object at the specified index in a Sol list. */
 sol_object_t *sol_list_get_index(sol_state_t *, sol_object_t *, int);
+/** Internal routine to set the object at the specified index in a Sol list. */
 void sol_list_set_index(sol_state_t *, sol_object_t *, int, sol_object_t *);
+/** Internal routine to insert an object at the specified index in a Sol list.
+ *
+ * Unlike setting, insertion may happen at the lists length, inclusive (in
+ * which case it appends an element). When this routine returns successfully
+ * (without an error on the state), the index specified should hold a reference
+ * to the object given as a parameter.
+ */
 void sol_list_insert(sol_state_t *, sol_object_t *, int, sol_object_t *);
+/** Internal routine to remove an object at the specified index in a Sol list,
+ *   returning a reference to that object. */
 sol_object_t *sol_list_remove(sol_state_t *, sol_object_t *, int);
+/** Internal routine to return a copy of a Sol list.
+ *
+ * Note that this performs a "shallow" copy, in that while the new list is a
+ * different reference, the references inside the list are the same.
+ */
 sol_object_t *sol_list_copy(sol_state_t *, sol_object_t *);
+/** Internal routine to return a new Sol list equivalent to its input up to the
+ *   first n elements. */
 sol_object_t *sol_list_truncate(sol_state_t *, sol_object_t *, int);
+/** Utility routine to insert at the end of a Sol list. */
 void sol_list_append(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Utility macro to insert an object at the beginning of a Sol list. */
 #define sol_list_push(st, ls, obj) sol_list_insert(st, ls, 0, obj);
+/** Utility macro to remove and return the object at the beginning of a Sol
+ *   list. */
 #define sol_list_pop(st, ls) sol_list_remove(st, ls, 0);
 
 sol_object_t *sol_new_map(sol_state_t *);
