@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
 	char *c;
 	int printtree = 0;
 	FILE *prgstream = stdin;
+	int result = 0;
 
 	if(argc > 1) {
 		c = argv[1];
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
 				case 'r':
 					if(argc < 2) {
 						printf("r option requires file\n");
-						return 1;
+						return 2;
 					}
 					prgstream = fopen(argv[2], "r");
 			}
@@ -34,14 +35,14 @@ int main(int argc, char **argv) {
 
 	if(!prgstream) {
 		printf("No input program (check filenames)\n");
-		return 1;
+		return 2;
 	}
 
 	program = sol_compile_file(prgstream);
 	
 	if(!program) {
 		printf("NULL program (probably a syntax error)\n");
-		return 1;
+		return 2;
 	}
 
 	if(prgstream != stdin) {
@@ -59,6 +60,7 @@ int main(int argc, char **argv) {
 		printf("Error: ");
 		ob_print(state.error);
 		printf("\n");
+		result = 1;
 	}
 
 	if(state.ret) {
@@ -69,5 +71,5 @@ int main(int argc, char **argv) {
 	st_free(program);
 	sol_state_cleanup(&state);
 
-	return 0;
+	return result;
 }

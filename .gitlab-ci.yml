@@ -1,2 +1,20 @@
-job make:
-    script: "make"
+stages:
+    - build
+    - test
+
+build:
+    stage: build
+    script:
+        - make
+
+run:
+    stage: test
+    script:
+        - make
+        - echo "exit()" | ./sol r programs/interp.sol
+
+test:
+    stage: test
+    script:
+        - make
+        - ./sol r program/test.sol
