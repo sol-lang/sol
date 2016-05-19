@@ -2,6 +2,10 @@ stages:
     - build
     - test
 
+before_script:
+    - git submodule init
+    - git submodule update
+
 build:
     stage: build
     script:
