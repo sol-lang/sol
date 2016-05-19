@@ -21,4 +21,4 @@ test:
     stage: test
     script:
         - make
-        - ./sol r program/test.sol
+        - ./sol r programs/test.sol
