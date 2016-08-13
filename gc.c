@@ -26,7 +26,7 @@ sol_object_t *_sol_gc_alloc_object(sol_state_t *state) {
 
 void _sol_gc_obj_free(sol_object_t *obj) {
 	if(!obj) {
-		printf("WARNING: Attempt to free NULL\n");
+		/*printf("WARNING: Attempt to free NULL\n");*/
 		return;
 	}
 	if(sol_decref(obj) <= 0) {

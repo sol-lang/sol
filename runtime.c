@@ -771,7 +771,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			break;
 
 		case EX_IFELSE:
-			value = sol_eval(state, expr->ifelse->cond);
+			value = sol_eval_inner(state, expr->ifelse->cond, jmp);
 			vint = sol_cast_int(state, value);
 			if(vint->ival) {
 				if(expr->ifelse->iftrue) {
@@ -790,7 +790,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 		case EX_LOOP:
 			sol_obj_free(state->loopvalue);
 			state->loopvalue = sol_new_list(state);
-			value = sol_eval(state, expr->loop->cond);
+			value = sol_eval_inner(state, expr->loop->cond, jmp);
 			vint = sol_cast_int(state, value);
 			while(vint->ival) {
 				sol_obj_free(value);
@@ -802,7 +802,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					continue;
 				}
 				state->sflag = SF_NORMAL;
-				value = sol_eval(state, expr->loop->cond);
+				value = sol_eval_inner(state, expr->loop->cond, jmp);
 				vint = sol_cast_int(state, value);
 			}
 			state->sflag = SF_NORMAL;
@@ -814,7 +814,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 		case EX_ITER:
 			sol_obj_free(state->loopvalue);
 			state->loopvalue = sol_new_list(state);
-			value = sol_eval(state, expr->iter->iter);
+			value = sol_eval_inner(state, expr->iter->iter, jmp);
 			if(value->ops->iter && value->ops->iter != sol_f_not_impl) {
 				list = sol_new_list(state);
 				sol_list_insert(state, list, 0, value);
@@ -864,7 +864,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 }
 
 void sol_exec(sol_state_t *state, stmt_node *stmt) {
-	sol_object_t *value, *vint, *list, *iter, *item;
+	sol_object_t *value = NULL, *vint = NULL, *list, *iter, *item;
 	stmtlist_node *curs;
 	if(!stmt) {
 		sol_obj_free(sol_set_error_string(state, "Execute NULL statement"));
@@ -872,9 +872,10 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 	}
 	switch(stmt->type) {
 		case ST_EXPR:
+			vint = value;
 			value = state->lastvalue;
 			state->lastvalue = sol_eval(state, stmt->expr);
-			sol_obj_free(value);
+			sol_obj_free(vint);
 			if(sol_has_error(state)) {
 				sol_add_traceback(state, sol_new_stmtnode(state, st_copy(stmt)));
 			}

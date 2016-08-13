@@ -185,7 +185,7 @@ print('--- Exec/eval')
 
 exec('print("Hello from exec!")')
 print(eval('5 + 3'))
-execfile('subtest.sol')
+execfile('programs/subtest.sol')
 
 print('--- Modulus')
 
