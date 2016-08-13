@@ -838,6 +838,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 				sol_obj_free(item);
 				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
 					item = sol_incref(state->StopIteration);
+					continue;
 				}
 				state->sflag = SF_NORMAL;
 				item = CALL_METHOD(state, iter, call, list);

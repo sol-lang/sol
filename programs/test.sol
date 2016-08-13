@@ -408,4 +408,12 @@ for i in l do
 	print(i)
 end
 
+print('--- Control expressions')
+
+print('1 is', if 1 then 'true' else 'false' end)
+print('0 is', if 0 then 'true' else 'false' end)
+
+print(for i in l do continue 1000 + 2 * i end)
+print(for i in l do print('(', i, ')') if i >= 5 then break i end end)
+
 print('--- All done!')
