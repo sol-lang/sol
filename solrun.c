@@ -67,6 +67,9 @@ int main(int argc, char **argv) {
 		printf("Toplevel return: ");
 		ob_print(state.ret);
 		printf("\n");
+		if(sol_is_int(state.ret)) {
+			result = state.ret->ival;
+		}
 	}
 	st_free(program);
 	sol_state_cleanup(&state);

@@ -11,3 +11,4 @@ iss*
 *.sol
 _build
 doxyxml
+valgrind.log

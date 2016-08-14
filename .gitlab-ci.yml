@@ -17,8 +17,15 @@ run:
         - make
         - echo "exit()" | ./sol r programs/interp.sol
 
-test:
+test_boot:
     stage: test
     script:
         - make
-        - ./sol r programs/test.sol
+        - ./sol r programs/test.sol | tee test_out.txt
+        - diff test_out.txt data/test_out.txt
+
+all_tests:
+    stage: test
+    script:
+        - make
+        - make test
