@@ -8,7 +8,7 @@ stdout
 gclog.txt
 gcstat.txt
 iss*
-*.sol
+/*.sol
 _build
 doxyxml
 valgrind.log
