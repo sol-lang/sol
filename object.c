@@ -392,6 +392,7 @@ void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_o
 					dsl_seq_iter_delete_at(iter);
 					break;
 				}
+				dsl_seq_iter_next(iter);
 			}
 		}
 		return;
