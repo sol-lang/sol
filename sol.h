@@ -765,6 +765,7 @@ sol_object_t *sol_f_str_find(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_list_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_cmp(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_setindex(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_len(sol_state_t *, sol_object_t *);
@@ -931,28 +932,80 @@ void sol_list_append(sol_state_t *, sol_object_t *, sol_object_t *);
  *   list. */
 #define sol_list_pop(st, ls) sol_list_remove(st, ls, 0);
 
+/** Creates a new empty Sol map. */
 sol_object_t *sol_new_map(sol_state_t *);
+/** Internal routine to get the length (number of associations) in a Sol map. */
 int sol_map_len(sol_state_t *, sol_object_t *);
+/** Internal routine to get an MCELL by index.
+ *
+ * This is most typically used to iterate over the associations in a map in an
+ * arbitrary order.
+ */
+sol_object_t *sol_map_mcell_index(sol_state_t *, sol_object_t *, int);
+/** Internal routine to get an MCELL with key equal to `key`, or `None`.
+ *
+ * This does most of the work of association lookup; many other functions in
+ * the map internal API are built upon this one.
+ */
 sol_object_t *sol_map_mcell(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Internal routine to determine if a key is in a map. */
 int sol_map_has(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Internal routine to get the value associated with a key in a map, or `None`
+ *   if there is no association.. */
 sol_object_t *sol_map_get(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Internal routine to get the value associated with a string key (specified
+ *   as a C string) in a map, or `None` if there is no association. */
 sol_object_t *sol_map_get_name(sol_state_t *, sol_object_t *, char *);
+/** Internal routine to set an association in a map.
+ *
+ * If the key had a previous association, it is lost. If the value is `None`,
+ * any existing association is deleted; this is consistent with a return of
+ * `None` for any map get for which no association exists.
+ */
 void sol_map_set(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
+/** Internal routine to set an association, borrowing a reference to the value
+ *   instead of owning a reference.
+ *
+ * This is mostly used in `sol_state_init`, where it avoids having to
+ * `sol_obj_free` after creating a new object just to associate it.
+ *
+ * Note that this actually decrements the reference count on your pointer--the
+ * map still increments the reference count, but this effect is nullified, so
+ * it works out the same way.
+ */
 #define sol_map_borrow(state, map, key, object) do {\
 	sol_object_t *__obj = (object);\
 	sol_map_set((state), (map), (key), __obj);\
 	sol_obj_free(__obj);\
 } while(0)
+/** Internal routine to set a map association with a C-string key. */
 void sol_map_set_name(sol_state_t *, sol_object_t *, char *, sol_object_t *);
+/** Internal routine to set a map association with a C-string key, and
+ *   borrowing a reference to the value. */
 #define sol_map_borrow_name(state, map, str, object) do {\
 	sol_object_t *__obj = (object);\
 	sol_map_set_name((state), (map), (str), __obj);\
 	sol_obj_free(__obj);\
 } while(0)
+/** Internal routine to set a map associaiton to a new value only if the key
+ *   was associated with a value (other than `None`) previously.
+ *
+ * This is mostly used in the end of `sol_f_func_call` to update the closure.
+ */
 void sol_map_set_existing(sol_state_t *, sol_object_t *, sol_object_t *, sol_object_t *);
+/** Creates a new copy of an existing Sol map. */
 sol_object_t *sol_map_copy(sol_state_t *, sol_object_t *);
+/** Merges the associations of the source map into the destination map.
+ *
+ * Associations in the source map take precedence if the same key exists in
+ * both.
+ */
 void sol_map_merge(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Merges the associations of the source map into the destination map, but
+ *   only for keys already in the destination map. */
 void sol_map_merge_existing(sol_state_t *, sol_object_t *, sol_object_t *);
+/** Updates a map to contain an association from value to key for every key and
+ *   value already within. */
 void sol_map_invert(sol_state_t *, sol_object_t *);
 
 // Defined in ast.h

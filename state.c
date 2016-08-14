@@ -126,6 +126,7 @@ int sol_state_init(sol_state_t *state) {
 	state->ListOps.tname = "list";
 	state->ListOps.add = sol_f_list_add;
 	state->ListOps.mul = sol_f_list_mul;
+	state->ListOps.cmp = sol_f_list_cmp;
 	state->ListOps.call = sol_f_not_impl;
 	state->ListOps.index = sol_f_list_index;
 	state->ListOps.setindex = sol_f_list_setindex;

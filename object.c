@@ -308,6 +308,14 @@ int sol_map_len(sol_state_t *state, sol_object_t *map) {
 	return dsl_seq_len(map->seq);
 }
 
+sol_object_t *sol_map_mcell_index(sol_state_t *state, sol_object_t *map, int index) {
+	sol_object_t *res = dsl_seq_get(map->seq, index);
+	if(res) {
+		return sol_incref(res);
+	}
+	return sol_incref(state->None);
+}
+
 sol_object_t *sol_map_mcell(sol_state_t *state, sol_object_t *map, sol_object_t *key) {
 	sol_object_t *list, *cmp, *icmp, *res = NULL;
 	dsl_seq_iter *iter;
@@ -375,6 +383,19 @@ sol_object_t *sol_map_get_name(sol_state_t *state, sol_object_t *map, char *name
 
 void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_object_t *val) {
 	sol_object_t *mcell = sol_map_mcell(state, map, key), *newcell, *temp;
+	if(sol_is_none(state, val)) {
+		if(!sol_is_none(state, mcell)) {
+			// XXX hacky
+			dsl_seq_iter *iter = dsl_new_seq_iter(map->seq);
+			while(!dsl_seq_iter_is_invalid(iter)) {
+				if(mcell == dsl_seq_iter_at(iter)) {
+					dsl_seq_iter_delete_at(iter);
+					break;
+				}
+			}
+		}
+		return;
+	} 
 	if(sol_is_none(state, mcell)) {
 		newcell = sol_alloc_object(state);
 		newcell->type = SOL_MCELL;

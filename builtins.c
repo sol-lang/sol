@@ -1085,6 +1085,46 @@ sol_object_t *sol_f_list_mul(sol_state_t *state, sol_object_t *args) {
 	return ls;
 }
 
+sol_object_t *sol_f_list_cmp(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *item, *ls, *tmp;
+	int i, alen, blen;
+	if(!sol_is_list(b)) {
+		sol_obj_free(b);
+		sol_obj_free(a);
+		return sol_new_int(state, 1);  // XXX lists always greater than non-lists?
+	}
+	alen = sol_list_len(state, a);
+	blen = sol_list_len(state, b);
+	if(alen != blen) {
+		sol_obj_free(b);
+		sol_obj_free(a);
+		return sol_new_int(state, alen > blen ? 1 : -1);
+	}
+	ls = sol_new_list(state);
+	sol_list_insert(state, ls, 0, state->None);
+	sol_list_insert(state, ls, 1, state->None);
+	for(i = 0; i < alen; i++) {
+		tmp = sol_list_get_index(state, a, i);
+		sol_list_set_index(state, ls, 0, tmp);
+		item = sol_list_get_index(state, b, i);
+		sol_list_set_index(state, ls, 1, item);
+		sol_obj_free(item);
+		item = CALL_METHOD(state, tmp, cmp, ls);
+		sol_obj_free(tmp);
+		if(item->ival != 0) {
+			sol_obj_free(ls);
+			sol_obj_free(b);
+			sol_obj_free(a);
+			return item;
+		}
+		sol_obj_free(item);
+	}
+	sol_obj_free(ls);
+	sol_obj_free(b);
+	sol_obj_free(a);
+	return sol_new_int(state, 0);
+}
+
 sol_object_t *sol_f_list_index(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *ls = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *ival;
 	sol_object_t *res, *funcs;
