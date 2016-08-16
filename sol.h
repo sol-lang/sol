@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define VERSION "0.2a2"
+#define VERSION "0.2a3"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -18,9 +18,9 @@
  * - R is 'A' for alpha, 'B' for beta, 'C' for candidate, and 'F' for final
  * - PP is the two-digit patch
  *
- * This value is guaranteed to always increase by revision.
+ * This value is guaranteed to only monotonically increase by revision.
  */
-#define HEXVER 0x0002A02
+#define HEXVER 0x0002A03
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */

@@ -577,7 +577,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					ERR_CHECK(state);
 					rint = sol_cast_int(state, right);
 					ERR_CHECK(state);
-					res = sol_new_int(state, BOOL_TO_INT(lint && rint));
+					res = sol_new_int(state, BOOL_TO_INT(lint->ival && rint->ival));
 					sol_obj_free(lint);
 					sol_obj_free(rint);
 					break;
@@ -587,7 +587,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					ERR_CHECK(state);
 					rint = sol_cast_int(state, right);
 					ERR_CHECK(state);
-					res = sol_new_int(state, BOOL_TO_INT(lint || rint));
+					res = sol_new_int(state, BOOL_TO_INT(lint->ival || rint->ival));
 					sol_obj_free(lint);
 					sol_obj_free(rint);
 					break;
