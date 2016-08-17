@@ -348,23 +348,14 @@ ulen_expr:
 ;
 
 call_expr:
-  call_expr LPAREN expr_list RPAREN { $$ = NEW_EX(); AS_EX($$)->type = EX_CALL; AS_EX($$)->call = NEW(call_node); AS_EX($$)->call->expr = $1; AS_EX($$)->call->args = $3; }
+  call_expr LPAREN expr_list RPAREN { $$ = NEW_EX(); AS_EX($$)->type = EX_CALL; AS_EX($$)->call = NEW(call_node); AS_EX($$)->call->expr = $1; AS_EX($$)->call->args = $3; AS_EX($$)->call->method = NULL; }
 | call_expr COLON IDENT LPAREN expr_list RPAREN {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_CALL;
 	AS_EX($$)->call = NEW(call_node);
-	AS_EX($$)->call->expr = NEW_EX();
-	AS_EX($$)->call->expr->type = EX_INDEX;
-	AS_EX($$)->call->expr->index = NEW(index_node);
-	AS_EX($$)->call->expr->index->expr = $1;
-	AS_EX($$)->call->expr->index->index = NEW_EX();
-	AS_EX($$)->call->expr->index->index->type = EX_LIT;
-	AS_EX($$)->call->expr->index->index->lit = NEW(lit_node);
-	AS_EX($$)->call->expr->index->index->lit->type = LIT_STRING;
-	AS_EX($$)->call->expr->index->index->lit->str = $3;
-	AS_EX($$)->call->args = NEW(exprlist_node);
-	AS_EX($$)->call->args->expr = ex_copy($1);
-	AS_EX($$)->call->args->next = $5;
+	AS_EX($$)->call->expr = $1;
+	AS_EX($$)->call->args = $5;
+	AS_EX($$)->call->method = $3;
 }
 | funcdecl_expr { $$ = $1; }
 ;

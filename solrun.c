@@ -6,9 +6,11 @@ int main(int argc, char **argv) {
 	stmt_node *program;
 	sol_state_t state;
 	char *c;
-	int printtree = 0;
+	int printtree = 0, clean = 1;
 	FILE *prgstream = stdin;
 	int result = 0;
+
+	state.features = 0;
 
 	if(argc > 1) {
 		c = argv[1];
@@ -28,6 +30,11 @@ int main(int argc, char **argv) {
 						return 2;
 					}
 					prgstream = fopen(argv[2], "r");
+					break;
+
+				case 'i':
+					state.features |= SOL_FT_NO_USR_INIT;
+					break;
 			}
 			c++;
 		}
@@ -49,12 +56,20 @@ int main(int argc, char **argv) {
 		fclose(prgstream);
 	}
 
-	sol_state_init(&state);
+	if(!sol_state_init(&state)) {
+		printf("State init error (internal bug)\n");
+		result = 2;
+		clean = 0;
+		goto out_results;
+	}
+
 	if(printtree) {
 		st_print(&state, program);
 	}
 
 	sol_exec(&state, program);
+
+out_results:
 
 	if(sol_has_error(&state)) {
 		printf("Error: ");
@@ -72,7 +87,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	st_free(program);
-	sol_state_cleanup(&state);
+	if(clean) sol_state_cleanup(&state);
 
 	return result;
 }

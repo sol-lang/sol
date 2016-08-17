@@ -943,7 +943,7 @@ sol_object_t *sol_f_str_index(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_str_iter(sol_state_t *state, sol_object_t *args) {
-	return sol_new_cfunc(state, sol_f_iter_str);
+	return sol_new_cfunc(state, sol_f_iter_str, "iter.str");
 }
 
 sol_object_t *sol_f_str_toint(sol_state_t *state, sol_object_t *args) {
@@ -1172,7 +1172,7 @@ sol_object_t *sol_f_list_len(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_iter(sol_state_t *state, sol_object_t *args) {
-	return sol_new_cfunc(state, sol_f_iter_list);
+	return sol_new_cfunc(state, sol_f_iter_list, "iter.list");
 }
 
 sol_object_t *sol_f_list_tostring(sol_state_t *state, sol_object_t *args) {
@@ -1390,7 +1390,7 @@ sol_object_t *sol_f_map_len(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_map_iter(sol_state_t *state, sol_object_t *args) {
-	return sol_new_cfunc(state, sol_f_iter_map);
+	return sol_new_cfunc(state, sol_f_iter_map, "iter.map");
 }
 
 sol_object_t *sol_f_map_tostring(sol_state_t *state, sol_object_t *args) {
@@ -1581,7 +1581,17 @@ sol_object_t *sol_f_cfunc_call(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_cfunc_tostring(sol_state_t *state, sol_object_t *args) {
-	return sol_new_string(state, "<CFunction>");
+	sol_object_t *cfunc = sol_list_get_index(state, args, 0), *ret;
+	char *s = malloc(256 * sizeof(char));
+	if(cfunc->cfname) {
+		snprintf(s, 256, "<CFunction %s>", cfunc->cfname);
+	} else {
+		snprintf(s, 256, "<CFunction>");
+	}
+	ret = sol_new_string(state, s);
+	free(s);
+	sol_obj_free(cfunc);
+	return ret;
 }
 
 sol_object_t *sol_f_astnode_call(sol_state_t *state, sol_object_t *args) {
@@ -2726,7 +2736,7 @@ sol_object_t *sol_f_stream_open(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *fn = sol_list_get_index(state, args, 0), *mode = sol_list_get_index(state, args, 1);
 	sol_object_t *sfn = sol_cast_string(state, fn), *imode = sol_cast_int(state, mode);
 	sol_modes_t m = imode->ival;
-	char *smode = sol_FileModes[m];
+	char *smode = sol_FileModes[(m >= 0 && m < (sizeof(sol_FileModes) / sizeof(char *))) ? m : 0];
 	FILE *f;
 	sol_obj_free(mode);
 	sol_obj_free(imode);

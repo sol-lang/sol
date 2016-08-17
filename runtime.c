@@ -168,6 +168,7 @@ expr_node *ex_copy(expr_node *old) {
 			new->call = NEW(call_node);
 			new->call->expr = ex_copy(old->call->expr);
 			new->call->args = exl_copy(old->call->args);
+			new->call->method = old->call->method ? strdup(old->call->method) : NULL;
 			break;
 
 		case EX_FUNCDECL:
@@ -406,6 +407,7 @@ void ex_free(expr_node *expr) {
 		case EX_CALL:
 			ex_free(expr->call->expr);
 			exl_free(expr->call->args);
+			free(expr->call->method);
 			free(expr->call);
 			break;
 
@@ -764,7 +766,25 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			ERR_CHECK(state);
 			list = sol_new_list(state);
 			ERR_CHECK(state);
-			sol_list_insert(state, list, 0, value);
+			if(expr->call->method) {
+				left = sol_incref(value);
+				sol_list_insert(state, list, 0, value);
+				right = sol_new_string(state, expr->call->method);
+				sol_list_insert(state, list, 1, right);
+				sol_obj_free(right);
+				res = CALL_METHOD(state, value, index, list);
+				sol_obj_free(value);
+				value = sol_incref(res);
+				sol_obj_free(res);
+				ERR_CHECK(state);
+				sol_obj_free(list);
+				list = sol_new_list(state);
+				sol_list_insert(state, list, 0, value);
+				sol_list_insert(state, list, 1, left);
+				sol_obj_free(left);
+			} else {
+				sol_list_insert(state, list, 0, value);
+			}
 			cure = expr->call->args;
 			while(cure) {
 				if(cure->expr) {
@@ -774,8 +794,8 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 				cure = cure->next;
 			}
 			res = CALL_METHOD(state, value, call, list);
-			sol_obj_free(value);
 			sol_obj_free(list);
+			sol_obj_free(value);
 			ERR_CHECK(state);
 			return res;
 			break;
@@ -793,6 +813,8 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 					curi = curi->next;
 					cure = cure->next;
 				}
+			} else {
+				res->rest = NULL;
 			}
 			if(expr->funcdecl->name) {
 				sol_state_assign_l_name(state, expr->funcdecl->name, res);

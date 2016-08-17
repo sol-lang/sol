@@ -162,7 +162,7 @@ sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
 					break;
 
 				case SOL_MT_CFUNC:
-					res = sol_new_cfunc(state, AT(cstruct->data, sol_cfunc_t, spec->offset));
+					res = sol_new_cfunc(state, AT(cstruct->data, sol_cfunc_t, spec->offset), NULL);
 					break;
 
 				case SOL_MT_PTR:
@@ -172,7 +172,7 @@ sol_object_t *sol_f_cstruct_index(sol_state_t *state, sol_object_t *args) {
 			break;
 
 		case SOL_CS_CFUNC:
-			res = sol_new_cfunc(state, spec->cfunc);
+			res = sol_new_cfunc(state, spec->cfunc, NULL);
 			break;
 	}
 	if(!res) {

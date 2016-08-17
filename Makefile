@@ -4,14 +4,18 @@ OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astpri
 
 .PHONY: all test
 
-all: $(OBJ)
-	git submodule init && git submodule sync && git submodule update
+all: dsl sol
+	
+sol: $(OBJ)
 	gcc $(CFLAGS) $? $(LDFLAGS) -o sol
 
 test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol)))
 
 test_%: tests/%.sol
 	./sol r $?
+
+dsl:
+	git submodule init && git submodule sync && git submodule update
 
 %.o: %.c
 	gcc -c -o $@ $? $(CFLAGS)

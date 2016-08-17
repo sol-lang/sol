@@ -2,6 +2,7 @@ func assert(x, msg, _test_count = 0)
 	_test_count += 1
 	io.stdout:write('Test ' + tostring(_test_count) + ': ' + msg)
 	if !x then
+		print("")
 		error("Assertion failed: " + tostring(msg))
 	end
 	print("...passed")

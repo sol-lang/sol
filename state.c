@@ -157,6 +157,7 @@ int sol_state_init(sol_state_t *state) {
 	state->CFuncOps.tname = "cfunction";
 	state->CFuncOps.call = sol_f_cfunc_call;
 	state->CFuncOps.tostring = sol_f_cfunc_tostring;
+	state->CFuncOps.free = sol_f_cfunc_free;
 
 	state->ASTNodeOps.tname = "astnode";
 	state->ASTNodeOps.call = sol_f_astnode_call;
@@ -233,35 +234,37 @@ int sol_state_init(sol_state_t *state) {
 
 	// NB: None is actually a keyword in the language--it doesn't need to be a
 	// global (see parser.y)
-	sol_map_borrow_name(state, globals, "OutOfMemory", state->OutOfMemory);
-	sol_map_borrow_name(state, globals, "toint", sol_new_cfunc(state, sol_f_toint));
-	sol_map_borrow_name(state, globals, "tofloat", sol_new_cfunc(state, sol_f_tofloat));
-	sol_map_borrow_name(state, globals, "tostring", sol_new_cfunc(state, sol_f_tostring));
-	sol_map_borrow_name(state, globals, "try", sol_new_cfunc(state, sol_f_try));
-	sol_map_borrow_name(state, globals, "apply", sol_new_cfunc(state, sol_f_apply));
-	sol_map_borrow_name(state, globals, "error", sol_new_cfunc(state, sol_f_error));
-	sol_map_borrow_name(state, globals, "type", sol_new_cfunc(state, sol_f_type));
-	sol_map_borrow_name(state, globals, "prepr", sol_new_cfunc(state, sol_f_prepr));
-	sol_map_borrow_name(state, globals, "print", sol_new_cfunc(state, sol_f_print));
-	sol_map_borrow_name(state, globals, "rawget", sol_new_cfunc(state, sol_f_rawget));
-	sol_map_borrow_name(state, globals, "rawset", sol_new_cfunc(state, sol_f_rawset));
-	sol_map_borrow_name(state, globals, "range", sol_new_cfunc(state, sol_f_range));
-	sol_map_borrow_name(state, globals, "exec", sol_new_cfunc(state, sol_f_exec));
-	sol_map_borrow_name(state, globals, "eval", sol_new_cfunc(state, sol_f_eval));
-	sol_map_borrow_name(state, globals, "execfile", sol_new_cfunc(state, sol_f_execfile));
-	sol_map_borrow_name(state, globals, "parse", sol_new_cfunc(state, sol_f_parse));
-	sol_map_borrow_name(state, globals, "ord", sol_new_cfunc(state, sol_f_ord));
-	sol_map_borrow_name(state, globals, "chr", sol_new_cfunc(state, sol_f_chr));
+	// OutOfMemory (and other important singlets) are set, not borrowed,
+	// because the state still holds a reference to them
+	sol_map_set_name(state, globals, "OutOfMemory", state->OutOfMemory);
+	sol_map_borrow_name(state, globals, "toint", sol_new_cfunc(state, sol_f_toint, "toint"));
+	sol_map_borrow_name(state, globals, "tofloat", sol_new_cfunc(state, sol_f_tofloat, "tofloat"));
+	sol_map_borrow_name(state, globals, "tostring", sol_new_cfunc(state, sol_f_tostring, "tostring"));
+	sol_map_borrow_name(state, globals, "try", sol_new_cfunc(state, sol_f_try, "try"));
+	sol_map_borrow_name(state, globals, "apply", sol_new_cfunc(state, sol_f_apply, "apply"));
+	sol_map_borrow_name(state, globals, "error", sol_new_cfunc(state, sol_f_error, "error"));
+	sol_map_borrow_name(state, globals, "type", sol_new_cfunc(state, sol_f_type, "type"));
+	sol_map_borrow_name(state, globals, "prepr", sol_new_cfunc(state, sol_f_prepr, "prepr"));
+	sol_map_borrow_name(state, globals, "print", sol_new_cfunc(state, sol_f_print, "print"));
+	sol_map_borrow_name(state, globals, "rawget", sol_new_cfunc(state, sol_f_rawget, "rawget"));
+	sol_map_borrow_name(state, globals, "rawset", sol_new_cfunc(state, sol_f_rawset, "rawset"));
+	sol_map_borrow_name(state, globals, "range", sol_new_cfunc(state, sol_f_range, "range"));
+	sol_map_borrow_name(state, globals, "exec", sol_new_cfunc(state, sol_f_exec, "exec"));
+	sol_map_borrow_name(state, globals, "eval", sol_new_cfunc(state, sol_f_eval, "eval"));
+	sol_map_borrow_name(state, globals, "execfile", sol_new_cfunc(state, sol_f_execfile, "execfile"));
+	sol_map_borrow_name(state, globals, "parse", sol_new_cfunc(state, sol_f_parse, "parse"));
+	sol_map_borrow_name(state, globals, "ord", sol_new_cfunc(state, sol_f_ord, "ord"));
+	sol_map_borrow_name(state, globals, "chr", sol_new_cfunc(state, sol_f_chr, "chr"));
 
 	mod = sol_new_map(state);
-	sol_map_borrow_name(state, mod, "getref", sol_new_cfunc(state, sol_f_debug_getref));
-	sol_map_borrow_name(state, mod, "setref", sol_new_cfunc(state, sol_f_debug_setref));
-	sol_map_borrow_name(state, mod, "closure", sol_new_cfunc(state, sol_f_debug_closure));
-	sol_map_borrow_name(state, mod, "globals", sol_new_cfunc(state, sol_f_debug_globals));
-	sol_map_borrow_name(state, mod, "locals", sol_new_cfunc(state, sol_f_debug_locals));
-	sol_map_borrow_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes));
-	sol_map_borrow_name(state, mod, "version", sol_new_string(state, VERSION));
-	sol_map_borrow_name(state, mod, "hexversion", sol_new_int(state, HEXVER));
+	sol_map_borrow_name(state, mod, "getref", sol_new_cfunc(state, sol_f_debug_getref, "debug.getref"));
+	sol_map_borrow_name(state, mod, "setref", sol_new_cfunc(state, sol_f_debug_setref, "debug.setref"));
+	sol_map_borrow_name(state, mod, "closure", sol_new_cfunc(state, sol_f_debug_closure, "debug.closure"));
+	sol_map_borrow_name(state, mod, "globals", sol_new_cfunc(state, sol_f_debug_globals, "debug.globals"));
+	sol_map_borrow_name(state, mod, "locals", sol_new_cfunc(state, sol_f_debug_locals, "debug.locals"));
+	sol_map_borrow_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes, "debug.scopes"));
+	sol_map_borrow_name(state, mod, "version", sol_new_string(state, SOL_VERSION));
+	sol_map_borrow_name(state, mod, "hexversion", sol_new_int(state, SOL_HEXVER));
 #ifdef SOL_ICACHE
 	sol_map_borrow_name(state, mod, "icache_min", sol_new_int(state, SOL_ICACHE_MIN));
 	sol_map_borrow_name(state, mod, "icache_max", sol_new_int(state, SOL_ICACHE_MAX));
@@ -270,15 +273,15 @@ int sol_state_init(sol_state_t *state) {
 	sol_obj_free(mod);
 
 	mod = sol_new_map(state);
-	sol_map_borrow_name(state, mod, "str", sol_new_cfunc(state, sol_f_iter_str));
-	sol_map_borrow_name(state, mod, "list", sol_new_cfunc(state, sol_f_iter_list));
-	sol_map_borrow_name(state, mod, "map", sol_new_cfunc(state, sol_f_iter_map));
+	sol_map_borrow_name(state, mod, "str", sol_new_cfunc(state, sol_f_iter_str, "iter.str"));
+	sol_map_borrow_name(state, mod, "list", sol_new_cfunc(state, sol_f_iter_list, "iter.list"));
+	sol_map_borrow_name(state, mod, "map", sol_new_cfunc(state, sol_f_iter_map, "iter.map"));
 	sol_register_module_name(state, "iter", mod);
 	sol_obj_free(mod);
 
 	mod = sol_new_map(state);
-	sol_map_borrow_name(state, mod, "readline", sol_new_cfunc(state, sol_f_readline_readline));
-	sol_map_borrow_name(state, mod, "add_history", sol_new_cfunc(state, sol_f_readline_add_history));
+	sol_map_borrow_name(state, mod, "readline", sol_new_cfunc(state, sol_f_readline_readline, "readline.readline"));
+	sol_map_borrow_name(state, mod, "add_history", sol_new_cfunc(state, sol_f_readline_add_history, "readline.add_history"));
 	sol_register_module_name(state, "readline", mod);
 	sol_obj_free(mod);
 
@@ -332,7 +335,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "KIND_STMT", sol_new_int(state, -1));
 	sol_map_borrow_name(state, mod, "KIND_EXPR", sol_new_int(state, -2));
 	sol_map_invert(state, mod);
-	sol_map_borrow_name(state, mod, "print", sol_new_cfunc(state, sol_f_ast_print));
+	sol_map_borrow_name(state, mod, "print", sol_new_cfunc(state, sol_f_ast_print, "ast.print"));
 	sol_register_module_name(state, "ast", mod);
 
 	btype = sol_new_map(state);
@@ -397,10 +400,10 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_invert(state, bobj);
 
 	mod = sol_new_map(state);
-	sol_map_borrow_name(state, mod, "new", sol_new_cfunc(state, sol_f_buffer_new));
-	sol_map_borrow_name(state, mod, "fromstring", sol_new_cfunc(state, sol_f_buffer_fromstring));
-	sol_map_borrow_name(state, mod, "fromobject", sol_new_cfunc(state, sol_f_buffer_fromobject));
-	sol_map_borrow_name(state, mod, "fromaddress", sol_new_cfunc(state, sol_f_buffer_fromaddress));
+	sol_map_borrow_name(state, mod, "new", sol_new_cfunc(state, sol_f_buffer_new, "buffer.new"));
+	sol_map_borrow_name(state, mod, "fromstring", sol_new_cfunc(state, sol_f_buffer_fromstring, "buffer.fromstring"));
+	sol_map_borrow_name(state, mod, "fromobject", sol_new_cfunc(state, sol_f_buffer_fromobject, "buffer.fromobject"));
+	sol_map_borrow_name(state, mod, "fromaddress", sol_new_cfunc(state, sol_f_buffer_fromaddress, "buffer.fromaddress"));
 	sol_map_set_name(state, mod, "type", btype);
 	sol_map_set_name(state, mod, "sizeof", bsize);
 	sol_map_set_name(state, mod, "objtype", bobj);
@@ -421,44 +424,44 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "SEEK_END", sol_new_int(state, SEEK_END));
 	sol_map_borrow_name(state, mod, "ALL", sol_new_string(state, "ALL"));
 	sol_map_borrow_name(state, mod, "LINE", sol_new_string(state, "LINE"));
-	sol_map_borrow_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open));
-	sol_map_borrow_name(state, mod, "__setindex", sol_new_cfunc(state, sol_f_io_setindex));
-	sol_map_borrow_name(state, mod, "__index", sol_new_cfunc(state, sol_f_io_index));
+	sol_map_borrow_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open, "io.open"));
+	sol_map_borrow_name(state, mod, "__setindex", sol_new_cfunc(state, sol_f_io_setindex, "io.__setindex"));
+	sol_map_borrow_name(state, mod, "__index", sol_new_cfunc(state, sol_f_io_index, "io.__index"));
 	sol_register_module_name(state, "io", mod);
 	sol_obj_free(mod);
 
 	meths = sol_new_map(state);
-	sol_map_borrow_name(state, meths, "get", sol_new_cfunc(state, sol_f_buffer_get));
-	sol_map_borrow_name(state, meths, "set", sol_new_cfunc(state, sol_f_buffer_set));
-	sol_map_borrow_name(state, meths, "address", sol_new_cfunc(state, sol_f_buffer_address));
-	sol_map_borrow_name(state, meths, "size", sol_new_cfunc(state, sol_f_buffer_size));
+	sol_map_borrow_name(state, meths, "get", sol_new_cfunc(state, sol_f_buffer_get, "buffer.get"));
+	sol_map_borrow_name(state, meths, "set", sol_new_cfunc(state, sol_f_buffer_set, "buffer.set"));
+	sol_map_borrow_name(state, meths, "address", sol_new_cfunc(state, sol_f_buffer_address, "buffer.address"));
+	sol_map_borrow_name(state, meths, "size", sol_new_cfunc(state, sol_f_buffer_size, "buffer.size"));
 	sol_register_methods_name(state, "buffer", meths);
 	sol_obj_free(meths);
 
 	meths = sol_new_map(state);
-	sol_map_borrow_name(state, meths, "copy", sol_new_cfunc(state, sol_f_list_copy));
-	sol_map_borrow_name(state, meths, "insert", sol_new_cfunc(state, sol_f_list_insert));
-	sol_map_borrow_name(state, meths, "remove", sol_new_cfunc(state, sol_f_list_remove));
-	sol_map_borrow_name(state, meths, "truncate", sol_new_cfunc(state, sol_f_list_truncate));
-	sol_map_borrow_name(state, meths, "map", sol_new_cfunc(state, sol_f_list_map));
-	sol_map_borrow_name(state, meths, "filter", sol_new_cfunc(state, sol_f_list_filter));
+	sol_map_borrow_name(state, meths, "copy", sol_new_cfunc(state, sol_f_list_copy, "list.copy"));
+	sol_map_borrow_name(state, meths, "insert", sol_new_cfunc(state, sol_f_list_insert, "list.insert"));
+	sol_map_borrow_name(state, meths, "remove", sol_new_cfunc(state, sol_f_list_remove, "list.remove"));
+	sol_map_borrow_name(state, meths, "truncate", sol_new_cfunc(state, sol_f_list_truncate, "list.truncate"));
+	sol_map_borrow_name(state, meths, "map", sol_new_cfunc(state, sol_f_list_map, "list.map"));
+	sol_map_borrow_name(state, meths, "filter", sol_new_cfunc(state, sol_f_list_filter, "list.filter"));
 	sol_register_methods_name(state, "list", meths);
 	sol_obj_free(meths);
 
 	meths = sol_new_map(state);
-	sol_map_borrow_name(state, meths, "read", sol_new_cfunc(state, sol_f_stream_read));
-	sol_map_borrow_name(state, meths, "write", sol_new_cfunc(state, sol_f_stream_write));
-	sol_map_borrow_name(state, meths, "seek", sol_new_cfunc(state, sol_f_stream_seek));
-	sol_map_borrow_name(state, meths, "tell", sol_new_cfunc(state, sol_f_stream_tell));
-	sol_map_borrow_name(state, meths, "flush", sol_new_cfunc(state, sol_f_stream_flush));
-	sol_map_borrow_name(state, meths, "eof", sol_new_cfunc(state, sol_f_stream_eof));
+	sol_map_borrow_name(state, meths, "read", sol_new_cfunc(state, sol_f_stream_read, "stream.read"));
+	sol_map_borrow_name(state, meths, "write", sol_new_cfunc(state, sol_f_stream_write, "stream.write"));
+	sol_map_borrow_name(state, meths, "seek", sol_new_cfunc(state, sol_f_stream_seek, "stream.seek"));
+	sol_map_borrow_name(state, meths, "tell", sol_new_cfunc(state, sol_f_stream_tell, "stream.tell"));
+	sol_map_borrow_name(state, meths, "flush", sol_new_cfunc(state, sol_f_stream_flush, "stream.flush"));
+	sol_map_borrow_name(state, meths, "eof", sol_new_cfunc(state, sol_f_stream_eof, "stream.eof"));
 	sol_register_methods_name(state, "stream", meths);
 	sol_obj_free(meths);
 
 	meths = sol_new_map(state);
-	sol_map_borrow_name(state, meths, "sub", sol_new_cfunc(state, sol_f_str_sub));
-	sol_map_borrow_name(state, meths, "split", sol_new_cfunc(state, sol_f_str_split));
-	sol_map_borrow_name(state, meths, "find", sol_new_cfunc(state, sol_f_str_find));
+	sol_map_borrow_name(state, meths, "sub", sol_new_cfunc(state, sol_f_str_sub, "str.sub"));
+	sol_map_borrow_name(state, meths, "split", sol_new_cfunc(state, sol_f_str_split, "str.split"));
+	sol_map_borrow_name(state, meths, "find", sol_new_cfunc(state, sol_f_str_find, "str.find"));
 	sol_register_methods_name(state, "string", meths);
 	sol_obj_free(meths);
 
@@ -469,23 +472,9 @@ int sol_state_init(sol_state_t *state) {
 	// Perform initialization based on the user profile, if so requested.
 	// TODO: Make this switchable at runtime.
 	
-	for(i = 0; i < LENGTH(sol_AbsInitPaths); i++) {
-		fp = fopen(sol_AbsInitPaths[i], "r");
-		if(fp) {
-			stmt = sol_compile_file(fp);
-			sol_exec(state, stmt);
-			st_free(stmt);
-			fclose(fp);
-		}
-	}
-
-	suffix = getenv("HOME");
-	if(suffix) {
-		strncpy(sol_TempPath, suffix, TMP_PATH_SZ);
-		suffix = sol_TempPath + strlen(sol_TempPath);
-		for(i = 0; i < LENGTH(sol_HomeInitPaths); i++) {
-			strncpy(suffix, sol_HomeInitPaths[i], TMP_PATH_SZ - (suffix - sol_TempPath));
-			fp = fopen(sol_TempPath, "r");
+	if(!(state->features & SOL_FT_NO_USR_INIT)) {
+		for(i = 0; i < LENGTH(sol_AbsInitPaths); i++) {
+			fp = fopen(sol_AbsInitPaths[i], "r");
 			if(fp) {
 				stmt = sol_compile_file(fp);
 				sol_exec(state, stmt);
@@ -493,10 +482,26 @@ int sol_state_init(sol_state_t *state) {
 				fclose(fp);
 			}
 		}
-	}
-	
-	if(sol_has_error(state)) {
-		goto cleanup;
+
+		suffix = getenv("HOME");
+		if(suffix) {
+			strncpy(sol_TempPath, suffix, TMP_PATH_SZ);
+			suffix = sol_TempPath + strlen(sol_TempPath);
+			for(i = 0; i < LENGTH(sol_HomeInitPaths); i++) {
+				strncpy(suffix, sol_HomeInitPaths[i], TMP_PATH_SZ - (suffix - sol_TempPath));
+				fp = fopen(sol_TempPath, "r");
+				if(fp) {
+					stmt = sol_compile_file(fp);
+					sol_exec(state, stmt);
+					st_free(stmt);
+					fclose(fp);
+				}
+			}
+		}
+		
+		if(sol_has_error(state)) {
+			goto cleanup;
+		}
 	}
 
 	// We're all set!

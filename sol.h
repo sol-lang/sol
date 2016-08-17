@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define VERSION "0.3a0"
+#define SOL_VERSION "0.3a1"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -20,7 +20,7 @@
  *
  * This value is guaranteed to only monotonically increase by revision.
  */
-#define HEXVER 0x0003A00
+#define SOL_HEXVER 0x0003A01
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */
@@ -335,8 +335,12 @@ typedef struct sol_tag_object_t {
 			/* For `SOL_FUNCTION`, the name of an argument that receives extra parameters as a list (otherwise NULL). */
 			char *rest;
 		};
-		/** For `SOL_CFUNCTION`, the C function pointer. */
-		sol_cfunc_t cfunc;
+		struct {
+			/** For `SOL_CFUNCTION`, the C function pointer. */
+			sol_cfunc_t cfunc;
+			/** For `SOL_CFUNCTION`, the name of this function, or NULL. */
+			char *cfname;
+		};
 		/** For `SOL_STMT` and `SOL_EXPR`, the `stmt_node` or `expr_node` pointer, respectively. */
 		void *node;
 		struct {
@@ -418,7 +422,11 @@ typedef struct sol_tag_state_t {
 #endif
 	sol_object_t *lastvalue; ///< Holds the value of the last expression evaluated, returned by an `if` expression
 	sol_object_t *loopvalue; ///< Holds an initially-empty list appended to by `continue <expr>` or set to another object by `break <expr>`
+	unsigned short features; ///< A flag field used to control the Sol initialization processs
 } sol_state_t;
+
+/** Don't run user initialization files. */
+#define SOL_FT_NO_USR_INIT 0x0001
 
 // state.c
 
@@ -1021,7 +1029,7 @@ void sol_map_invert(sol_state_t *, sol_object_t *);
 // sol_object_t *sol_new_stmtnode(sol_state_t *, stmt_node *);
 // sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 
-sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t);
+sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t, char *);
 sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
 
 sol_object_t *sol_new_buffer(sol_state_t *, void *, ssize_t, sol_owntype_t, sol_freefunc_t, sol_movefunc_t);
@@ -1067,6 +1075,7 @@ sol_object_t *sol_f_list_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_mcell_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_func_free(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_cfunc_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_astnode_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_dylib_free(sol_state_t *, sol_object_t *);

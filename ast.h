@@ -121,6 +121,7 @@ typedef struct {
 typedef struct {
 	expr_node *expr;
 	exprlist_node *args;
+	char *method;
 } call_node;
 
 typedef struct tag_identlist_node {
