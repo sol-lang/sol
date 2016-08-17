@@ -273,11 +273,29 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			prlev(state, lev, "FuncDecl:");
 			lev++;
 			prlev(state, lev, "Name: %s", node->funcdecl->name);
-			prlev(state, lev, "Args:");
-			curi = node->funcdecl->args;
-			while(curi && curi->ident) {
-				prlev(state, lev + 1, curi->ident);
-				curi = curi->next;
+			prlev(state, lev, "Params:");
+			if(!node->funcdecl->params) {
+				prlev(state, lev + 1, "<NULL>");
+			} else {
+				prlev(state, lev + 1, "Args:");
+				curi = node->funcdecl->params->args;
+				while(curi && curi->ident) {
+					prlev(state, lev + 2, curi->ident);
+					curi = curi->next;
+				}
+				prlev(state, lev + 1, "ClKeys:");
+				curi = node->funcdecl->params->clkeys;
+				while(curi && curi->ident) {
+					prlev(state, lev + 2, curi->ident);
+					curi = curi->next;
+				}
+				prlev(state, lev + 1, "ClValues:");
+				cure = node->funcdecl->params->clvalues;
+				while(cure && cure->expr) {
+					prex(state, cure->expr, lev + 2);
+					cure = cure->next;
+				}
+				prlev(state, lev + 1, "Rest: %s", node->funcdecl->params->rest);
 			}
 			prlev(state, lev, "Body:");
 			prst(state, node->funcdecl->body, lev + 1);

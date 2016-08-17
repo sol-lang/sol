@@ -204,7 +204,9 @@ None { return NONE; }
 
 "]" { return RBRACKET; }
 
-"(" { return LPAREN; }
+^[ \t]*"(" { return BLPAREN; } /* "Breaking" paren, not allowed to introduce a call_expr */
+
+"(" { return LPAREN; } 
 
 ")" { return RPAREN; }
 

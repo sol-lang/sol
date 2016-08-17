@@ -20,7 +20,7 @@
 %token PLUS MINUS STAR SLASH PERCENT DSTAR BAND BOR BXOR BNOT LAND LOR LNOT
 %token ASSIGN ASSIGNPLUS ASSIGNMINUS ASSIGNSTAR ASSIGNSLASH ASSIGNDSTAR ASSIGNBAND ASSIGNBOR ASSIGNBXOR
 %token EQUAL NEQUAL LESS GREATER LESSEQ GREATEREQ RSHIFT LSHIFT
-%token LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
+%token LBRACE RBRACE BLPAREN LPAREN RPAREN LBRACKET RBRACKET DOT COLON SEMICOLON COMMA POUND
 %token TBANG
 
 %parse-param {stmt_node **program}
@@ -370,28 +370,28 @@ call_expr:
 ;
 
 funcdecl_expr:
-  FUNC IDENT LPAREN ident_list RPAREN stmt_list END {
+  FUNC IDENT any_lparen param_list RPAREN stmt_list END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
 	AS_EX($$)->funcdecl->name = $2;
-	AS_EX($$)->funcdecl->args = $4;
+	AS_EX($$)->funcdecl->params = $4;
 	AS_EX($$)->funcdecl->body = $6;
 }
-| FUNC LPAREN ident_list RPAREN stmt_list END {
+| FUNC any_lparen param_list RPAREN stmt_list END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
 	AS_EX($$)->funcdecl->name = NULL;
-	AS_EX($$)->funcdecl->args = $3;
+	AS_EX($$)->funcdecl->params = $3;
 	AS_EX($$)->funcdecl->body = $5;
 }
-| LAMBDA LPAREN ident_list RPAREN expr END {
+| LAMBDA any_lparen param_list RPAREN expr END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
 	AS_EX($$)->funcdecl->name = NULL;
-	AS_EX($$)->funcdecl->args = $3;
+	AS_EX($$)->funcdecl->params = $3;
 	AS_EX($$)->funcdecl->body = NEW_ST();
 	AS_EX($$)->funcdecl->body->type = ST_RET;
 	AS_EX($$)->funcdecl->body->ret = NEW(ret_node);
@@ -452,7 +452,7 @@ gen_expr:
 ;
 
 paren_expr:
-  LPAREN expr RPAREN { $$ = $2; }
+  any_lparen expr RPAREN { $$ = $2; }
 ;
 
 expr_list:
@@ -493,6 +493,82 @@ ident_list:
 }
 ;
 
+param_list:
+  /*empty*/ { $$ = NULL; }
+| param_list IDENT ASSIGN expr {
+	paramlist_node *pl = $1;
+	identlist_node *curk;
+	exprlist_node *curv;
+	if(!pl) {
+		pl = NEW(paramlist_node);
+		pl->args = NULL;
+		pl->clkeys = NULL;
+		pl->clvalues = NULL;
+		pl->rest = NULL;
+	}
+	if(!pl->clkeys) {
+		pl->clkeys = NEW(identlist_node);
+		curk = pl->clkeys;
+		pl->clvalues = NEW(exprlist_node);
+		curv = pl->clvalues;
+	} else {
+		curk = pl->clkeys;
+		curv = pl->clvalues;
+		while(curk->next) {
+			curk = curk->next;
+			curv = curv->next;
+		}
+		curk->next = NEW(identlist_node);
+		curk = curk->next;
+		curv->next = NEW(exprlist_node);
+		curv = curv->next;
+	}
+	curk->ident = $2;
+	curk->next = NULL;
+	curv->expr = $4;
+	curv->next = NULL;
+	$$ = pl;
+}
+| param_list STAR IDENT {
+	paramlist_node *pl = $1;
+	if(!pl) {
+		pl = NEW(paramlist_node);
+		pl->args = NULL;
+		pl->clkeys = NULL;
+		pl->clvalues = NULL;
+		pl->rest = NULL;
+	}
+	pl-> rest = $3;
+	$$ = pl;
+}
+| param_list IDENT {
+	paramlist_node *pl = $1;
+	identlist_node *cura;
+	if(!pl) {
+		pl = NEW(paramlist_node);
+		pl->args = NULL;
+		pl->clkeys = NULL;
+		pl->clvalues = NULL;
+		pl->rest = NULL;
+	}
+	if(!pl->args) {
+		pl->args = NEW(identlist_node);
+		cura = pl->args;
+	} else {
+		cura = pl->args;
+		while(cura->next) {
+			cura = cura->next;
+		}
+		cura->next = NEW(identlist_node);
+		cura = cura->next;
+	}
+	cura->ident = $2;
+	cura->next = NULL;
+	$$ = pl;
+}
+| param_list COMMA { $$ = $1; }
+;
+
 assoc_list:
   /*empty*/ { $$ = NULL; }
 | assoc_item {
@@ -527,6 +603,11 @@ assoc_item:
 	AS($$, associtem_node)->key->lit->str = $1;
 	AS($$, associtem_node)->value = $3;
 }
+;
+
+any_lparen:
+  LPAREN
+| BLPAREN
 ;
 
 %%

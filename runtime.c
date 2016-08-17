@@ -177,7 +177,7 @@ expr_node *ex_copy(expr_node *old) {
 			} else {
 				new->funcdecl->name = NULL;
 			}
-			new->funcdecl->args = idl_copy(old->funcdecl->args);
+			new->funcdecl->params = pl_copy(old->funcdecl->params);
 			new->funcdecl->body = st_copy(old->funcdecl->body);
 			break;
 
@@ -285,6 +285,17 @@ identlist_node *idl_copy(identlist_node *old) {
 		curo = curo->next;
 	}
 	curn->next = NULL;
+	return new;
+}
+
+paramlist_node *pl_copy(paramlist_node *old) {
+	paramlist_node *new;
+	if(!old) return NULL;
+	new = NEW(paramlist_node);
+	new->args = idl_copy(old->args);
+	new->clkeys = idl_copy(old->clkeys);
+	new->clvalues = exl_copy(old->clvalues);
+	new->rest = old->rest ? strdup(old->rest) : NULL;
 	return new;
 }
 
@@ -401,7 +412,7 @@ void ex_free(expr_node *expr) {
 		case EX_FUNCDECL:
 			free(expr->funcdecl->name);
 			st_free(expr->funcdecl->body);
-			idl_free(expr->funcdecl->args);
+			pl_free(expr->funcdecl->params);
 			free(expr->funcdecl);
 			break;
 
@@ -466,11 +477,20 @@ void idl_free(identlist_node *list) {
 	}
 }
 
+void pl_free(paramlist_node *list) {
+	if(!list) return;
+	idl_free(list->args);
+	idl_free(list->clkeys);
+	exl_free(list->clvalues);
+	if(list->rest) free(list->rest);
+}
+
 #define ERR_CHECK(state) do { if(sol_has_error(state)) longjmp(jmp, 1); } while(0)
 sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 	sol_object_t *res, *left, *right, *lint, *rint, *value, *list, *vint, *iter, *item;
 	exprlist_node *cure;
 	assoclist_node *cura;
+	identlist_node *curi;
 	if(!expr) {
 		return sol_set_error_string(state, "Evaluate NULL expression");
 	}
@@ -761,8 +781,19 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			break;
 
 		case EX_FUNCDECL:
-			res = sol_new_func(state, expr->funcdecl->args, expr->funcdecl->body, expr->funcdecl->name);
+			res = sol_new_func(state, expr->funcdecl->params ? expr->funcdecl->params->args : NULL, expr->funcdecl->body, expr->funcdecl->name);
 			ERR_CHECK(state);
+			if(expr->funcdecl->params) {
+				res->rest = expr->funcdecl->params->rest ? strdup(expr->funcdecl->params->rest) : NULL;
+				curi = expr->funcdecl->params->clkeys;
+				cure = expr->funcdecl->params->clvalues;
+				while(curi) {
+					sol_map_borrow_name(state, res->closure, curi->ident, sol_eval_inner(state, cure->expr, jmp));
+					ERR_CHECK(state);
+					curi = curi->next;
+					cure = cure->next;
+				}
+			}
 			if(expr->funcdecl->name) {
 				sol_state_assign_l_name(state, expr->funcdecl->name, res);
 				ERR_CHECK(state);
@@ -821,7 +852,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 				iter = CALL_METHOD(state, value, iter, list);
 				sol_obj_free(list);
 			} else {
-				iter = value;
+				iter = sol_incref(value);
 			}
 			if(!iter->ops->call || iter->ops->call == sol_f_not_impl) {
 				sol_obj_free(sol_set_error_string(state, "Iterate over non-iterable"));
@@ -832,12 +863,12 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			sol_list_insert(state, list, 1, value);
 			sol_list_insert(state, list, 2, sol_new_map(state));
 			item = CALL_METHOD(state, iter, call, list);
-			while(item != state->StopIteration) {
+			while(item != state->None) {
 				sol_state_assign_l_name(state, expr->iter->var, item);
 				sol_exec(state, expr->iter->loop);
 				sol_obj_free(item);
 				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
-					item = sol_incref(state->StopIteration);
+					item = sol_incref(state->None);
 					continue;
 				}
 				state->sflag = SF_NORMAL;
@@ -937,6 +968,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *res, *scope, *value, *key;
 	identlist_node *curi;
 	dsl_seq_iter *iter;
+	int argcnt = 0;
 	iter = dsl_new_seq_iter(args->seq);
 	if(!args || dsl_seq_iter_is_invalid(iter) || sol_is_none(state, args)) {
 		printf("WARNING: No parameters to function call (expecting function)\n");
@@ -964,6 +996,14 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 			}
 			sol_obj_free(key);
 			curi = curi->next;
+			argcnt++;
+		}
+	}
+	if(value->rest) {
+		if(argcnt < sol_list_len(state, args) - 1) {
+			sol_map_borrow_name(state, scope, value->rest, sol_list_sublist(state, args, argcnt + 1));
+		} else {
+			sol_map_borrow_name(state, scope, value->rest, sol_new_list(state));
 		}
 	}
 	if(value->fname) {

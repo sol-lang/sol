@@ -52,9 +52,6 @@ int sol_state_init(sol_state_t *state) {
 	if(!(state->OutOfMemory = sol_new_singlet(state, "OutOfMemory"))) {
 		goto cleanup;
 	}
-	if(!(state->StopIteration = sol_new_singlet(state, "StopIteration"))) {
-		goto cleanup;
-	}
 
 	// We can now use the normal error reporting mechanism, now
 	// that errors are distinguishable. Set that up now.
@@ -234,13 +231,14 @@ int sol_state_init(sol_state_t *state) {
 	state->stdout = sol_new_stream(state, stdout, MODE_WRITE);
 	state->stderr = sol_new_stream(state, stderr, MODE_WRITE);
 
-	// I'm going to buffer all of these together because I can.
+	// NB: None is actually a keyword in the language--it doesn't need to be a
+	// global (see parser.y)
 	sol_map_borrow_name(state, globals, "OutOfMemory", state->OutOfMemory);
-	sol_map_borrow_name(state, globals, "StopIteration", state->StopIteration);
 	sol_map_borrow_name(state, globals, "toint", sol_new_cfunc(state, sol_f_toint));
 	sol_map_borrow_name(state, globals, "tofloat", sol_new_cfunc(state, sol_f_tofloat));
 	sol_map_borrow_name(state, globals, "tostring", sol_new_cfunc(state, sol_f_tostring));
 	sol_map_borrow_name(state, globals, "try", sol_new_cfunc(state, sol_f_try));
+	sol_map_borrow_name(state, globals, "apply", sol_new_cfunc(state, sol_f_apply));
 	sol_map_borrow_name(state, globals, "error", sol_new_cfunc(state, sol_f_error));
 	sol_map_borrow_name(state, globals, "type", sol_new_cfunc(state, sol_f_type));
 	sol_map_borrow_name(state, globals, "prepr", sol_new_cfunc(state, sol_f_prepr));
@@ -507,7 +505,6 @@ int sol_state_init(sol_state_t *state) {
 cleanup:
 	sol_obj_free(state->None);
 	sol_obj_free(state->OutOfMemory);
-	sol_obj_free(state->StopIteration);
 	return 0;
 }
 
@@ -517,7 +514,6 @@ void sol_state_cleanup(sol_state_t *state) {
 	sol_obj_free(state->error);
 	sol_obj_free(state->None);
 	sol_obj_free(state->OutOfMemory);
-	sol_obj_free(state->StopIteration);
 	sol_obj_free(state->stdin);
 	sol_obj_free(state->stdout);
 	sol_obj_free(state->stderr);

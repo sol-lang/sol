@@ -1,4 +1,4 @@
-func assert(x, msg)
+func assert(x, msg, _test_count = 0)
 	_test_count += 1
 	io.stdout:write('Test ' + tostring(_test_count) + ': ' + msg)
 	if !x then
@@ -6,7 +6,6 @@ func assert(x, msg)
 	end
 	print("...passed")
 end
-assert.closure._test_count = 0
 
 func assert_eq(x, y, msg)
 	assert(x == y, "equality: " + tostring(x) + " == " + tostring(y) + ": " + msg)

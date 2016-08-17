@@ -126,6 +126,17 @@ sol_object_t *sol_f_try(sol_state_t *state, sol_object_t *args) {
 	return ls;
 }
 
+sol_object_t *sol_f_apply(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *func = sol_list_get_index(state, args, 0), *arglist = sol_list_get_index(state, args, 1), *rest = sol_list_sublist(state, args, 2);
+	sol_list_append(state, rest, arglist);
+	sol_obj_free(arglist);
+	sol_list_insert(state, rest, 0, func);
+	sol_object_t *res = CALL_METHOD(state, func, call, rest);
+	sol_obj_free(rest);
+	sol_obj_free(func);
+	return res;
+}
+
 sol_object_t *sol_f_error(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *arg = sol_list_get_index(state, args, 0), *res;
 	res = sol_set_error(state, arg);
@@ -522,7 +533,7 @@ sol_object_t *sol_f_iter_str(sol_state_t *state, sol_object_t *args) {
 		sol_obj_free(index);
 		sol_obj_free(obj);
 		sol_obj_free(local);
-		return sol_incref(state->StopIteration);
+		return sol_incref(state->None);
 	}
 	temp[0] = obj->str[((size_t) index->buffer)];
 	res = sol_new_string(state, temp);
@@ -546,7 +557,7 @@ sol_object_t *sol_f_iter_list(sol_state_t *state, sol_object_t *args) {
 		sol_obj_free(index);
 		sol_obj_free(obj);
 		sol_obj_free(local);
-		return sol_incref(state->StopIteration);
+		return sol_incref(state->None);
 	}
 	res = sol_incref(AS_OBJ(dsl_seq_iter_at(index->buffer)));
 	dsl_seq_iter_next(index->buffer);
@@ -568,7 +579,7 @@ sol_object_t *sol_f_iter_map(sol_state_t *state, sol_object_t *args) {
 		sol_obj_free(index);
 		sol_obj_free(obj);
 		sol_obj_free(local);
-		return sol_incref(state->StopIteration);
+		return sol_incref(state->None);
 	}
 	res = sol_incref(AS_OBJ(dsl_seq_iter_at(index->buffer))->key);
 	dsl_seq_iter_next(index->buffer);
@@ -1773,7 +1784,7 @@ sol_object_t *sol_f_astnode_index(sol_state_t *state, sol_object_t *args) {
 						res = sol_new_string(state, (expr->funcdecl->name ? expr->funcdecl->name : ""));
 					} else if(sol_string_eq(state, str, "args")) {
 						res = sol_new_list(state);
-						curi = expr->funcdecl->args;
+						curi = expr->funcdecl->params ? expr->funcdecl->params->args : NULL;
 						while(curi) {
 							sol_list_insert(state, res, i++, sol_new_string(state, curi->ident));
 							curi = curi->next;
@@ -2117,11 +2128,18 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 						expr->funcdecl->name = strdup(sval->str);
 						sol_obj_free(sval);
 					} else if(sol_string_eq(state, str, "args") && sol_is_list(val)) {
-						idl_free(expr->funcdecl->args);
+						if(!expr->funcdecl->params) {
+							expr->funcdecl->params = malloc(sizeof(paramlist_node));
+							expr->funcdecl->params->args = NULL;
+							expr->funcdecl->params->clkeys = NULL;
+							expr->funcdecl->params->clvalues = NULL;
+							expr->funcdecl->params->rest = NULL;
+						}
+						idl_free(expr->funcdecl->params->args);
 						len = sol_list_len(state, val);
 						if(len > 0) {
 							curi = malloc(sizeof(identlist_node));
-							expr->funcdecl->args = curi;
+							expr->funcdecl->params->args = curi;
 							for(i = 0; i < len; i++) {
 								sval = sol_cast_string(state, sol_list_get_index(state, val, i));
 								curi->ident = strdup(sval->str);
@@ -2130,15 +2148,15 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *state, sol_object_t *args) {
 								curi = malloc(sizeof(identlist_node));
 								previ->next = curi;
 							}
-							if(expr->funcdecl->args == curi) {
-								expr->funcdecl->args = NULL;
+							if(expr->funcdecl->params->args == curi) {
+								expr->funcdecl->params->args = NULL;
 							}
 							free(curi);
 							if(previ) {
 								previ->next = NULL;
 							}
 						} else {
-							expr->funcdecl->args = NULL;
+							expr->funcdecl->params->args = NULL;
 						}
 					} else if(sol_string_eq(state, str, "body") && sol_is_aststmt(val)) {
 						st_free(expr->funcdecl->body);

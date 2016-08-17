@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define VERSION "0.2a3"
+#define VERSION "0.3a0"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -20,7 +20,7 @@
  *
  * This value is guaranteed to only monotonically increase by revision.
  */
-#define HEXVER 0x0002A03
+#define HEXVER 0x0003A00
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */
@@ -156,7 +156,7 @@ typedef struct {
  */
 
 typedef enum {
-	/** The singlet type--the type of None, as well as StopIteration and OutOfMemory. It is also the "default" type. */
+	/** The singlet type--the type of None, as well as OutOfMemory. It is also the "default" type. */
 	SOL_SINGLET,
 	/** The integer type, implemented as a long. */
 	SOL_INTEGER,
@@ -332,6 +332,8 @@ typedef struct sol_tag_object_t {
 			struct sol_tag_object_t *udata;
 			/** For `SOL_FUNCTION`, the name of the function if it was not declared anonymously (otherwise NULL). */
 			char *fname;
+			/* For `SOL_FUNCTION`, the name of an argument that receives extra parameters as a list (otherwise NULL). */
+			char *rest;
 		};
 		/** For `SOL_CFUNCTION`, the C function pointer. */
 		sol_cfunc_t cfunc;
@@ -390,9 +392,8 @@ typedef struct sol_tag_state_t {
 	sol_object_t *stderr; ///< Standard error stream object (type `SOL_STREAM`)
 	sol_object_t *None; ///< The all-important `None` object
 	sol_object_t *OutOfMemory; ///< The semi-important `OutOfMemory` object
-	sol_object_t *StopIteration; ///< The somewhat-important `StopIteration` object
 	sol_ops_t NullOps; ///< Basic, initialized operations. Not used by any extant object type.
-	sol_ops_t SingletOps; ///< Operations on singlets (`None`, `OutOfMemory`, `StopIteration`, etc.)
+	sol_ops_t SingletOps; ///< Operations on singlets (`None`, `OutOfMemory`, etc.)
 	sol_ops_t IntOps; ///< Operations on integers
 	sol_ops_t FloatOps; ///< Operations on floats
 	sol_ops_t StringOps; ///< Operations on strings
@@ -426,7 +427,7 @@ typedef struct sol_tag_state_t {
  * This should be called once (and only once!) for every state; it does the important
  * work of ensuring that the state is ready to execute code, including:
  * 
- * - Creating the initial singlet values `None`, `OutOfMemory`, and `StopIteration`,
+ * - Creating the initial singlet values `None` and `OutOfMemory`,
  * - Creating and populating the operations on all internally-defined object types.
  * - Initializing all built-in modules and methods.
  * - Running any "init.sol" files.
@@ -676,6 +677,8 @@ sol_object_t *sol_f_tofloat(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_tostring(sol_state_t *, sol_object_t *);
 /// Built-in function try
 sol_object_t *sol_f_try(sol_state_t *, sol_object_t *);
+/// Built-in function apply
+sol_object_t *sol_f_apply(sol_state_t *, sol_object_t *);
 /// Built-in function error
 sol_object_t *sol_f_error(sol_state_t *, sol_object_t *);
 /// Built-in function type
@@ -871,7 +874,12 @@ sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
  * internal routines are special-cased for certain singlets.
  */
 sol_object_t *sol_new_singlet(sol_state_t *, const char *);
-/** Creates a new integer object with the specified value. */
+/** Creates a new integer object with the specified value.
+ *
+ * If `icache_bypass` is off and this value is within [`SOL_ICACHE_MIN`,
+ * `SOL_ICACHE_MAX`] (as set at compile time), a new reference to a cached
+ * integer in the state is returned instead.
+ */
 sol_object_t *sol_new_int(sol_state_t *, long);
 /** Creates a new float object with the specified value. */
 sol_object_t *sol_new_float(sol_state_t *, double);
@@ -924,7 +932,7 @@ sol_object_t *sol_list_copy(sol_state_t *, sol_object_t *);
 /** Internal routine to return a new Sol list equivalent to its input up to the
  *   first n elements. */
 sol_object_t *sol_list_truncate(sol_state_t *, sol_object_t *, int);
-/** Utility routine to insert at the end of a Sol list. */
+/** Utility routine to concatenate Sol lists. */
 void sol_list_append(sol_state_t *, sol_object_t *, sol_object_t *);
 /** Utility macro to insert an object at the beginning of a Sol list. */
 #define sol_list_push(st, ls, obj) sol_list_insert(st, ls, 0, obj);

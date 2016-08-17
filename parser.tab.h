@@ -95,16 +95,17 @@ extern int yydebug;
     LSHIFT = 305,
     LBRACE = 306,
     RBRACE = 307,
-    LPAREN = 308,
-    RPAREN = 309,
-    LBRACKET = 310,
-    RBRACKET = 311,
-    DOT = 312,
-    COLON = 313,
-    SEMICOLON = 314,
-    COMMA = 315,
-    POUND = 316,
-    TBANG = 317
+    BLPAREN = 308,
+    LPAREN = 309,
+    RPAREN = 310,
+    LBRACKET = 311,
+    RBRACKET = 312,
+    DOT = 313,
+    COLON = 314,
+    SEMICOLON = 315,
+    COMMA = 316,
+    POUND = 317,
+    TBANG = 318
   };
 #endif
 

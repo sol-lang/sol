@@ -21,31 +21,30 @@ while a < 10 do
 end
 
 -- "Pythonic" for loops; any expression can be used, so long as it
--- returns a function that will be called until it returns StopIteration
+-- returns a function that will be called until it returns None
 for i in range(10) do print(i) end -- Note Lua-ish keyword delimiting
 
 -- "func" seems like a good compromise between "def" and "function" :D
 -- (This is a currying add function)
 func outer(a)
-  func inner(b)
+  return func inner(b, a=a)
     return a+b
   end
-  inner.closure.a = a
-  return inner
 end
+
+-- Alternatively...
+outer = lambda(a) lambda(b, a=a) a + b end end
 
 -- (...and this is an iterator)
 func count(j)
-  inner = func () -- Note: function definitions are expressions, like in Lua
+  inner = func (i = 0, max = j)  -- Function definitions are expressions, like in Lua
     if i >= max then
-      return StopIteration
+      return  -- If no value is given, None is implied
     else
       i += 1
       return i - 1
     end
   end
-  inner.closure.i = 0
-  inner.closure.max = j
   return inner
 end
 
@@ -59,7 +58,7 @@ print({a=1, b=2, ["c"]=3, [4]=5, ["with more spaces"]={health=100, speed=2}})
 object = {__index = func(obj, idx) print("Index", obj, "with", idx); return idx end,
           __setindex = func(obj, idx, val) print("Set index", idx, "of", obj, "to", val) end,
           __call = func(obj, arg1, arg2) print("Called", obj, "with args", arg1, arg2); return arg1+arg2 end}
--- No metatables, but __index can be assigned to another map, which has nearly the same effect :D
+-- No metatables, but __index can be assigned to another map, which has nearly the same effect
 
 -- Lua-ish error handling
 func bad(x)
@@ -68,10 +67,11 @@ func bad(x)
 end
 
 res = try(bad, {}) -- Returns 1 (or true), "thing"
-res = try(bad, None) -- Reurns 0 (or false), "Undefined method" -- you can't index None :P
+res = try(bad, None) -- Reurns 0 (or false), "Undefined method" -- you can't index None
 res = try(bad) -- Also fails; unbound arguments are assigned to None by default
+res = try(error, 1234) -- Fails, returning [0, 1234] -- errors can be any object
 
--- Full suppport for self-modifying code, and invoking the compiler :D
+-- Full suppport for self-modifying code, and invoking the compiler
 func a() return 0 end
 func b() return 2 end
 
@@ -83,7 +83,7 @@ b.stmt = temp
 code = parse('print("Hi!"); return 4')
 a.stmt = code
 b.stmt = code
--- a and b now return 4
+-- a and b now return 4 (and print "Hi!")
 
 parse('print("Good day!")')() -- Does the thing; shortcut is "exec"
 q = parse('8 + 13 * 2').stmtlist[0].expr() -- Returns the value (should be...34?); shortcut "eval"
@@ -97,7 +97,7 @@ That's a really brief taste; you can look at the `test.sol` file for a larger co
 Buiding/Installation
 --------------------
 
-First off, *you should clone this repository with --recurive* if you want to get the submodules in one go. If you've already cloned it, don't worry; just run this:
+First off, *you should clone this repository with --recursive* if you want to get the submodules in one go. If you've already cloned it, don't worry; just run this:
 
 ```
 git submodule init
@@ -106,13 +106,7 @@ git submodule update
 
 This should pull in the requisite build dependencies. (For more on this, see git's documentation on [Cloning a Project with Submodules](http://git-scm.com/book/en/v2/Git-Tools-Submodules#Cloning-a-Project-with-Submodules).)
 
-Because makefiles aren't hipster enough, the build system for Sol presently consists of exclusively .sh files, and it's presently hardcoded to use gcc, and include debugging symbols (this will be fixed eventually). If you're on any POSIX-y platform, you should be able to clone this repo and run:
-
-    ./build.sh
-    
-This should build the executable runtime `sol` in the working directory (it is explicitly ignored, and won't be committed to the repo).
-
-If, at any time, you change the grammar definitions (`tokenizer.lex`, `parser.y`), you will need to run `./buildgrammar.sh` first. This will build the appropriate parser and tokenizer C files, which will be built into the executable. (Building these files will require Flex and Bison; consult your platform's documentation on acquiring them.)
+A typical `make` should suffice to build the project. There is no `make install` yet, as there's no agreed-upon location for its support files. The executable runtime `sol` should be in the working directory (it is explicitly ignored, and won't be committed to the repo).
 
 Running
 -------
@@ -138,7 +132,9 @@ Todo
 
 Most of what needs to be done is addressing these issues:
 
-**Sol is a mess.** At present, there are numerous memory leaks (as checked with valgrind) due to some particularly relaxed refcount handling, as well as problems with the parse trees containing pointer clones, causing double frees when trying to free the trees proper (which I don't do because crashes--there goes several kilobytes of memory already...). The objects themselves are a bit non-optimal, just as well; a new integer is created every time one needs to be returned, such as during every arithmetic operation, even if they're transient (such as partial evaluations of large expressions). The map is especially abhorrent--indexing it does a linear scan and calls the `cmp` operation on each key. A `hash` operation will probably be implemented to help with this.
+**Sol leaks memory.** As confirmed with Valgrind (running memcheck), a normal Sol run loses some objects. A great deal of work has been invested in finding and fixing these bugs, but they remain elusive. If you have any insight into something which causes Sol to leak, please file an issue!
+
+**Sol is slow.** Sol pressures the heap pretty heavily by creating a new object ("returning a new reference") for most operations. At least one bottleneck was addressed with the "icache" (integer cache), which speeds up comparisons significantly, but Sol nonetheless rapidly creates, destroys, and copies strings in very critical execution paths. The map implementation is particularly egregious, and is currently an associative array.
 
 **The API is unstable.** There will definitely be some changes to the API, mostly to *help* with integration. At present, some operations on behalf of Sol embedders are a little messy and require intrinsic knowledge of the language specifics. The refcounting scheme, as mentioned previously, requires about four lines of code per function that should be a one-liner, for example.
 
@@ -153,16 +149,6 @@ After those (but more practically, with them), the following will be coming:
 **Type registration.** Currently the `sol_objtype_t` enumeration contains all the types that Sol defines intrinsically, though most of the code only cares about which operations are supported. Embedders cannot specify additional members of this enumeration, borrowing the `SOL_CDATA` type instead. This may be fixed later.
 
 **Code consolidation and refactoring.** There are quite a few instances of repetitive code that need to be addressed, and can be refactored out into functions in their own right. This should also improve usability.
-
-**Redefinition of print.** `ob_print` is a debug utility meant to be used from GDB, so it intentionally was not designed with state access in mind. `sol_ops_t.tostring` was always intended to be what generated object representations, and these need to be updated to match how `ob_print` does it (but better).
-
-**Proper stream/file support.** Currently, printing happens to `stdout` implicitly through `printf`. By adding an object abstraction layer, Sol code can redirect output (like Python's `sys.stdout`). This will be especially useful in environments where `stdout` is invisible or obscured, like Windows GUI applications.
-
-**Optimization.** As mentioned above, a few critical operations are quite slow. This will probably require some higher-caliber data structures than the ones I have now, most of which will probably be relegated to DSL for code reuse.
-
-**Makefiles.** Being a non-conformist is fun, but will probably hurt in the long run :P
-
-**Documentation.** More thorough documentation will be coming soon, I promise.
 
 Contributing
 ------------

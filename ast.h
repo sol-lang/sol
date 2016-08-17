@@ -129,8 +129,15 @@ typedef struct tag_identlist_node {
 } identlist_node;
 
 typedef struct {
-	char *name;
 	identlist_node *args;
+	identlist_node *clkeys;
+	exprlist_node *clvalues;
+	char *rest;
+} paramlist_node;
+
+typedef struct {
+	char *name;
+	paramlist_node *params;
 	stmt_node *body;
 } funcdecl_node;
 
@@ -257,6 +264,7 @@ stmtlist_node *stl_copy(stmtlist_node *);
 exprlist_node *exl_copy(exprlist_node *);
 assoclist_node *asl_copy(assoclist_node *);
 identlist_node *idl_copy(identlist_node *);
+paramlist_node *pl_copy(paramlist_node *);
 
 void st_free(stmt_node *);
 void ex_free(expr_node *);
@@ -264,6 +272,7 @@ void stl_free(stmtlist_node *);
 void exl_free(exprlist_node *);
 void asl_free(assoclist_node *);
 void idl_free(identlist_node *);
+void pl_free(paramlist_node *);
 
 void st_print(sol_state_t *, stmt_node *);
 void ex_print(sol_state_t *, expr_node *);
