@@ -1,6 +1,9 @@
 sol
 ===
 
+- **Stable Repo**: https://github.com/sol-lang/sol
+- **Dev Repo**: https://gitlab.cosi.clarkson.edu/grissess/sol-lang
+
 Sol a scripting language (whose name is subject to change) that aims to take the best of Lua and Python, and look a little bit like Javascript in the process :) . Sol's most outstanding features include:
 
 * A rather lightweight, [mostly] re-entrant, multi-user runtime that is in the process of being optimized and made cross-platform.

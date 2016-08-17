@@ -21,7 +21,7 @@ test_boot:
     stage: test
     script:
         - make
-        - ./sol r programs/test.sol | tee test_out.txt
+        - ./sol r programs/test.sol
 
 all_tests:
     stage: test
