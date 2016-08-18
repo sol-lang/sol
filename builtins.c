@@ -1489,7 +1489,11 @@ sol_object_t *sol_f_func_index(sol_state_t *state, sol_object_t *args) {
 		res = sol_map_get(state, func->udata, key);
 	} else {
 		if(sol_string_eq(state, key, "name")) {
-			res = sol_new_string(state, func->fname);
+			if(func->fname) {
+				res = sol_new_string(state, func->fname);
+			} else {
+				res = sol_incref(state->None);
+			}
 		} else if(sol_string_eq(state, key, "closure")) {
 			res = sol_incref(func->closure);
 		} else if(sol_string_eq(state, key, "udata")) {
@@ -1503,6 +1507,14 @@ sol_object_t *sol_f_func_index(sol_state_t *state, sol_object_t *args) {
 				sol_list_insert(state, res, i++, sol_new_string(state, curi->ident));
 				curi = curi->next;
 			}
+		} else if(sol_string_eq(state, key, "rest")) {
+			if(func->rest) {
+				res = sol_new_string(state, func->rest);
+			} else {
+				res = sol_incref(state->None);
+			}
+		} else if(sol_string_eq(state, key, "annos")) {
+			res = sol_incref(func->annos);
 		} else {
 			res = sol_map_get(state, func->udata, key);
 		}
@@ -1549,6 +1561,12 @@ sol_object_t *sol_f_func_setindex(sol_state_t *state, sol_object_t *args) {
 		prev->next = NULL;
 		if(cur == func->args) func->args = NULL;
 		free(cur);
+	} else if(sol_string_eq(state, key, "rest") && sol_is_string(val)) {
+		free(func->rest);
+		func->rest = strdup(val->str);
+	} else if(sol_string_eq(state, key, "annos") && sol_is_map(val)) {
+		sol_obj_free(func->annos);
+		func->annos = sol_incref(val);
 	} else {
 		sol_map_set(state, func->udata, key, val);
 	}

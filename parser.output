@@ -5,10 +5,10 @@ Nonterminals useless in grammar
 
 Rules useless in grammar
 
-  111 ident_list: %empty
-  112           | IDENT
-  113           | ident_list COMMA
-  114           | ident_list IDENT
+  113 ident_list: %empty
+  114           | IDENT
+  115           | ident_list COMMA
+  116           | ident_list IDENT
 
 
 State 9 conflicts: 18 shift/reduce
@@ -70,6 +70,7 @@ State 167 conflicts: 2 shift/reduce
 State 178 conflicts: 1 shift/reduce
 State 182 conflicts: 18 shift/reduce
 State 200 conflicts: 1 shift/reduce
+State 203 conflicts: 1 shift/reduce
 
 
 Grammar
@@ -165,9 +166,9 @@ Grammar
    71          | call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | funcdecl_expr
 
-   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | FUNC any_lparen param_list RPAREN stmt_list END
-   75              | LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | index_expr
 
    77 index_expr: expr LBRACKET expr RBRACKET
@@ -201,7 +202,7 @@ Grammar
    98 param_list: %empty
    99           | param_list IDENT ASSIGN expr
   100           | param_list STAR IDENT
-  101           | param_list IDENT
+  101           | param_list IDENT maybe_anno
   102           | param_list COMMA
 
   103 assoc_list: %empty
@@ -214,6 +215,9 @@ Grammar
 
   109 any_lparen: LPAREN
   110           | BLPAREN
+
+  111 maybe_anno: COLON expr
+  112           | %empty
 
 
 Terminals, with rules where they appear
@@ -277,7 +281,7 @@ RPAREN (310) 70 71 73 74 75 93
 LBRACKET (311) 77 80 90 107
 RBRACKET (312) 77 80 90 107
 DOT (313) 78 81
-COLON (314) 71
+COLON (314) 71 111
 SEMICOLON (315) 11
 COMMA (316) 96 102 105
 POUND (317) 68
@@ -297,7 +301,7 @@ stmt (67)
 expr (68)
     on left: 12, on right: 4 5 8 10 13 14 15 16 18 19 20 21 22 23 24
     25 26 27 28 29 30 31 32 33 34 35 75 77 78 80 81 93 95 97 99 107
-    108
+    108 111
 control_expr (69)
     on left: 13 14 15 16 17, on right: 12
 assign_expr (70)
@@ -349,6 +353,8 @@ assoc_item (92)
     on left: 107 108, on right: 104 106
 any_lparen (93)
     on left: 109 110, on right: 73 74 75 93
+maybe_anno (94)
+    on left: 111 112, on right: 73 74 75 101
 
 
 State 0
@@ -444,9 +450,9 @@ State 2
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -589,9 +595,9 @@ State 4
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -720,9 +726,9 @@ State 5
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -796,8 +802,8 @@ State 6
 
 State 7
 
-   73 funcdecl_expr: FUNC . IDENT any_lparen param_list RPAREN stmt_list END
-   74              | FUNC . any_lparen param_list RPAREN stmt_list END
+   73 funcdecl_expr: FUNC . IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | FUNC . any_lparen param_list RPAREN maybe_anno stmt_list END
   109 any_lparen: . LPAREN
   110           | . BLPAREN
 
@@ -810,7 +816,7 @@ State 7
 
 State 8
 
-   75 funcdecl_expr: LAMBDA . any_lparen param_list RPAREN expr END
+   75 funcdecl_expr: LAMBDA . any_lparen param_list RPAREN maybe_anno expr END
   109 any_lparen: . LPAREN
   110           | . BLPAREN
 
@@ -885,9 +891,9 @@ State 9
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1037,9 +1043,9 @@ State 10
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1189,9 +1195,9 @@ State 11
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1401,9 +1407,9 @@ State 18
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1532,9 +1538,9 @@ State 19
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1697,9 +1703,9 @@ State 23
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -1854,9 +1860,9 @@ State 24
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2218,9 +2224,9 @@ State 47
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2322,7 +2328,7 @@ State 50
 
 State 51
 
-   73 funcdecl_expr: FUNC IDENT . any_lparen param_list RPAREN stmt_list END
+   73 funcdecl_expr: FUNC IDENT . any_lparen param_list RPAREN maybe_anno stmt_list END
   109 any_lparen: . LPAREN
   110           | . BLPAREN
 
@@ -2334,11 +2340,11 @@ State 51
 
 State 52
 
-   74 funcdecl_expr: FUNC any_lparen . param_list RPAREN stmt_list END
+   74 funcdecl_expr: FUNC any_lparen . param_list RPAREN maybe_anno stmt_list END
    98 param_list: . %empty
    99           | . param_list IDENT ASSIGN expr
   100           | . param_list STAR IDENT
-  101           | . param_list IDENT
+  101           | . param_list IDENT maybe_anno
   102           | . param_list COMMA
 
     $default  reduce using rule 98 (param_list)
@@ -2348,11 +2354,11 @@ State 52
 
 State 53
 
-   75 funcdecl_expr: LAMBDA any_lparen . param_list RPAREN expr END
+   75 funcdecl_expr: LAMBDA any_lparen . param_list RPAREN maybe_anno expr END
    98 param_list: . %empty
    99           | . param_list IDENT ASSIGN expr
   100           | . param_list STAR IDENT
-  101           | . param_list IDENT
+  101           | . param_list IDENT maybe_anno
   102           | . param_list COMMA
 
     $default  reduce using rule 98 (param_list)
@@ -2469,9 +2475,9 @@ State 57
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2600,9 +2606,9 @@ State 58
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2731,9 +2737,9 @@ State 59
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2862,9 +2868,9 @@ State 60
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -2993,9 +2999,9 @@ State 61
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3124,9 +3130,9 @@ State 62
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3255,9 +3261,9 @@ State 63
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3386,9 +3392,9 @@ State 64
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3517,9 +3523,9 @@ State 65
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3740,9 +3746,9 @@ State 71
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -3909,9 +3915,9 @@ State 75
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4103,9 +4109,9 @@ State 78
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    77           | expr LBRACKET . expr RBRACKET
@@ -4244,9 +4250,9 @@ State 80
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4375,9 +4381,9 @@ State 81
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4506,9 +4512,9 @@ State 82
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4637,9 +4643,9 @@ State 83
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4768,9 +4774,9 @@ State 84
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -4899,9 +4905,9 @@ State 85
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5030,9 +5036,9 @@ State 86
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5161,9 +5167,9 @@ State 87
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5292,9 +5298,9 @@ State 88
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5423,9 +5429,9 @@ State 89
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5554,9 +5560,9 @@ State 90
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5685,9 +5691,9 @@ State 91
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5816,9 +5822,9 @@ State 92
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -5947,9 +5953,9 @@ State 93
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6078,9 +6084,9 @@ State 94
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6209,9 +6215,9 @@ State 95
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6340,9 +6346,9 @@ State 96
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6471,9 +6477,9 @@ State 97
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6602,9 +6608,9 @@ State 98
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6733,9 +6739,9 @@ State 99
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -6864,9 +6870,9 @@ State 100
    70          | call_expr LPAREN . expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7027,9 +7033,9 @@ State 102
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7158,9 +7164,9 @@ State 103
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7289,9 +7295,9 @@ State 104
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7420,9 +7426,9 @@ State 105
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7551,9 +7557,9 @@ State 106
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7682,9 +7688,9 @@ State 107
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7813,9 +7819,9 @@ State 108
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -7944,9 +7950,9 @@ State 109
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -8075,9 +8081,9 @@ State 110
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -8242,9 +8248,9 @@ State 114
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -8311,11 +8317,11 @@ State 114
 
 State 115
 
-   73 funcdecl_expr: FUNC IDENT any_lparen . param_list RPAREN stmt_list END
+   73 funcdecl_expr: FUNC IDENT any_lparen . param_list RPAREN maybe_anno stmt_list END
    98 param_list: . %empty
    99           | . param_list IDENT ASSIGN expr
   100           | . param_list STAR IDENT
-  101           | . param_list IDENT
+  101           | . param_list IDENT maybe_anno
   102           | . param_list COMMA
 
     $default  reduce using rule 98 (param_list)
@@ -8325,10 +8331,10 @@ State 115
 
 State 116
 
-   74 funcdecl_expr: FUNC any_lparen param_list . RPAREN stmt_list END
+   74 funcdecl_expr: FUNC any_lparen param_list . RPAREN maybe_anno stmt_list END
    99 param_list: param_list . IDENT ASSIGN expr
   100           | param_list . STAR IDENT
-  101           | param_list . IDENT
+  101           | param_list . IDENT maybe_anno
   102           | param_list . COMMA
 
     IDENT   shift, and go to state 173
@@ -8339,10 +8345,10 @@ State 116
 
 State 117
 
-   75 funcdecl_expr: LAMBDA any_lparen param_list . RPAREN expr END
+   75 funcdecl_expr: LAMBDA any_lparen param_list . RPAREN maybe_anno expr END
    99 param_list: param_list . IDENT ASSIGN expr
   100           | param_list . STAR IDENT
-  101           | param_list . IDENT
+  101           | param_list . IDENT maybe_anno
   102           | param_list . COMMA
 
     IDENT   shift, and go to state 173
@@ -8558,9 +8564,9 @@ State 127
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -9481,9 +9487,9 @@ State 157
    70          | call_expr LPAREN expr_list . RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -9784,9 +9790,9 @@ State 169
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -9930,9 +9936,9 @@ State 170
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -10017,10 +10023,10 @@ State 171
 
 State 172
 
-   73 funcdecl_expr: FUNC IDENT any_lparen param_list . RPAREN stmt_list END
+   73 funcdecl_expr: FUNC IDENT any_lparen param_list . RPAREN maybe_anno stmt_list END
    99 param_list: param_list . IDENT ASSIGN expr
   100           | param_list . STAR IDENT
-  101           | param_list . IDENT
+  101           | param_list . IDENT maybe_anno
   102           | param_list . COMMA
 
     IDENT   shift, and go to state 173
@@ -10032,29 +10038,36 @@ State 172
 State 173
 
    99 param_list: param_list IDENT . ASSIGN expr
-  101           | param_list IDENT .  [IDENT, STAR, RPAREN, COMMA]
+  101           | param_list IDENT . maybe_anno
+  111 maybe_anno: . COLON expr
+  112           | . %empty  [IDENT, STAR, RPAREN, COMMA]
 
     ASSIGN  shift, and go to state 188
+    COLON   shift, and go to state 189
 
-    $default  reduce using rule 101 (param_list)
+    $default  reduce using rule 112 (maybe_anno)
+
+    maybe_anno  go to state 190
 
 
 State 174
 
   100 param_list: param_list STAR . IDENT
 
-    IDENT  shift, and go to state 189
+    IDENT  shift, and go to state 191
 
 
 State 175
 
-    2 stmt_list: . stmt_list stmt
-    3          | . %empty
-   74 funcdecl_expr: FUNC any_lparen param_list RPAREN . stmt_list END
+   74 funcdecl_expr: FUNC any_lparen param_list RPAREN . maybe_anno stmt_list END
+  111 maybe_anno: . COLON expr
+  112           | . %empty  [IF, WHILE, FOR, FUNC, LAMBDA, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, BLPAREN, LPAREN, LBRACKET, POUND]
 
-    $default  reduce using rule 3 (stmt_list)
+    COLON  shift, and go to state 189
 
-    stmt_list  go to state 190
+    $default  reduce using rule 112 (maybe_anno)
+
+    maybe_anno  go to state 192
 
 
 State 176
@@ -10066,133 +10079,15 @@ State 176
 
 State 177
 
-   12 expr: . control_expr
-   13 control_expr: . IF expr THEN stmt_list END
-   14             | . IF expr THEN stmt_list ELSE stmt_list END
-   15             | . WHILE expr DO stmt_list END
-   16             | . FOR IDENT IN expr DO stmt_list END
-   17             | . assign_expr
-   18 assign_expr: . IDENT ASSIGN expr
-   19            | . IDENT ASSIGNPLUS expr
-   20            | . IDENT ASSIGNMINUS expr
-   21            | . IDENT ASSIGNSTAR expr
-   22            | . IDENT ASSIGNSLASH expr
-   23            | . IDENT ASSIGNDSTAR expr
-   24            | . IDENT ASSIGNBAND expr
-   25            | . IDENT ASSIGNBOR expr
-   26            | . IDENT ASSIGNBXOR expr
-   27            | . ex_index_expr ASSIGN expr
-   28            | . ex_index_expr ASSIGNPLUS expr
-   29            | . ex_index_expr ASSIGNMINUS expr
-   30            | . ex_index_expr ASSIGNSTAR expr
-   31            | . ex_index_expr ASSIGNSLASH expr
-   32            | . ex_index_expr ASSIGNDSTAR expr
-   33            | . ex_index_expr ASSIGNBAND expr
-   34            | . ex_index_expr ASSIGNBOR expr
-   35            | . ex_index_expr ASSIGNBXOR expr
-   36            | . logic_expr
-   37 logic_expr: . logic_expr LAND ulogic_expr
-   38           | . logic_expr LOR ulogic_expr
-   39           | . ulogic_expr
-   40 ulogic_expr: . LNOT ulogic_expr
-   41            | . rel_expr
-   42 rel_expr: . term_expr EQUAL rel_expr
-   43         | . term_expr NEQUAL rel_expr
-   44         | . term_expr LESS rel_expr
-   45         | . term_expr GREATER rel_expr
-   46         | . term_expr LESSEQ rel_expr
-   47         | . term_expr GREATEREQ rel_expr
-   48         | . term_expr
-   49 term_expr: . term_expr PLUS factor_expr
-   50          | . term_expr MINUS factor_expr
-   51          | . factor_expr
-   52 factor_expr: . factor_expr STAR power_expr
-   53            | . factor_expr SLASH power_expr
-   54            | . factor_expr PERCENT power_expr
-   55            | . power_expr
-   56 power_expr: . tbang_expr DSTAR power_expr
-   57           | . tbang_expr
-   58 tbang_expr: . binary_expr TBANG tbang_expr
-   59           | . binary_expr
-   60 binary_expr: . binary_expr BAND binary_expr
-   61            | . binary_expr BOR binary_expr
-   62            | . binary_expr BXOR binary_expr
-   63            | . binary_expr LSHIFT binary_expr
-   64            | . binary_expr RSHIFT binary_expr
-   65            | . ubinary_expr
-   66 ubinary_expr: . BNOT ubinary_expr
-   67             | . ulen_expr
-   68 ulen_expr: . POUND ulen_expr
-   69          | . call_expr
-   70 call_expr: . call_expr LPAREN expr_list RPAREN
-   71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
-   72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
-   75              | LAMBDA any_lparen param_list RPAREN . expr END
-   76              | . index_expr
-   77 index_expr: . expr LBRACKET expr RBRACKET
-   78           | . expr DOT IDENT
-   79           | . ref_expr
-   80 ex_index_expr: . expr LBRACKET expr RBRACKET
-   81              | . expr DOT IDENT
-   82 ref_expr: . IDENT
-   83         | . lit_expr
-   84 lit_expr: . INT
-   85         | . MINUS INT
-   86         | . FLOAT
-   87         | . STRING
-   88         | . NONE
-   89         | . gen_expr
-   90 gen_expr: . LBRACKET expr_list RBRACKET
-   91         | . LBRACE assoc_list RBRACE
-   92         | . paren_expr
-   93 paren_expr: . any_lparen expr RPAREN
-  109 any_lparen: . LPAREN
-  110           | . BLPAREN
+   75 funcdecl_expr: LAMBDA any_lparen param_list RPAREN . maybe_anno expr END
+  111 maybe_anno: . COLON expr
+  112           | . %empty  [IF, WHILE, FOR, FUNC, LAMBDA, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, BLPAREN, LPAREN, LBRACKET, POUND]
 
-    IF        shift, and go to state 4
-    WHILE     shift, and go to state 5
-    FOR       shift, and go to state 6
-    FUNC      shift, and go to state 7
-    LAMBDA    shift, and go to state 8
-    NONE      shift, and go to state 12
-    IDENT     shift, and go to state 13
-    INT       shift, and go to state 14
-    FLOAT     shift, and go to state 15
-    STRING    shift, and go to state 16
-    MINUS     shift, and go to state 17
-    BNOT      shift, and go to state 18
-    LNOT      shift, and go to state 19
-    LBRACE    shift, and go to state 20
-    BLPAREN   shift, and go to state 21
-    LPAREN    shift, and go to state 22
-    LBRACKET  shift, and go to state 23
-    POUND     shift, and go to state 24
+    COLON  shift, and go to state 189
 
-    expr           go to state 191
-    control_expr   go to state 27
-    assign_expr    go to state 28
-    logic_expr     go to state 29
-    ulogic_expr    go to state 30
-    rel_expr       go to state 31
-    term_expr      go to state 32
-    factor_expr    go to state 33
-    power_expr     go to state 34
-    tbang_expr     go to state 35
-    binary_expr    go to state 36
-    ubinary_expr   go to state 37
-    ulen_expr      go to state 38
-    call_expr      go to state 39
-    funcdecl_expr  go to state 40
-    index_expr     go to state 41
-    ex_index_expr  go to state 42
-    ref_expr       go to state 43
-    lit_expr       go to state 44
-    gen_expr       go to state 45
-    paren_expr     go to state 46
-    any_lparen     go to state 47
+    $default  reduce using rule 112 (maybe_anno)
+
+    maybe_anno  go to state 193
 
 
 State 178
@@ -10214,7 +10109,7 @@ State 179
 
   107 assoc_item: LBRACKET expr RBRACKET . ASSIGN expr
 
-    ASSIGN  shift, and go to state 192
+    ASSIGN  shift, and go to state 194
 
 
 State 180
@@ -10305,9 +10200,9 @@ State 182
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    71          | call_expr COLON IDENT LPAREN . expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -10393,7 +10288,7 @@ State 182
     lit_expr       go to state 44
     gen_expr       go to state 45
     paren_expr     go to state 46
-    expr_list      go to state 193
+    expr_list      go to state 195
     any_lparen     go to state 47
 
 
@@ -10405,7 +10300,7 @@ State 183
 
     $default  reduce using rule 3 (stmt_list)
 
-    stmt_list  go to state 194
+    stmt_list  go to state 196
 
 
 State 184
@@ -10430,18 +10325,20 @@ State 186
 
     $default  reduce using rule 3 (stmt_list)
 
-    stmt_list  go to state 195
+    stmt_list  go to state 197
 
 
 State 187
 
-    2 stmt_list: . stmt_list stmt
-    3          | . %empty
-   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN . stmt_list END
+   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN . maybe_anno stmt_list END
+  111 maybe_anno: . COLON expr
+  112           | . %empty  [IF, WHILE, FOR, FUNC, LAMBDA, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, BNOT, LNOT, LBRACE, BLPAREN, LPAREN, LBRACKET, POUND]
 
-    $default  reduce using rule 3 (stmt_list)
+    COLON  shift, and go to state 189
 
-    stmt_list  go to state 196
+    $default  reduce using rule 112 (maybe_anno)
+
+    maybe_anno  go to state 198
 
 
 State 188
@@ -10507,9 +10404,9 @@ State 188
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -10551,7 +10448,7 @@ State 188
     LBRACKET  shift, and go to state 23
     POUND     shift, and go to state 24
 
-    expr           go to state 197
+    expr           go to state 199
     control_expr   go to state 27
     assign_expr    go to state 28
     logic_expr     go to state 29
@@ -10577,22 +10474,6 @@ State 188
 
 State 189
 
-  100 param_list: param_list STAR IDENT .
-
-    $default  reduce using rule 100 (param_list)
-
-
-State 190
-
-    2 stmt_list: stmt_list . stmt
-    4 stmt: . expr
-    5     | . RETURN expr
-    6     | . RETURN
-    7     | . BREAK
-    8     | . BREAK expr
-    9     | . CONTINUE
-   10     | . CONTINUE expr
-   11     | . stmt SEMICOLON
    12 expr: . control_expr
    13 control_expr: . IF expr THEN stmt_list END
    14             | . IF expr THEN stmt_list ELSE stmt_list END
@@ -10654,10 +10535,9 @@ State 190
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   74              | FUNC any_lparen param_list RPAREN stmt_list . END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -10678,155 +10558,7 @@ State 190
    93 paren_expr: . any_lparen expr RPAREN
   109 any_lparen: . LPAREN
   110           | . BLPAREN
-
-    IF        shift, and go to state 4
-    WHILE     shift, and go to state 5
-    FOR       shift, and go to state 6
-    FUNC      shift, and go to state 7
-    LAMBDA    shift, and go to state 8
-    RETURN    shift, and go to state 9
-    BREAK     shift, and go to state 10
-    CONTINUE  shift, and go to state 11
-    END       shift, and go to state 198
-    NONE      shift, and go to state 12
-    IDENT     shift, and go to state 13
-    INT       shift, and go to state 14
-    FLOAT     shift, and go to state 15
-    STRING    shift, and go to state 16
-    MINUS     shift, and go to state 17
-    BNOT      shift, and go to state 18
-    LNOT      shift, and go to state 19
-    LBRACE    shift, and go to state 20
-    BLPAREN   shift, and go to state 21
-    LPAREN    shift, and go to state 22
-    LBRACKET  shift, and go to state 23
-    POUND     shift, and go to state 24
-
-    stmt           go to state 25
-    expr           go to state 26
-    control_expr   go to state 27
-    assign_expr    go to state 28
-    logic_expr     go to state 29
-    ulogic_expr    go to state 30
-    rel_expr       go to state 31
-    term_expr      go to state 32
-    factor_expr    go to state 33
-    power_expr     go to state 34
-    tbang_expr     go to state 35
-    binary_expr    go to state 36
-    ubinary_expr   go to state 37
-    ulen_expr      go to state 38
-    call_expr      go to state 39
-    funcdecl_expr  go to state 40
-    index_expr     go to state 41
-    ex_index_expr  go to state 42
-    ref_expr       go to state 43
-    lit_expr       go to state 44
-    gen_expr       go to state 45
-    paren_expr     go to state 46
-    any_lparen     go to state 47
-
-
-State 191
-
-   75 funcdecl_expr: LAMBDA any_lparen param_list RPAREN expr . END
-   77 index_expr: expr . LBRACKET expr RBRACKET
-   78           | expr . DOT IDENT
-   80 ex_index_expr: expr . LBRACKET expr RBRACKET
-   81              | expr . DOT IDENT
-
-    END       shift, and go to state 199
-    LBRACKET  shift, and go to state 78
-    DOT       shift, and go to state 79
-
-
-State 192
-
-   12 expr: . control_expr
-   13 control_expr: . IF expr THEN stmt_list END
-   14             | . IF expr THEN stmt_list ELSE stmt_list END
-   15             | . WHILE expr DO stmt_list END
-   16             | . FOR IDENT IN expr DO stmt_list END
-   17             | . assign_expr
-   18 assign_expr: . IDENT ASSIGN expr
-   19            | . IDENT ASSIGNPLUS expr
-   20            | . IDENT ASSIGNMINUS expr
-   21            | . IDENT ASSIGNSTAR expr
-   22            | . IDENT ASSIGNSLASH expr
-   23            | . IDENT ASSIGNDSTAR expr
-   24            | . IDENT ASSIGNBAND expr
-   25            | . IDENT ASSIGNBOR expr
-   26            | . IDENT ASSIGNBXOR expr
-   27            | . ex_index_expr ASSIGN expr
-   28            | . ex_index_expr ASSIGNPLUS expr
-   29            | . ex_index_expr ASSIGNMINUS expr
-   30            | . ex_index_expr ASSIGNSTAR expr
-   31            | . ex_index_expr ASSIGNSLASH expr
-   32            | . ex_index_expr ASSIGNDSTAR expr
-   33            | . ex_index_expr ASSIGNBAND expr
-   34            | . ex_index_expr ASSIGNBOR expr
-   35            | . ex_index_expr ASSIGNBXOR expr
-   36            | . logic_expr
-   37 logic_expr: . logic_expr LAND ulogic_expr
-   38           | . logic_expr LOR ulogic_expr
-   39           | . ulogic_expr
-   40 ulogic_expr: . LNOT ulogic_expr
-   41            | . rel_expr
-   42 rel_expr: . term_expr EQUAL rel_expr
-   43         | . term_expr NEQUAL rel_expr
-   44         | . term_expr LESS rel_expr
-   45         | . term_expr GREATER rel_expr
-   46         | . term_expr LESSEQ rel_expr
-   47         | . term_expr GREATEREQ rel_expr
-   48         | . term_expr
-   49 term_expr: . term_expr PLUS factor_expr
-   50          | . term_expr MINUS factor_expr
-   51          | . factor_expr
-   52 factor_expr: . factor_expr STAR power_expr
-   53            | . factor_expr SLASH power_expr
-   54            | . factor_expr PERCENT power_expr
-   55            | . power_expr
-   56 power_expr: . tbang_expr DSTAR power_expr
-   57           | . tbang_expr
-   58 tbang_expr: . binary_expr TBANG tbang_expr
-   59           | . binary_expr
-   60 binary_expr: . binary_expr BAND binary_expr
-   61            | . binary_expr BOR binary_expr
-   62            | . binary_expr BXOR binary_expr
-   63            | . binary_expr LSHIFT binary_expr
-   64            | . binary_expr RSHIFT binary_expr
-   65            | . ubinary_expr
-   66 ubinary_expr: . BNOT ubinary_expr
-   67             | . ulen_expr
-   68 ulen_expr: . POUND ulen_expr
-   69          | . call_expr
-   70 call_expr: . call_expr LPAREN expr_list RPAREN
-   71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
-   72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
-   76              | . index_expr
-   77 index_expr: . expr LBRACKET expr RBRACKET
-   78           | . expr DOT IDENT
-   79           | . ref_expr
-   80 ex_index_expr: . expr LBRACKET expr RBRACKET
-   81              | . expr DOT IDENT
-   82 ref_expr: . IDENT
-   83         | . lit_expr
-   84 lit_expr: . INT
-   85         | . MINUS INT
-   86         | . FLOAT
-   87         | . STRING
-   88         | . NONE
-   89         | . gen_expr
-   90 gen_expr: . LBRACKET expr_list RBRACKET
-   91         | . LBRACE assoc_list RBRACE
-   92         | . paren_expr
-   93 paren_expr: . any_lparen expr RPAREN
-  107 assoc_item: LBRACKET expr RBRACKET ASSIGN . expr
-  109 any_lparen: . LPAREN
-  110           | . BLPAREN
+  111 maybe_anno: COLON . expr
 
     IF        shift, and go to state 4
     WHILE     shift, and go to state 5
@@ -10869,6 +10601,31 @@ State 192
     gen_expr       go to state 45
     paren_expr     go to state 46
     any_lparen     go to state 47
+
+
+State 190
+
+  101 param_list: param_list IDENT maybe_anno .
+
+    $default  reduce using rule 101 (param_list)
+
+
+State 191
+
+  100 param_list: param_list STAR IDENT .
+
+    $default  reduce using rule 100 (param_list)
+
+
+State 192
+
+    2 stmt_list: . stmt_list stmt
+    3          | . %empty
+   74 funcdecl_expr: FUNC any_lparen param_list RPAREN maybe_anno . stmt_list END
+
+    $default  reduce using rule 3 (stmt_list)
+
+    stmt_list  go to state 201
 
 
 State 193
@@ -10933,11 +10690,273 @@ State 193
    69          | . call_expr
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
+   72          | . funcdecl_expr
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
+   75              | LAMBDA any_lparen param_list RPAREN maybe_anno . expr END
+   76              | . index_expr
+   77 index_expr: . expr LBRACKET expr RBRACKET
+   78           | . expr DOT IDENT
+   79           | . ref_expr
+   80 ex_index_expr: . expr LBRACKET expr RBRACKET
+   81              | . expr DOT IDENT
+   82 ref_expr: . IDENT
+   83         | . lit_expr
+   84 lit_expr: . INT
+   85         | . MINUS INT
+   86         | . FLOAT
+   87         | . STRING
+   88         | . NONE
+   89         | . gen_expr
+   90 gen_expr: . LBRACKET expr_list RBRACKET
+   91         | . LBRACE assoc_list RBRACE
+   92         | . paren_expr
+   93 paren_expr: . any_lparen expr RPAREN
+  109 any_lparen: . LPAREN
+  110           | . BLPAREN
+
+    IF        shift, and go to state 4
+    WHILE     shift, and go to state 5
+    FOR       shift, and go to state 6
+    FUNC      shift, and go to state 7
+    LAMBDA    shift, and go to state 8
+    NONE      shift, and go to state 12
+    IDENT     shift, and go to state 13
+    INT       shift, and go to state 14
+    FLOAT     shift, and go to state 15
+    STRING    shift, and go to state 16
+    MINUS     shift, and go to state 17
+    BNOT      shift, and go to state 18
+    LNOT      shift, and go to state 19
+    LBRACE    shift, and go to state 20
+    BLPAREN   shift, and go to state 21
+    LPAREN    shift, and go to state 22
+    LBRACKET  shift, and go to state 23
+    POUND     shift, and go to state 24
+
+    expr           go to state 202
+    control_expr   go to state 27
+    assign_expr    go to state 28
+    logic_expr     go to state 29
+    ulogic_expr    go to state 30
+    rel_expr       go to state 31
+    term_expr      go to state 32
+    factor_expr    go to state 33
+    power_expr     go to state 34
+    tbang_expr     go to state 35
+    binary_expr    go to state 36
+    ubinary_expr   go to state 37
+    ulen_expr      go to state 38
+    call_expr      go to state 39
+    funcdecl_expr  go to state 40
+    index_expr     go to state 41
+    ex_index_expr  go to state 42
+    ref_expr       go to state 43
+    lit_expr       go to state 44
+    gen_expr       go to state 45
+    paren_expr     go to state 46
+    any_lparen     go to state 47
+
+
+State 194
+
+   12 expr: . control_expr
+   13 control_expr: . IF expr THEN stmt_list END
+   14             | . IF expr THEN stmt_list ELSE stmt_list END
+   15             | . WHILE expr DO stmt_list END
+   16             | . FOR IDENT IN expr DO stmt_list END
+   17             | . assign_expr
+   18 assign_expr: . IDENT ASSIGN expr
+   19            | . IDENT ASSIGNPLUS expr
+   20            | . IDENT ASSIGNMINUS expr
+   21            | . IDENT ASSIGNSTAR expr
+   22            | . IDENT ASSIGNSLASH expr
+   23            | . IDENT ASSIGNDSTAR expr
+   24            | . IDENT ASSIGNBAND expr
+   25            | . IDENT ASSIGNBOR expr
+   26            | . IDENT ASSIGNBXOR expr
+   27            | . ex_index_expr ASSIGN expr
+   28            | . ex_index_expr ASSIGNPLUS expr
+   29            | . ex_index_expr ASSIGNMINUS expr
+   30            | . ex_index_expr ASSIGNSTAR expr
+   31            | . ex_index_expr ASSIGNSLASH expr
+   32            | . ex_index_expr ASSIGNDSTAR expr
+   33            | . ex_index_expr ASSIGNBAND expr
+   34            | . ex_index_expr ASSIGNBOR expr
+   35            | . ex_index_expr ASSIGNBXOR expr
+   36            | . logic_expr
+   37 logic_expr: . logic_expr LAND ulogic_expr
+   38           | . logic_expr LOR ulogic_expr
+   39           | . ulogic_expr
+   40 ulogic_expr: . LNOT ulogic_expr
+   41            | . rel_expr
+   42 rel_expr: . term_expr EQUAL rel_expr
+   43         | . term_expr NEQUAL rel_expr
+   44         | . term_expr LESS rel_expr
+   45         | . term_expr GREATER rel_expr
+   46         | . term_expr LESSEQ rel_expr
+   47         | . term_expr GREATEREQ rel_expr
+   48         | . term_expr
+   49 term_expr: . term_expr PLUS factor_expr
+   50          | . term_expr MINUS factor_expr
+   51          | . factor_expr
+   52 factor_expr: . factor_expr STAR power_expr
+   53            | . factor_expr SLASH power_expr
+   54            | . factor_expr PERCENT power_expr
+   55            | . power_expr
+   56 power_expr: . tbang_expr DSTAR power_expr
+   57           | . tbang_expr
+   58 tbang_expr: . binary_expr TBANG tbang_expr
+   59           | . binary_expr
+   60 binary_expr: . binary_expr BAND binary_expr
+   61            | . binary_expr BOR binary_expr
+   62            | . binary_expr BXOR binary_expr
+   63            | . binary_expr LSHIFT binary_expr
+   64            | . binary_expr RSHIFT binary_expr
+   65            | . ubinary_expr
+   66 ubinary_expr: . BNOT ubinary_expr
+   67             | . ulen_expr
+   68 ulen_expr: . POUND ulen_expr
+   69          | . call_expr
+   70 call_expr: . call_expr LPAREN expr_list RPAREN
+   71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
+   72          | . funcdecl_expr
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
+   76              | . index_expr
+   77 index_expr: . expr LBRACKET expr RBRACKET
+   78           | . expr DOT IDENT
+   79           | . ref_expr
+   80 ex_index_expr: . expr LBRACKET expr RBRACKET
+   81              | . expr DOT IDENT
+   82 ref_expr: . IDENT
+   83         | . lit_expr
+   84 lit_expr: . INT
+   85         | . MINUS INT
+   86         | . FLOAT
+   87         | . STRING
+   88         | . NONE
+   89         | . gen_expr
+   90 gen_expr: . LBRACKET expr_list RBRACKET
+   91         | . LBRACE assoc_list RBRACE
+   92         | . paren_expr
+   93 paren_expr: . any_lparen expr RPAREN
+  107 assoc_item: LBRACKET expr RBRACKET ASSIGN . expr
+  109 any_lparen: . LPAREN
+  110           | . BLPAREN
+
+    IF        shift, and go to state 4
+    WHILE     shift, and go to state 5
+    FOR       shift, and go to state 6
+    FUNC      shift, and go to state 7
+    LAMBDA    shift, and go to state 8
+    NONE      shift, and go to state 12
+    IDENT     shift, and go to state 13
+    INT       shift, and go to state 14
+    FLOAT     shift, and go to state 15
+    STRING    shift, and go to state 16
+    MINUS     shift, and go to state 17
+    BNOT      shift, and go to state 18
+    LNOT      shift, and go to state 19
+    LBRACE    shift, and go to state 20
+    BLPAREN   shift, and go to state 21
+    LPAREN    shift, and go to state 22
+    LBRACKET  shift, and go to state 23
+    POUND     shift, and go to state 24
+
+    expr           go to state 203
+    control_expr   go to state 27
+    assign_expr    go to state 28
+    logic_expr     go to state 29
+    ulogic_expr    go to state 30
+    rel_expr       go to state 31
+    term_expr      go to state 32
+    factor_expr    go to state 33
+    power_expr     go to state 34
+    tbang_expr     go to state 35
+    binary_expr    go to state 36
+    ubinary_expr   go to state 37
+    ulen_expr      go to state 38
+    call_expr      go to state 39
+    funcdecl_expr  go to state 40
+    index_expr     go to state 41
+    ex_index_expr  go to state 42
+    ref_expr       go to state 43
+    lit_expr       go to state 44
+    gen_expr       go to state 45
+    paren_expr     go to state 46
+    any_lparen     go to state 47
+
+
+State 195
+
+   12 expr: . control_expr
+   13 control_expr: . IF expr THEN stmt_list END
+   14             | . IF expr THEN stmt_list ELSE stmt_list END
+   15             | . WHILE expr DO stmt_list END
+   16             | . FOR IDENT IN expr DO stmt_list END
+   17             | . assign_expr
+   18 assign_expr: . IDENT ASSIGN expr
+   19            | . IDENT ASSIGNPLUS expr
+   20            | . IDENT ASSIGNMINUS expr
+   21            | . IDENT ASSIGNSTAR expr
+   22            | . IDENT ASSIGNSLASH expr
+   23            | . IDENT ASSIGNDSTAR expr
+   24            | . IDENT ASSIGNBAND expr
+   25            | . IDENT ASSIGNBOR expr
+   26            | . IDENT ASSIGNBXOR expr
+   27            | . ex_index_expr ASSIGN expr
+   28            | . ex_index_expr ASSIGNPLUS expr
+   29            | . ex_index_expr ASSIGNMINUS expr
+   30            | . ex_index_expr ASSIGNSTAR expr
+   31            | . ex_index_expr ASSIGNSLASH expr
+   32            | . ex_index_expr ASSIGNDSTAR expr
+   33            | . ex_index_expr ASSIGNBAND expr
+   34            | . ex_index_expr ASSIGNBOR expr
+   35            | . ex_index_expr ASSIGNBXOR expr
+   36            | . logic_expr
+   37 logic_expr: . logic_expr LAND ulogic_expr
+   38           | . logic_expr LOR ulogic_expr
+   39           | . ulogic_expr
+   40 ulogic_expr: . LNOT ulogic_expr
+   41            | . rel_expr
+   42 rel_expr: . term_expr EQUAL rel_expr
+   43         | . term_expr NEQUAL rel_expr
+   44         | . term_expr LESS rel_expr
+   45         | . term_expr GREATER rel_expr
+   46         | . term_expr LESSEQ rel_expr
+   47         | . term_expr GREATEREQ rel_expr
+   48         | . term_expr
+   49 term_expr: . term_expr PLUS factor_expr
+   50          | . term_expr MINUS factor_expr
+   51          | . factor_expr
+   52 factor_expr: . factor_expr STAR power_expr
+   53            | . factor_expr SLASH power_expr
+   54            | . factor_expr PERCENT power_expr
+   55            | . power_expr
+   56 power_expr: . tbang_expr DSTAR power_expr
+   57           | . tbang_expr
+   58 tbang_expr: . binary_expr TBANG tbang_expr
+   59           | . binary_expr
+   60 binary_expr: . binary_expr BAND binary_expr
+   61            | . binary_expr BOR binary_expr
+   62            | . binary_expr BXOR binary_expr
+   63            | . binary_expr LSHIFT binary_expr
+   64            | . binary_expr RSHIFT binary_expr
+   65            | . ubinary_expr
+   66 ubinary_expr: . BNOT ubinary_expr
+   67             | . ulen_expr
+   68 ulen_expr: . POUND ulen_expr
+   69          | . call_expr
+   70 call_expr: . call_expr LPAREN expr_list RPAREN
+   71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    71          | call_expr COLON IDENT LPAREN expr_list . RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -10977,7 +10996,7 @@ State 193
     LBRACE    shift, and go to state 20
     BLPAREN   shift, and go to state 21
     LPAREN    shift, and go to state 22
-    RPAREN    shift, and go to state 201
+    RPAREN    shift, and go to state 204
     LBRACKET  shift, and go to state 23
     COMMA     shift, and go to state 133
     POUND     shift, and go to state 24
@@ -11006,7 +11025,7 @@ State 193
     any_lparen     go to state 47
 
 
-State 194
+State 196
 
     2 stmt_list: stmt_list . stmt
     4 stmt: . expr
@@ -11079,9 +11098,9 @@ State 194
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -11111,7 +11130,7 @@ State 194
     RETURN    shift, and go to state 9
     BREAK     shift, and go to state 10
     CONTINUE  shift, and go to state 11
-    END       shift, and go to state 202
+    END       shift, and go to state 205
     NONE      shift, and go to state 12
     IDENT     shift, and go to state 13
     INT       shift, and go to state 14
@@ -11151,7 +11170,7 @@ State 194
     any_lparen     go to state 47
 
 
-State 195
+State 197
 
     2 stmt_list: stmt_list . stmt
     4 stmt: . expr
@@ -11224,9 +11243,9 @@ State 195
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -11256,7 +11275,7 @@ State 195
     RETURN    shift, and go to state 9
     BREAK     shift, and go to state 10
     CONTINUE  shift, and go to state 11
-    END       shift, and go to state 203
+    END       shift, and go to state 206
     NONE      shift, and go to state 12
     IDENT     shift, and go to state 13
     INT       shift, and go to state 14
@@ -11296,7 +11315,47 @@ State 195
     any_lparen     go to state 47
 
 
-State 196
+State 198
+
+    2 stmt_list: . stmt_list stmt
+    3          | . %empty
+   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN maybe_anno . stmt_list END
+
+    $default  reduce using rule 3 (stmt_list)
+
+    stmt_list  go to state 207
+
+
+State 199
+
+   77 index_expr: expr . LBRACKET expr RBRACKET
+   78           | expr . DOT IDENT
+   80 ex_index_expr: expr . LBRACKET expr RBRACKET
+   81              | expr . DOT IDENT
+   99 param_list: param_list IDENT ASSIGN expr .  [IDENT, STAR, RPAREN, COMMA]
+
+    LBRACKET  shift, and go to state 78
+    DOT       shift, and go to state 79
+
+    $default  reduce using rule 99 (param_list)
+
+
+State 200
+
+   77 index_expr: expr . LBRACKET expr RBRACKET
+   78           | expr . DOT IDENT
+   80 ex_index_expr: expr . LBRACKET expr RBRACKET
+   81              | expr . DOT IDENT
+  111 maybe_anno: COLON expr .  [IF, WHILE, FOR, FUNC, LAMBDA, RETURN, BREAK, CONTINUE, END, NONE, IDENT, INT, FLOAT, STRING, MINUS, STAR, BNOT, LNOT, LBRACE, BLPAREN, LPAREN, RPAREN, LBRACKET, COMMA, POUND]
+
+    LBRACKET  shift, and go to state 78
+    DOT       shift, and go to state 79
+
+    LBRACKET  [reduce using rule 111 (maybe_anno)]
+    $default  reduce using rule 111 (maybe_anno)
+
+
+State 201
 
     2 stmt_list: stmt_list . stmt
     4 stmt: . expr
@@ -11368,10 +11427,10 @@ State 196
    70 call_expr: . call_expr LPAREN expr_list RPAREN
    71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
    72          | . funcdecl_expr
-   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN stmt_list END
-   73              | FUNC IDENT any_lparen param_list RPAREN stmt_list . END
-   74              | . FUNC any_lparen param_list RPAREN stmt_list END
-   75              | . LAMBDA any_lparen param_list RPAREN expr END
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   74              | FUNC any_lparen param_list RPAREN maybe_anno stmt_list . END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
    76              | . index_expr
    77 index_expr: . expr LBRACKET expr RBRACKET
    78           | . expr DOT IDENT
@@ -11401,7 +11460,7 @@ State 196
     RETURN    shift, and go to state 9
     BREAK     shift, and go to state 10
     CONTINUE  shift, and go to state 11
-    END       shift, and go to state 204
+    END       shift, and go to state 208
     NONE      shift, and go to state 12
     IDENT     shift, and go to state 13
     INT       shift, and go to state 14
@@ -11441,35 +11500,20 @@ State 196
     any_lparen     go to state 47
 
 
-State 197
+State 202
 
+   75 funcdecl_expr: LAMBDA any_lparen param_list RPAREN maybe_anno expr . END
    77 index_expr: expr . LBRACKET expr RBRACKET
    78           | expr . DOT IDENT
    80 ex_index_expr: expr . LBRACKET expr RBRACKET
    81              | expr . DOT IDENT
-   99 param_list: param_list IDENT ASSIGN expr .  [IDENT, STAR, RPAREN, COMMA]
 
+    END       shift, and go to state 209
     LBRACKET  shift, and go to state 78
     DOT       shift, and go to state 79
 
-    $default  reduce using rule 99 (param_list)
 
-
-State 198
-
-   74 funcdecl_expr: FUNC any_lparen param_list RPAREN stmt_list END .
-
-    $default  reduce using rule 74 (funcdecl_expr)
-
-
-State 199
-
-   75 funcdecl_expr: LAMBDA any_lparen param_list RPAREN expr END .
-
-    $default  reduce using rule 75 (funcdecl_expr)
-
-
-State 200
+State 203
 
    77 index_expr: expr . LBRACKET expr RBRACKET
    78           | expr . DOT IDENT
@@ -11484,29 +11528,188 @@ State 200
     $default  reduce using rule 107 (assoc_item)
 
 
-State 201
+State 204
 
    71 call_expr: call_expr COLON IDENT LPAREN expr_list RPAREN .
 
     $default  reduce using rule 71 (call_expr)
 
 
-State 202
+State 205
 
    14 control_expr: IF expr THEN stmt_list ELSE stmt_list END .
 
     $default  reduce using rule 14 (control_expr)
 
 
-State 203
+State 206
 
    16 control_expr: FOR IDENT IN expr DO stmt_list END .
 
     $default  reduce using rule 16 (control_expr)
 
 
-State 204
+State 207
 
-   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN stmt_list END .
+    2 stmt_list: stmt_list . stmt
+    4 stmt: . expr
+    5     | . RETURN expr
+    6     | . RETURN
+    7     | . BREAK
+    8     | . BREAK expr
+    9     | . CONTINUE
+   10     | . CONTINUE expr
+   11     | . stmt SEMICOLON
+   12 expr: . control_expr
+   13 control_expr: . IF expr THEN stmt_list END
+   14             | . IF expr THEN stmt_list ELSE stmt_list END
+   15             | . WHILE expr DO stmt_list END
+   16             | . FOR IDENT IN expr DO stmt_list END
+   17             | . assign_expr
+   18 assign_expr: . IDENT ASSIGN expr
+   19            | . IDENT ASSIGNPLUS expr
+   20            | . IDENT ASSIGNMINUS expr
+   21            | . IDENT ASSIGNSTAR expr
+   22            | . IDENT ASSIGNSLASH expr
+   23            | . IDENT ASSIGNDSTAR expr
+   24            | . IDENT ASSIGNBAND expr
+   25            | . IDENT ASSIGNBOR expr
+   26            | . IDENT ASSIGNBXOR expr
+   27            | . ex_index_expr ASSIGN expr
+   28            | . ex_index_expr ASSIGNPLUS expr
+   29            | . ex_index_expr ASSIGNMINUS expr
+   30            | . ex_index_expr ASSIGNSTAR expr
+   31            | . ex_index_expr ASSIGNSLASH expr
+   32            | . ex_index_expr ASSIGNDSTAR expr
+   33            | . ex_index_expr ASSIGNBAND expr
+   34            | . ex_index_expr ASSIGNBOR expr
+   35            | . ex_index_expr ASSIGNBXOR expr
+   36            | . logic_expr
+   37 logic_expr: . logic_expr LAND ulogic_expr
+   38           | . logic_expr LOR ulogic_expr
+   39           | . ulogic_expr
+   40 ulogic_expr: . LNOT ulogic_expr
+   41            | . rel_expr
+   42 rel_expr: . term_expr EQUAL rel_expr
+   43         | . term_expr NEQUAL rel_expr
+   44         | . term_expr LESS rel_expr
+   45         | . term_expr GREATER rel_expr
+   46         | . term_expr LESSEQ rel_expr
+   47         | . term_expr GREATEREQ rel_expr
+   48         | . term_expr
+   49 term_expr: . term_expr PLUS factor_expr
+   50          | . term_expr MINUS factor_expr
+   51          | . factor_expr
+   52 factor_expr: . factor_expr STAR power_expr
+   53            | . factor_expr SLASH power_expr
+   54            | . factor_expr PERCENT power_expr
+   55            | . power_expr
+   56 power_expr: . tbang_expr DSTAR power_expr
+   57           | . tbang_expr
+   58 tbang_expr: . binary_expr TBANG tbang_expr
+   59           | . binary_expr
+   60 binary_expr: . binary_expr BAND binary_expr
+   61            | . binary_expr BOR binary_expr
+   62            | . binary_expr BXOR binary_expr
+   63            | . binary_expr LSHIFT binary_expr
+   64            | . binary_expr RSHIFT binary_expr
+   65            | . ubinary_expr
+   66 ubinary_expr: . BNOT ubinary_expr
+   67             | . ulen_expr
+   68 ulen_expr: . POUND ulen_expr
+   69          | . call_expr
+   70 call_expr: . call_expr LPAREN expr_list RPAREN
+   71          | . call_expr COLON IDENT LPAREN expr_list RPAREN
+   72          | . funcdecl_expr
+   73 funcdecl_expr: . FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END
+   73              | FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list . END
+   74              | . FUNC any_lparen param_list RPAREN maybe_anno stmt_list END
+   75              | . LAMBDA any_lparen param_list RPAREN maybe_anno expr END
+   76              | . index_expr
+   77 index_expr: . expr LBRACKET expr RBRACKET
+   78           | . expr DOT IDENT
+   79           | . ref_expr
+   80 ex_index_expr: . expr LBRACKET expr RBRACKET
+   81              | . expr DOT IDENT
+   82 ref_expr: . IDENT
+   83         | . lit_expr
+   84 lit_expr: . INT
+   85         | . MINUS INT
+   86         | . FLOAT
+   87         | . STRING
+   88         | . NONE
+   89         | . gen_expr
+   90 gen_expr: . LBRACKET expr_list RBRACKET
+   91         | . LBRACE assoc_list RBRACE
+   92         | . paren_expr
+   93 paren_expr: . any_lparen expr RPAREN
+  109 any_lparen: . LPAREN
+  110           | . BLPAREN
+
+    IF        shift, and go to state 4
+    WHILE     shift, and go to state 5
+    FOR       shift, and go to state 6
+    FUNC      shift, and go to state 7
+    LAMBDA    shift, and go to state 8
+    RETURN    shift, and go to state 9
+    BREAK     shift, and go to state 10
+    CONTINUE  shift, and go to state 11
+    END       shift, and go to state 210
+    NONE      shift, and go to state 12
+    IDENT     shift, and go to state 13
+    INT       shift, and go to state 14
+    FLOAT     shift, and go to state 15
+    STRING    shift, and go to state 16
+    MINUS     shift, and go to state 17
+    BNOT      shift, and go to state 18
+    LNOT      shift, and go to state 19
+    LBRACE    shift, and go to state 20
+    BLPAREN   shift, and go to state 21
+    LPAREN    shift, and go to state 22
+    LBRACKET  shift, and go to state 23
+    POUND     shift, and go to state 24
+
+    stmt           go to state 25
+    expr           go to state 26
+    control_expr   go to state 27
+    assign_expr    go to state 28
+    logic_expr     go to state 29
+    ulogic_expr    go to state 30
+    rel_expr       go to state 31
+    term_expr      go to state 32
+    factor_expr    go to state 33
+    power_expr     go to state 34
+    tbang_expr     go to state 35
+    binary_expr    go to state 36
+    ubinary_expr   go to state 37
+    ulen_expr      go to state 38
+    call_expr      go to state 39
+    funcdecl_expr  go to state 40
+    index_expr     go to state 41
+    ex_index_expr  go to state 42
+    ref_expr       go to state 43
+    lit_expr       go to state 44
+    gen_expr       go to state 45
+    paren_expr     go to state 46
+    any_lparen     go to state 47
+
+
+State 208
+
+   74 funcdecl_expr: FUNC any_lparen param_list RPAREN maybe_anno stmt_list END .
+
+    $default  reduce using rule 74 (funcdecl_expr)
+
+
+State 209
+
+   75 funcdecl_expr: LAMBDA any_lparen param_list RPAREN maybe_anno expr END .
+
+    $default  reduce using rule 75 (funcdecl_expr)
+
+
+State 210
+
+   73 funcdecl_expr: FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END .
 
     $default  reduce using rule 73 (funcdecl_expr)

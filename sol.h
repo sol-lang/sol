@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.3a1"
+#define SOL_VERSION "0.3a2"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -18,9 +18,12 @@
  * - R is 'A' for alpha, 'B' for beta, 'C' for candidate, and 'F' for final
  * - PP is the two-digit patch
  *
- * This value is guaranteed to only monotonically increase by revision.
+ * This value is guaranteed to only monotonically increase by revision, within
+ * the same line of development. In particular, features introduced in some
+ * version shall be available in all versions numerically greater than it
+ * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0003A01
+#define SOL_HEXVER 0x0003A02
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */
@@ -332,8 +335,10 @@ typedef struct sol_tag_object_t {
 			struct sol_tag_object_t *udata;
 			/** For `SOL_FUNCTION`, the name of the function if it was not declared anonymously (otherwise NULL). */
 			char *fname;
-			/* For `SOL_FUNCTION`, the name of an argument that receives extra parameters as a list (otherwise NULL). */
+			/** For `SOL_FUNCTION`, the name of an argument that receives extra parameters as a list (otherwise NULL). */
 			char *rest;
+			/** For `SOL_FUNCTION`, the map of annotations, with arguments by name, and the function itself by object. */
+			struct sol_tag_object_t *annos;
 		};
 		struct {
 			/** For `SOL_CFUNCTION`, the C function pointer. */

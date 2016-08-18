@@ -59,9 +59,9 @@ stmt:
   expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_EXPR; AS_ST($$)->expr = $1; }
 | RETURN expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = $2; }
 | RETURN { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_RET; AS_ST($$)->ret = NEW(ret_node); AS_ST($$)->ret->ret = NULL; }
-| BREAK { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; AS_ST($$)->brk = NEW(break_node); }
+| BREAK { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; AS_ST($$)->brk = NEW(break_node); AS_ST($$)->brk->val = NULL;}
 | BREAK expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_BREAK; AS_ST($$)->brk = NEW(break_node); AS_ST($$)->brk->val = $2; }
-| CONTINUE { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; AS_ST($$)->cont = NEW(cont_node); }
+| CONTINUE { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; AS_ST($$)->cont = NEW(cont_node); AS_ST($$)->cont->val = NULL; }
 | CONTINUE expr { $$ = NEW_ST(); SET_LOC(AS_ST($$), @$); AS_ST($$)->type = ST_CONT; AS_ST($$)->cont = NEW(cont_node); AS_ST($$)->cont->val = $2; }
 | stmt SEMICOLON { $$ = $1; }
 ;
@@ -361,32 +361,35 @@ call_expr:
 ;
 
 funcdecl_expr:
-  FUNC IDENT any_lparen param_list RPAREN stmt_list END {
+  FUNC IDENT any_lparen param_list RPAREN maybe_anno stmt_list END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
 	AS_EX($$)->funcdecl->name = $2;
 	AS_EX($$)->funcdecl->params = $4;
+	AS_EX($$)->funcdecl->anno = $6;
+	AS_EX($$)->funcdecl->body = $7;
+}
+| FUNC any_lparen param_list RPAREN maybe_anno stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_FUNCDECL;
+	AS_EX($$)->funcdecl = NEW(funcdecl_node);
+	AS_EX($$)->funcdecl->name = NULL;
+	AS_EX($$)->funcdecl->params = $3;
+	AS_EX($$)->funcdecl->anno = $5;
 	AS_EX($$)->funcdecl->body = $6;
 }
-| FUNC any_lparen param_list RPAREN stmt_list END {
+| LAMBDA any_lparen param_list RPAREN maybe_anno expr END {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_FUNCDECL;
 	AS_EX($$)->funcdecl = NEW(funcdecl_node);
 	AS_EX($$)->funcdecl->name = NULL;
 	AS_EX($$)->funcdecl->params = $3;
-	AS_EX($$)->funcdecl->body = $5;
-}
-| LAMBDA any_lparen param_list RPAREN expr END {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_FUNCDECL;
-	AS_EX($$)->funcdecl = NEW(funcdecl_node);
-	AS_EX($$)->funcdecl->name = NULL;
-	AS_EX($$)->funcdecl->params = $3;
+	AS_EX($$)->funcdecl->anno = $5;
 	AS_EX($$)->funcdecl->body = NEW_ST();
 	AS_EX($$)->funcdecl->body->type = ST_RET;
 	AS_EX($$)->funcdecl->body->ret = NEW(ret_node);
-	AS_EX($$)->funcdecl->body->ret->ret = $5;
+	AS_EX($$)->funcdecl->body->ret->ret = $6;
 }
 | index_expr { $$ = $1; }
 ;
@@ -493,6 +496,7 @@ param_list:
 	if(!pl) {
 		pl = NEW(paramlist_node);
 		pl->args = NULL;
+		pl->annos = NULL;
 		pl->clkeys = NULL;
 		pl->clvalues = NULL;
 		pl->rest = NULL;
@@ -525,6 +529,7 @@ param_list:
 	if(!pl) {
 		pl = NEW(paramlist_node);
 		pl->args = NULL;
+		pl->annos = NULL;
 		pl->clkeys = NULL;
 		pl->clvalues = NULL;
 		pl->rest = NULL;
@@ -532,12 +537,14 @@ param_list:
 	pl-> rest = $3;
 	$$ = pl;
 }
-| param_list IDENT {
+| param_list IDENT maybe_anno {
 	paramlist_node *pl = $1;
 	identlist_node *cura;
+	exprlist_node *curn;
 	if(!pl) {
 		pl = NEW(paramlist_node);
 		pl->args = NULL;
+		pl->annos = NULL;
 		pl->clkeys = NULL;
 		pl->clvalues = NULL;
 		pl->rest = NULL;
@@ -545,16 +552,24 @@ param_list:
 	if(!pl->args) {
 		pl->args = NEW(identlist_node);
 		cura = pl->args;
+		pl->annos = NEW(exprlist_node);
+		curn = pl->annos;
 	} else {
 		cura = pl->args;
+		curn = pl->annos;
 		while(cura->next) {
 			cura = cura->next;
+			curn = curn->next;
 		}
 		cura->next = NEW(identlist_node);
 		cura = cura->next;
+		curn->next = NEW(exprlist_node);
+		curn = curn->next;
 	}
 	cura->ident = $2;
 	cura->next = NULL;
+	curn->expr = $3;
+	curn->next = NULL;
 	$$ = pl;
 }
 | param_list COMMA { $$ = $1; }
@@ -599,6 +614,11 @@ assoc_item:
 any_lparen:
   LPAREN
 | BLPAREN
+;
+
+maybe_anno:
+  COLON expr { $$ = $2; }
+| /* empty */ { $$ = NULL; }
 ;
 
 %%

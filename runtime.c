@@ -179,6 +179,7 @@ expr_node *ex_copy(expr_node *old) {
 				new->funcdecl->name = NULL;
 			}
 			new->funcdecl->params = pl_copy(old->funcdecl->params);
+			new->funcdecl->anno = ex_copy(old->funcdecl->anno);
 			new->funcdecl->body = st_copy(old->funcdecl->body);
 			break;
 
@@ -294,6 +295,7 @@ paramlist_node *pl_copy(paramlist_node *old) {
 	if(!old) return NULL;
 	new = NEW(paramlist_node);
 	new->args = idl_copy(old->args);
+	new->annos = exl_copy(old->annos);
 	new->clkeys = idl_copy(old->clkeys);
 	new->clvalues = exl_copy(old->clvalues);
 	new->rest = old->rest ? strdup(old->rest) : NULL;
@@ -415,6 +417,7 @@ void ex_free(expr_node *expr) {
 			free(expr->funcdecl->name);
 			st_free(expr->funcdecl->body);
 			pl_free(expr->funcdecl->params);
+			ex_free(expr->funcdecl->anno);
 			free(expr->funcdecl);
 			break;
 
@@ -482,6 +485,7 @@ void idl_free(identlist_node *list) {
 void pl_free(paramlist_node *list) {
 	if(!list) return;
 	idl_free(list->args);
+	exl_free(list->annos);
 	idl_free(list->clkeys);
 	exl_free(list->clvalues);
 	if(list->rest) free(list->rest);
@@ -801,21 +805,8 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			break;
 
 		case EX_FUNCDECL:
-			res = sol_new_func(state, expr->funcdecl->params ? expr->funcdecl->params->args : NULL, expr->funcdecl->body, expr->funcdecl->name);
+			res = sol_new_func(state, expr->funcdecl->params ? expr->funcdecl->params->args : NULL, expr->funcdecl->body, expr->funcdecl->name, expr->funcdecl->params, expr->funcdecl->anno);
 			ERR_CHECK(state);
-			if(expr->funcdecl->params) {
-				res->rest = expr->funcdecl->params->rest ? strdup(expr->funcdecl->params->rest) : NULL;
-				curi = expr->funcdecl->params->clkeys;
-				cure = expr->funcdecl->params->clvalues;
-				while(curi) {
-					sol_map_borrow_name(state, res->closure, curi->ident, sol_eval_inner(state, cure->expr, jmp));
-					ERR_CHECK(state);
-					curi = curi->next;
-					cure = cure->next;
-				}
-			} else {
-				res->rest = NULL;
-			}
 			if(expr->funcdecl->name) {
 				sol_state_assign_l_name(state, expr->funcdecl->name, res);
 				ERR_CHECK(state);
@@ -1047,15 +1038,45 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
-sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name) {
+sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name, paramlist_node *params, expr_node *func_anno) {
+	identlist_node *cura;
+	exprlist_node *cure;
 	sol_object_t *obj = sol_alloc_object(state);
 	obj->func = st_copy(body);
 	obj->args = idl_copy(identlist);
 	obj->fname = (name ? strdup(name) : NULL);
 	obj->closure = sol_new_map(state);
 	obj->udata = sol_new_map(state);
+	obj->rest = NULL;
+	obj->annos = sol_new_map(state);
 	obj->type = SOL_FUNCTION;
 	obj->ops = &(state->FuncOps);
+	if(params) {
+		obj->rest = params->rest ? strdup(params->rest) : NULL;
+		cura = params->clkeys;
+		cure = params->clvalues;
+		while(cura) {
+			sol_map_borrow_name(state, obj->closure, cura->ident, sol_eval(state, cure->expr));
+			if(sol_has_error(state)) {
+				sol_obj_free(obj);
+				return sol_incref(state->None);
+			}
+			cura = cura->next;
+			cure = cure->next;
+		}
+		cura = params->args;
+		cure = params->annos;
+		while(cura) {
+			if(cure->expr) {
+				sol_map_borrow_name(state, obj->annos, cura->ident, sol_eval(state, cure->expr));
+			}
+			cura = cura->next;
+			cure = cure->next;
+		}
+	}
+	if(func_anno) {
+		sol_map_borrow(state, obj->annos, obj, sol_eval(state, func_anno));
+	}
 	return obj;
 }
 

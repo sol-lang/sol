@@ -131,6 +131,7 @@ typedef struct tag_identlist_node {
 
 typedef struct {
 	identlist_node *args;
+	exprlist_node *annos;
 	identlist_node *clkeys;
 	exprlist_node *clvalues;
 	char *rest;
@@ -139,6 +140,7 @@ typedef struct {
 typedef struct {
 	char *name;
 	paramlist_node *params;
+	expr_node *anno;
 	stmt_node *body;
 } funcdecl_node;
 
@@ -248,7 +250,7 @@ typedef struct tag_stmt_node {
 		res;\
 })
 
-sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *);
+sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *, paramlist_node *, expr_node *);
 sol_object_t *sol_new_stmtnode(sol_state_t *, stmt_node *);
 sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 

@@ -1,4 +1,4 @@
-func dump(obj, indent)
+func dump(obj, indent, seen = {})
 	if None == indent then
 		indent = 0
 		seen = {}
@@ -38,5 +38,3 @@ func dump(obj, indent)
 	end
 	prepr(obj)
 end
-
-dump.closure.seen = {}
