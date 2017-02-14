@@ -9,7 +9,7 @@ before_script:
 build:
     stage: build
     script:
-        - make
+        - exit 1
 
 run:
     stage: test
