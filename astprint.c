@@ -261,7 +261,7 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 			lev++;
 			prlev(state, lev, "Expr:");
 			prex(state, node->call->expr, lev + 1);
-			prlev(state, lev, "Method: %s\n", node->call->method);
+			prlev(state, lev, "Method: %s", node->call->method);
 			prlev(state, lev, "Args:");
 			cure = node->call->args;
 			while(cure && cure->expr) {

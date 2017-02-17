@@ -6,9 +6,9 @@ int main(int argc, char **argv) {
 	stmt_node *program;
 	sol_state_t state;
 	char *c;
-	int printtree = 0, clean = 1;
-	FILE *prgstream = stdin;
-	int result = 0;
+	int printtree = 0, clean = 1, argidx = 2;
+	FILE *prgstream = stdin, *compstream = NULL;
+	int result = 0, compile = 0, compiled = 0;
 
 	state.features = 0;
 
@@ -25,15 +25,28 @@ int main(int argc, char **argv) {
 					break;
 
 				case 'r':
-					if(argc < 2) {
+					if(argc < argidx) {
 						printf("r option requires file\n");
 						return 2;
 					}
-					prgstream = fopen(argv[2], "r");
+					prgstream = fopen(argv[argidx++], "r");
 					break;
 
 				case 'i':
 					state.features |= SOL_FT_NO_USR_INIT;
+					break;
+
+				case 'c':
+					compile = 1;
+					if(argc < argidx) {
+						printf("c option requires file\n");
+						return 2;
+					}
+					compstream = fopen(argv[argidx++], "wb");
+					break;
+
+				case 'C':
+					compiled = 1;
 					break;
 			}
 			c++;
@@ -45,7 +58,11 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 
-	program = sol_compile_file(prgstream);
+	if(compiled) {
+		program = sol_deser_stmt(prgstream);
+	} else {
+		program = sol_compile_file(prgstream);
+	}
 	
 	if(!program) {
 		printf("NULL program (probably a syntax error)\n");
@@ -54,6 +71,11 @@ int main(int argc, char **argv) {
 
 	if(prgstream != stdin) {
 		fclose(prgstream);
+	}
+
+	if(compile) {
+		sol_ser_stmt(compstream, program);
+		return 0;
 	}
 
 	if(!sol_state_init(&state)) {

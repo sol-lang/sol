@@ -1,6 +1,6 @@
 CFLAGS= -g 
 LDFLAGS= -lm -ldl -lreadline
-OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o
+OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o
 
 .PHONY: all test
 
@@ -9,10 +9,14 @@ all: dsl sol
 sol: $(OBJ)
 	gcc $(CFLAGS) $? $(LDFLAGS) -o sol
 
-test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol)))
+test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol))) $(sort $(patsubst tests/%.sol,testcomp_%,$(wildcard tests/*.sol)))
+
 
 test_%: tests/%.sol
 	./sol r $?
+
+testcomp_%: tests/%.sol
+	./sol rc $? /dev/fd/1 | ./sol C
 
 dsl:
 	git submodule init && git submodule sync && git submodule update

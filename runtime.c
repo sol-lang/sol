@@ -46,7 +46,7 @@ stmt_node *st_copy(stmt_node *old) {
 
 		case ST_BREAK:
 			new->brk = NEW(break_node);
-			new->brk->val = ex_copy(old->cont->val);
+			new->brk->val = ex_copy(old->brk->val);
 			break;
 
 		default:

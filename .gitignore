@@ -9,6 +9,7 @@ gclog.txt
 gcstat.txt
 iss*
 /*.sol
+*.slc
 _build
 doxyxml
 valgrind.log

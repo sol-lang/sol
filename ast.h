@@ -213,6 +213,42 @@ typedef struct tag_stmt_node {
 	};
 } stmt_node;
 
+typedef enum {
+	BC_NULL,
+	BC_ST_EXPR,
+	BC_ST_LIST,
+	BC_ST_RET,
+	BC_ST_CONT,
+	BC_ST_BREAK,
+	BC_EX_LIT,
+	BC_EX_LISTGEN,
+	BC_EX_MAPGEN,
+	BC_EX_BINOP,
+	BC_EX_UNOP,
+	BC_EX_INDEX,
+	BC_EX_SETINDEX,
+	BC_EX_ASSIGN,
+	BC_EX_REF,
+	BC_EX_CALL,
+	BC_EX_FUNCDECL,
+	BC_EX_IFELSE,
+	BC_EX_LOOP,
+	BC_EX_ITER,
+	BC_LIT_INT,
+	BC_LIT_FLOAT,
+	BC_LIT_STRING,
+	BC_LIT_NONE,
+	BC_INT,
+	BC_FLOAT,
+	BC_STRING,
+	BC_LIST_ST,
+	BC_LIST_EX,
+	BC_LIST_AS,
+	BC_LIST_ID,
+	BC_LIST_PM,
+	BC_ENDLIST,
+} bytecode;
+
 #define AS_ST(arg) ((stmt_node *) (arg))
 #define AS_EX(arg) ((expr_node *) (arg))
 #define AS(arg, tp) ((tp *) (arg))
@@ -283,5 +319,25 @@ void ob_print(sol_object_t *);
 
 sol_object_t *sol_eval(sol_state_t *, expr_node *);
 void sol_exec(sol_state_t *, stmt_node *);
+
+// ser.c
+
+void sol_ser_stmt(FILE *, stmt_node *);
+void sol_ser_expr(FILE *, expr_node *);
+void sol_ser_stl(FILE *, stmtlist_node *);
+void sol_ser_exl(FILE *, exprlist_node *);
+void sol_ser_asl(FILE *, assoclist_node *);
+void sol_ser_idl(FILE *, identlist_node *);
+void sol_ser_pl(FILE *, paramlist_node *);
+void sol_ser_lit(FILE *, lit_node *);
+void sol_ser_int(FILE *, long);
+void sol_ser_float(FILE *, double);
+void sol_ser_str(FILE *, const char *);
+
+void *sol_deser(FILE *);
+void *sol_deser_checked(FILE *, bytecode);
+void *sol_deser_stmt(FILE *);
+void *sol_deser_expr(FILE *);
+void *sol_deser_lit(FILE *);
 
 #endif
