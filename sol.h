@@ -25,6 +25,24 @@
  */
 #define SOL_HEXVER 0x0003A02
 
+#ifndef SOL_BUILD_HOST
+#define SOL_BUILD_HOST "(unknown host)"
+#endif
+
+#ifndef SOL_BUILD_KERNEL
+#define SOL_BUILD_KERNEL "(unknown kernel)"
+#endif
+
+#ifndef SOL_BUILD_ARCH
+#define SOL_BUILD_ARCH "(unknown arch)"
+#endif
+
+#ifndef SOL_BUILD_REV
+#define SOL_BUILD_REV "(unknown rev)"
+#endif
+
+#define SOL_BUILD_ID "sol-" SOL_BUILD_REV " " __DATE__ " " __TIME__ " on " SOL_BUILD_HOST " " SOL_BUILD_KERNEL " " SOL_BUILD_ARCH
+
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */
 #define SOL_ICACHE_MIN -128

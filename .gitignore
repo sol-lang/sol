@@ -1,5 +1,5 @@
-sol
-solace
+sol*
+!sol_help.txt
 *.o
 stdout
 .submodule_stamp
@@ -13,3 +13,4 @@ iss*
 _build
 doxyxml
 valgrind.log
+*_INFO

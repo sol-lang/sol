@@ -470,7 +470,6 @@ int sol_state_init(sol_state_t *state) {
 	}
 
 	// Perform initialization based on the user profile, if so requested.
-	// TODO: Make this switchable at runtime.
 	
 	if(!(state->features & SOL_FT_NO_USR_INIT)) {
 		for(i = 0; i < LENGTH(sol_AbsInitPaths); i++) {

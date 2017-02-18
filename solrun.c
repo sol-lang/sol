@@ -2,6 +2,8 @@
 #include "ast.h"
 #include "parser.tab.h"
 
+extern char _binary_sol_help_txt_start, _binary_sol_help_txt_end;
+
 int main(int argc, char **argv) {
 	stmt_node *program;
 	sol_state_t state;
@@ -47,6 +49,18 @@ int main(int argc, char **argv) {
 
 				case 'C':
 					compiled = 1;
+					break;
+
+				case 'V':
+					printf(SOL_BUILD_ID "\n");
+				case 'h':
+					fwrite(
+						&_binary_sol_help_txt_start,
+						1,
+						&_binary_sol_help_txt_end - &_binary_sol_help_txt_start,
+						stdout
+					);
+					return 0;
 					break;
 			}
 			c++;

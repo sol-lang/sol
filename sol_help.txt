@@ -1,0 +1,41 @@
+./sol [<options> [<arg> [<arg> ...]]]
+
+Sol Executive - compiles and/or runs a Sol program.
+
+Options given to Sol are given via the first argument. For options that take
+parameters, they are read in the order specified in the option argument; e.g.,
+"./sol ab a.foo b.bar" and "./sol ba b.bar a.foo" are equivalent, assuming
+options "a" and "b" take arguments.
+
+Sol currently recognizes the following options:
+
+-d: Sets yydebug=1, which enables debug tracing of the parser/lexer.
+-t: Prints the Sol syntax tree after program loading.
+-i: Ignore any initialization files. By default, Sol executes any of these
+ files, if they exist and are readable, in the initial environment in this
+ order:
+ - /etc/sol/init.sol
+ - /opt/sol/init.sol
+ - $HOME/.config/sol/init.sol
+ These may be overridden during compilation.
+-r <file>: Read the program from the file, instead of the default (stdin).
+ Programs run this way have access to stdin via `io.stdin` in the global
+ environment.
+-c <file>: After loading the program, write bytecode to the file, instead of
+ running the program. Such files can be later loaded using the C option.
+-C: Assume that the program file is a compiled bytecode stream instead of Sol
+ source text.
+
+Sol's exit status is determined by the following, in this order:
+- 0, on printing this help;
+- 2, if an argument, parsing, or initialization error occurred;
+- 0, if the file was to be compiled and was written successfully;
+- 1, if the program in the file encountered an error at the top level;
+- the integer value if an integer was returned at the top level;
+- 0 otherwise.
+
+For more information about the language itself, please refer to the source
+repository and/or `make docs` therein.
+
+Sol is Free Software under the Boost Software License, version 1.0; see LICENSE
+in the source repository for more details.
