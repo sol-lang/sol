@@ -10,6 +10,7 @@ options "a" and "b" take arguments.
 Sol currently recognizes the following options:
 
 -d: Sets yydebug=1, which enables debug tracing of the parser/lexer.
+-D: Sets debugging within the language runtime itself.
 -t: Prints the Sol syntax tree after program loading.
 -i: Ignore any initialization files. By default, Sol executes any of these
  files, if they exist and are readable, in the initial environment in this

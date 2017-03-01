@@ -22,6 +22,10 @@ int main(int argc, char **argv) {
 					yydebug = 1;
 					break;
 
+				case 'D':
+					state.features |= SOL_FT_DEBUG;
+					break;
+
 				case 't':
 					printtree = 1;
 					break;

@@ -450,6 +450,8 @@ typedef struct sol_tag_state_t {
 
 /** Don't run user initialization files. */
 #define SOL_FT_NO_USR_INIT 0x0001
+/** Be noisy in the language runtime. */
+#define SOL_FT_DEBUG       0x0002
 
 // state.c
 

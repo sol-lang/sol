@@ -2,6 +2,22 @@ CFLAGS= -g $(BUILD_DEFINES)
 LDFLAGS= -lm -ldl -lreadline
 OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o sol_help.o
 
+ifndef CC
+	CC:= gcc
+endif
+
+ifndef OBJCOPY
+	OBJCOPY:= objcopy
+endif
+
+ifndef OBJDUMP
+	OBJDUMP:= objdump
+endif
+
+ifndef PREFIX
+	PREFIX:= /usr/local/
+endif
+
 include VERSION_INFO
 include ARCH_INFO
 
@@ -10,15 +26,26 @@ BUILD_DEFINES:= -DSOL_BUILD_HOST="\"$(shell uname -n)\"" -DSOL_BUILD_KERNEL="\"$
 SOL_VER:=$(MAJOR).$(MINOR)$(RELEASE)$(PATCH)
 LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
-.PHONY: all test
+.PHONY: install install_bin all test clean docs
 
 all: dsl $(LINKED_VERS)
+
+install: install_bin
+
+install_bin: sol$(SOL_VER) $(LINKED_VERS)
+	install $? $(PREFIX)/bin/
+
+uninstall: uninstall_bin
+
+uninstall_bin:
+	rm $(PREFIX)/bin/sol$(SOL_VER)
+	for fname in $(LINKED_VERS); do rm $(PREFIX)/bin/$$fname; done
 
 $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
 	
 sol$(SOL_VER): $(OBJ)
-	gcc $(CFLAGS) $? $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $? $(LDFLAGS) -o $@
 
 test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol))) $(sort $(patsubst tests/%.sol,testcomp_%,$(wildcard tests/*.sol)))
 
@@ -36,13 +63,13 @@ VERSION_INFO: sol.h
 	perl -n -e '/#define SOL_VERSION "([[:digit:]]+)\.([[:digit:]]+)(.)([[:digit:]]+)"/ && print "MAJOR:=$$1\nMINOR:=$$2\nRELEASE:=$$3\nPATCH:=$$4\n"' $? > $@
 
 ARCH_INFO: gc.o
-	objdump -f $? | perl -n -e '/file format ([^-]+-(.+))$$/ && print "HOST_ARCH:=$$2\nHOST_ELF:=$$1\n"' > $@
+	$(OBJDUMP) -f $? | perl -n -e '/file format ([^-]+-(.+))$$/ && print "HOST_ARCH:=$$2\nHOST_ELF:=$$1\n"' > $@
 
 %.o: %.c
-	gcc -c -o $@ $? $(CFLAGS)
+	$(CC) -c -o $@ $? $(CFLAGS)
 
 %.o: %.txt | ARCH_INFO
-	objcopy -B i386 -I binary -O $(HOST_ELF) $? $@
+	$(OBJCOPY) -B i386 -I binary -O $(HOST_ELF) $? $@
 
 %.tab.c %.tab.h: %.y
 	bison -rall -fall -d $?

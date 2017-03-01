@@ -474,26 +474,55 @@ int sol_state_init(sol_state_t *state) {
 	if(!(state->features & SOL_FT_NO_USR_INIT)) {
 		for(i = 0; i < LENGTH(sol_AbsInitPaths); i++) {
 			fp = fopen(sol_AbsInitPaths[i], "r");
+			if(state->features & SOL_FT_DEBUG) {
+				printf("state init: loading abs %s: ", sol_AbsInitPaths[i]);
+			}
 			if(fp) {
+				if(state->features & SOL_FT_DEBUG) {
+					printf("found");
+				}
 				stmt = sol_compile_file(fp);
 				sol_exec(state, stmt);
 				st_free(stmt);
 				fclose(fp);
+			} else {
+				if(state->features & SOL_FT_DEBUG) {
+					printf("not found");
+				}
+			}
+			if(state->features & SOL_FT_DEBUG) {
+				printf("\n");
 			}
 		}
 
 		suffix = getenv("HOME");
+		if(state->features & SOL_FT_DEBUG) {
+			printf("state init: loading relative to %s\n", suffix);
+		}
 		if(suffix) {
 			strncpy(sol_TempPath, suffix, TMP_PATH_SZ);
 			suffix = sol_TempPath + strlen(sol_TempPath);
 			for(i = 0; i < LENGTH(sol_HomeInitPaths); i++) {
 				strncpy(suffix, sol_HomeInitPaths[i], TMP_PATH_SZ - (suffix - sol_TempPath));
+				if(state->features & SOL_FT_DEBUG) {
+					printf("state init: loading rel %s: ", sol_TempPath);
+				}
 				fp = fopen(sol_TempPath, "r");
 				if(fp) {
+					if(state->features & SOL_FT_DEBUG) {
+						printf("found");
+					}
 					stmt = sol_compile_file(fp);
 					sol_exec(state, stmt);
 					st_free(stmt);
 					fclose(fp);
+				} else {
+					if(state->features & SOL_FT_DEBUG) {
+						printf("not found");
+					}
+				}
+				if(state->features & SOL_FT_DEBUG) {
+					printf("\n");
 				}
 			}
 		}
