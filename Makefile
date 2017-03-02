@@ -32,8 +32,11 @@ all: dsl $(LINKED_VERS)
 
 install: install_bin
 
-install_bin: sol$(SOL_VER) $(LINKED_VERS)
+install_bin: install_bindir sol$(SOL_VER) $(LINKED_VERS)
 	install $? $(DESTDIR)/bin/
+
+install_bindir: $(DESTDIR)/bin/
+	mkdir -p $?
 
 uninstall: uninstall_bin
 
