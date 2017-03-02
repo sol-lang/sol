@@ -26,7 +26,7 @@ BUILD_DEFINES:= -DSOL_BUILD_HOST="\"$(shell uname -n)\"" -DSOL_BUILD_KERNEL="\"$
 SOL_VER:=$(MAJOR).$(MINOR)$(RELEASE)$(PATCH)
 LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
-.PHONY: install install_bin all test clean docs
+.PHONY: install install_bin install_bindir uninstall uninstall_bin all test clean docs
 
 all: dsl $(LINKED_VERS)
 
@@ -35,8 +35,8 @@ install: install_bin
 install_bin: install_bindir sol$(SOL_VER) $(LINKED_VERS)
 	install $? $(DESTDIR)/bin/
 
-install_bindir: $(DESTDIR)/bin/
-	mkdir -p $?
+install_bindir: 
+	mkdir -p $(DESTDIR)/bin/
 
 uninstall: uninstall_bin
 
