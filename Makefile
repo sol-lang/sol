@@ -30,9 +30,9 @@ LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
 all: dsl $(LINKED_VERS)
 
-install: install_bin
+install: install_bindir install_bin
 
-install_bin: install_bindir sol$(SOL_VER) $(LINKED_VERS)
+install_bin:  sol$(SOL_VER) $(LINKED_VERS)
 	install $? $(DESTDIR)/bin/
 
 install_bindir: 
@@ -41,8 +41,8 @@ install_bindir:
 uninstall: uninstall_bin
 
 uninstall_bin:
-	rm $(DESTDIR)/bin/sol$(SOL_VER)
-	for fname in $(LINKED_VERS); do rm $(DESTDIR)/bin/$$fname; done
+	rm $(DESTDIR)/bin/sol$(SOL_VER) || true
+	for fname in $(LINKED_VERS); do rm $(DESTDIR)/bin/$$fname || true; done
 
 $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
