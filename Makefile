@@ -14,8 +14,8 @@ ifndef OBJDUMP
 	OBJDUMP:= objdump
 endif
 
-ifndef PREFIX
-	PREFIX:= /usr/local/
+ifndef DESTDIR
+	DESTDIR:= /usr/local/
 endif
 
 include VERSION_INFO
@@ -33,13 +33,13 @@ all: dsl $(LINKED_VERS)
 install: install_bin
 
 install_bin: sol$(SOL_VER) $(LINKED_VERS)
-	install $? $(PREFIX)/bin/
+	install $? $(DESTDIR)/bin/
 
 uninstall: uninstall_bin
 
 uninstall_bin:
-	rm $(PREFIX)/bin/sol$(SOL_VER)
-	for fname in $(LINKED_VERS); do rm $(PREFIX)/bin/$$fname; done
+	rm $(DESTDIR)/bin/sol$(SOL_VER)
+	for fname in $(LINKED_VERS); do rm $(DESTDIR)/bin/$$fname; done
 
 $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
