@@ -1,5 +1,5 @@
 CFLAGS= -g $(BUILD_DEFINES)
-LDFLAGS= -lm -ldl -lreadline
+LDFLAGS= -lfl -lm -ldl -lreadline
 OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o sol_help.o
 
 ifndef CC
