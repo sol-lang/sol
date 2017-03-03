@@ -26,23 +26,32 @@ BUILD_DEFINES:= -DSOL_BUILD_HOST="\"$(shell uname -n)\"" -DSOL_BUILD_KERNEL="\"$
 SOL_VER:=$(MAJOR).$(MINOR)$(RELEASE)$(PATCH)
 LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
-.PHONY: install install_bin install_bindir uninstall uninstall_bin all test clean docs
+.PHONY: install install_bin install_bindir install_lib install_libdir uninstall uninstall_bin uninstall_lib all test clean docs
 
 all: dsl $(LINKED_VERS)
 
-install: install_bindir install_bin
+install: install_bindir install_libdir install_bin install_lib
 
-install_bin:  sol$(SOL_VER) $(LINKED_VERS)
+install_bin: sol$(SOL_VER) $(LINKED_VERS)
 	install $? $(DESTDIR)/bin/
 
-install_bindir: 
-	mkdir -p $(DESTDIR)/bin/
+install_lib: programs tests
+	cp -r $? $(DESTDIR)/lib/sol$(SOL_VER)/
 
-uninstall: uninstall_bin
+install_bindir: 
+	install -d $(DESTDIR)/bin/
+
+install_libdir:
+	install -d $(DESTDIR)/lib/sol$(SOL_VER)/
+
+uninstall: uninstall_bin uninstall_lib
 
 uninstall_bin:
 	rm $(DESTDIR)/bin/sol$(SOL_VER) || true
 	for fname in $(LINKED_VERS); do rm $(DESTDIR)/bin/$$fname || true; done
+
+uninstall_lib:
+	rm -r $(DESTDIR)/lib/sol$(SOL_VER)/{programs,tests}
 
 $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
