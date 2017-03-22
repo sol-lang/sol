@@ -575,6 +575,7 @@ void *sol_deser(FILE *io) {
 					node = AS(node, stmtlist_node)->next;
 				}
 				AS(node, stmtlist_node)->stmt = sol_deser_stmt(io);
+				AS(node, stmtlist_node)->next = NULL;
 			}
 			return obj;
 
@@ -589,6 +590,7 @@ void *sol_deser(FILE *io) {
 					node = AS(node, exprlist_node)->next;
 				}
 				AS(node, exprlist_node)->expr = sol_deser_expr(io);
+				AS(node, exprlist_node)->next = NULL;
 			}
 			return obj;
 
@@ -605,6 +607,7 @@ void *sol_deser(FILE *io) {
 				AS(node, assoclist_node)->item = NEW(associtem_node);
 				AS(node, assoclist_node)->item->key = sol_deser_expr(io);
 				AS(node, assoclist_node)->item->value = sol_deser_expr(io);
+				AS(node, assoclist_node)->next = NULL;
 			}
 			return obj;
 
@@ -619,6 +622,7 @@ void *sol_deser(FILE *io) {
 					node = AS(node, identlist_node)->next;
 				}
 				AS(node, identlist_node)->ident = sol_deser_checked(io, BC_STRING);
+				AS(node, identlist_node)->next = NULL;
 			}
 			return obj;
 

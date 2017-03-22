@@ -5,13 +5,23 @@
 #include <string.h>
 
 #define YYSTYPE void *
+#define YYLTYPE loc_t
+
+/* Hacks */
+#define first_line line
+#define last_line line
+#define first_column col
+#define last_column col
+
+int yylex(YYSTYPE *, loc_t *);
+void yyerror(loc_t *, stmt_node **, char *);
 
 %}
 
 %define lr.type ielr
 %define api.pure full
 
-%token IF THEN ELSE
+%token IF THEN ELSEIF ELSE
 %token WHILE FOR IN DO
 %token FUNC LAMBDA RETURN BREAK CONTINUE
 %token END NONE
@@ -71,21 +81,13 @@ expr:
 ;
 
 control_expr:
-  IF expr THEN stmt_list END {
+  IF expr THEN stmt_list if_termin {
 	$$ = NEW_EX();
 	AS_EX($$)->type = EX_IFELSE;
 	AS_EX($$)->ifelse = NEW(ifelse_node);
 	AS_EX($$)->ifelse->cond = $2;
 	AS_EX($$)->ifelse->iftrue = $4;
-	AS_EX($$)->ifelse->iffalse = NULL;
-}
-| IF expr THEN stmt_list ELSE stmt_list END {
-	$$ = NEW_EX();
-	AS_EX($$)->type = EX_IFELSE;
-	AS_EX($$)->ifelse = NEW(ifelse_node);
-	AS_EX($$)->ifelse->cond = $2;
-	AS_EX($$)->ifelse->iftrue = $4;
-	AS_EX($$)->ifelse->iffalse = $6;
+	AS_EX($$)->ifelse->iffalse = $5;
 }
 | WHILE expr DO stmt_list END {
 	$$ = NEW_EX();
@@ -103,6 +105,23 @@ control_expr:
 	AS_EX($$)->iter->loop = $6;
 }
 | assign_expr { $$ = $1; }
+;
+
+if_termin:
+	ELSEIF expr THEN stmt_list if_termin {
+		$$ = NEW_ST();
+		AS_ST($$)->type = ST_EXPR;
+		AS_ST($$)->expr = NEW_EX();
+		AS_ST($$)->expr->type = EX_IFELSE;
+		AS_ST($$)->expr->ifelse = NEW(ifelse_node);
+		AS_ST($$)->expr->ifelse->cond = $2;
+		AS_ST($$)->expr->ifelse->iftrue = $4;
+		AS_ST($$)->expr->ifelse->iffalse = $5;
+	}
+|	ELSE stmt_list END {
+		$$ = $2;
+	}
+|	END { $$ = NULL; }
 ;
 
 assign_expr:
@@ -165,7 +184,7 @@ assign_expr:
   }
 | ex_index_expr ASSIGN expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -178,7 +197,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNPLUS expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -191,7 +210,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNMINUS expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -204,7 +223,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNSTAR expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -217,7 +236,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNSLASH expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -230,7 +249,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNDSTAR expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -243,7 +262,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNBAND expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -256,7 +275,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNBOR expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();
@@ -269,7 +288,7 @@ assign_expr:
 }
 | ex_index_expr ASSIGNBXOR expr {
     if(AS_EX($1)->type != EX_INDEX) {
-        yyerror("Assigning to non-indexing expression");
+        yyerror(&@$, NULL, "Assigning to non-indexing expression");
         YYABORT;
     }
     $$ = NEW_EX();

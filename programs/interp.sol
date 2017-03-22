@@ -23,8 +23,13 @@ while __interp.running do
 	else
 		__interp.prompt = __interp.ps1
 	end
-	__interp.line = readline.readline(__interp.prompt)
-	if #__interp.line then readline.add_history(__interp.line) end
+	if None != readline then
+		__interp.line = readline.readline(__interp.prompt)
+		if #__interp.line then readline.add_history(__interp.line) end
+	else
+		__interp.line = io.stdin:read(io.LINE):sub(0, -1)
+	end
+	7
 	--prepr(__interp.line)
 	--prepr(__interp)
 	if (__interp.line:sub(-4, None)=="then") then
@@ -64,8 +69,9 @@ while __interp.running do
 								for ent in __interp.result[2] do
 									st = ent[0]
 									scope = ent[1]
+									fun = ent[2]
 									if st.type == ast.ST_LIST then continue end
-									print('In', st, 'at', st.loc.line, ',', st.loc.col, ':')
+									print('In', fun, 'at', st.loc.line, ',', st.loc.col, ':')
 									ast.print(st)
 									print(scope)
 									print('---')

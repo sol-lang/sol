@@ -2,7 +2,9 @@
 #include "ast.h"
 #include "parser.tab.h"
 
+#ifndef NO_HELP
 extern char _binary_sol_help_txt_start, _binary_sol_help_txt_end;
+#endif
 
 int main(int argc, char **argv) {
 	stmt_node *program;
@@ -58,12 +60,16 @@ int main(int argc, char **argv) {
 				case 'V':
 					printf(SOL_BUILD_ID "\n");
 				case 'h':
+#ifndef NO_HELP
 					fwrite(
 						&_binary_sol_help_txt_start,
 						1,
 						&_binary_sol_help_txt_end - &_binary_sol_help_txt_start,
 						stdout
 					);
+#else
+					printf("Sorry, no help in this version (-DNO_HELP)!\n");
+#endif
 					return 0;
 					break;
 			}

@@ -4,8 +4,12 @@
 #include <math.h>
 #include <stdint.h>
 #include <dlfcn.h>
+#ifndef NO_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
+#include <termios.h>
+#include <sys/ioctl.h>
 #include "ast.h"
 #include "dsl/dsl.h"
 
@@ -484,6 +488,7 @@ sol_object_t *sol_f_debug_scopes(sol_state_t *state, sol_object_t *args) {
 	return sol_incref(state->scopes);
 }
 
+#ifndef NO_READLINE
 sol_object_t *sol_f_readline_readline(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj, *objstr, *res;
 	char *line;
@@ -512,6 +517,7 @@ sol_object_t *sol_f_readline_add_history(sol_state_t *state, sol_object_t *args)
 	sol_obj_free(line);
 	return sol_incref(state->None);
 }
+#endif
 
 void _sol_freef_seq_iter(void *iter, size_t sz) {
 	dsl_free_seq_iter((dsl_seq_iter *) iter);
@@ -1290,6 +1296,30 @@ sol_object_t *sol_f_list_filter(sol_state_t *state, sol_object_t *args) {
 	return list;
 }
 
+sol_object_t *sol_f_list_reduce(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *val = sol_list_get_index(state, args, 2), *newval;
+	sol_object_t *fargs = sol_new_list(state), *item;
+	int idx = 0, len = sol_list_len(state, list);
+	sol_list_insert(state, fargs, 0, func);
+	sol_list_insert(state, fargs, 1, state->None);
+	sol_list_insert(state, fargs, 2, state->None);
+	while(idx < len) {
+		item = sol_list_get_index(state, list, idx);
+		sol_list_set_index(state, fargs, 1, val);
+		sol_list_set_index(state, fargs, 2, item);
+		sol_obj_free(item);
+		newval = CALL_METHOD(state, func, call, fargs);
+		sol_obj_free(val);
+		val = newval;
+		idx++;
+	}
+	sol_obj_free(list);
+	sol_obj_free(func);
+	sol_obj_free(fargs);
+	return val;
+}
+
 sol_object_t *sol_f_map_add(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *a = sol_list_get_index(state, args, 0), *b = sol_list_get_index(state, args, 1), *map;
 	if(!sol_is_map(b)) {
@@ -1592,7 +1622,13 @@ sol_object_t *sol_f_func_tostring(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_cfunc_call(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *func = sol_list_get_index(state, args, 0), *fargs = sol_list_sublist(state, args, 1);
-	sol_object_t *res = func->cfunc(state, fargs);
+	sol_object_t *res = NULL, *tmp = NULL;
+	sol_list_insert(state, state->fnstack, 0, func);
+	res = func->cfunc(state, fargs);
+	tmp = sol_list_remove(state, state->fnstack, 0);
+	if(tmp != func) {
+		printf("ERROR: Function stack imbalance\n");
+	}
 	sol_obj_free(func);
 	sol_obj_free(fargs);
 	return res;
@@ -2642,7 +2678,7 @@ sol_object_t *sol_f_stream_write(sol_state_t *state, sol_object_t *args) {
 	return sol_new_int(state, sz);
 }
 
-sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
+sol_object_t *sol_f_stream_read_buffer(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *stream = sol_list_get_index(state, args, 0), *amt = sol_list_get_index(state, args, 1), *iamt, *res;
 	char *s = NULL, *p;
 	size_t count = 0, max = 0, pos, end;
@@ -2660,22 +2696,21 @@ sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
 				sol_obj_free(amt);
 				return sol_set_error_string(state, "IO read error");
 			}
-			s[end - pos] = '\0';
+			count = end - pos;
 		} else if(sol_string_eq(state, amt, "LINE")) {
 			s = malloc(STDIO_CHUNK_SIZE * sizeof(char));
 			sol_stream_fgets(state, stream, s, STDIO_CHUNK_SIZE);
+			count = strlen(s);
 		}
 	} else {
 		iamt = sol_cast_int(state, amt);
 		s = malloc((iamt->ival + 1) * sizeof(char));
 		count = sol_stream_fread(state, stream, s, sizeof(char), iamt->ival);
-		s[count] = '\0';
 		sol_obj_free(iamt);
 	}
 	if(s) {
 		//printf("IO: Read result: %s\n", s);
-		res = sol_new_string(state, s);
-		free(s);
+		res = sol_new_buffer(state, s, count, OWN_FREE, NULL, NULL);
 	} else {
 		//printf("IO: No read result!\n");
 		res = sol_incref(state->None);
@@ -2683,6 +2718,13 @@ sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
 	sol_obj_free(amt);
 	sol_obj_free(stream);
 	return res;
+}
+
+sol_object_t *sol_f_stream_read(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *buf = sol_f_stream_read_buffer(state, args);
+	sol_object_t *str = sol_new_string(state, buf->buffer);
+	sol_obj_free(buf);
+	return str;
 }
 
 sol_object_t *sol_f_stream_seek(sol_state_t *state, sol_object_t *args) {
@@ -2712,6 +2754,17 @@ sol_object_t *sol_f_stream_flush(sol_state_t *state, sol_object_t *args) {
 sol_object_t *sol_f_stream_eof(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *stream = sol_list_get_index(state, args, 0), *res = sol_new_int(state, sol_stream_feof(state, stream));
 	sol_obj_free(stream);
+	return res;
+}
+
+sol_object_t *sol_f_stream_ioctl(sol_state_t *state, sol_object_t *args) {
+	sol_object_t *stream = sol_list_get_index(state, args, 0), *buf = sol_list_get_index(state, args, 2);
+	sol_object_t *req = sol_list_get_index(state, args, 1), *ireq = sol_cast_int(state, req);
+	sol_object_t *res = sol_new_int(state, ioctl(fileno(stream->stream), (unsigned long) ireq->ival, buf->buffer));
+	sol_obj_free(stream);
+	sol_obj_free(buf);
+	sol_obj_free(req);
+	sol_obj_free(ireq);
 	return res;
 }
 

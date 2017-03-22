@@ -1,0 +1,5 @@
+WASM/asm.js:
+make CC=emcc CFLAGS=-DNO_READLINE NO_HELP=1
+
+clang for profiling:
+make CC=clang CFLAGS="-fprofile-instr-generate -fcoverage-mapping"

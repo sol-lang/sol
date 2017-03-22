@@ -98,6 +98,8 @@ then { return THEN; }
 
 else { return ELSE; }
 
+elseif { return ELSEIF; }
+
 while { return WHILE; }
 
 for { return FOR; }

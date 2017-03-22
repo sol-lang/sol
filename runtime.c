@@ -491,12 +491,12 @@ void pl_free(paramlist_node *list) {
 	if(list->rest) free(list->rest);
 }
 
-#define ERR_CHECK(state) do { if(sol_has_error(state)) longjmp(jmp, 1); } while(0)
+#define ERR_CHECK(state) do { if(sol_has_error(state)) { sol_add_traceback(state, sol_new_exprnode(state, ex_copy(expr))); longjmp(jmp, 1); } } while(0)
 sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
-	sol_object_t *res, *left, *right, *lint, *rint, *value, *list, *vint, *iter, *item;
-	exprlist_node *cure;
-	assoclist_node *cura;
-	identlist_node *curi;
+	sol_object_t *res = NULL, *left = NULL, *right = NULL, *lint = NULL, *rint = NULL, *value = NULL, *list = NULL, *vint = NULL, *iter = NULL, *item = NULL;
+	exprlist_node *cure = NULL;
+	assoclist_node *cura = NULL;
+	identlist_node *curi = NULL;
 	if(!expr) {
 		return sol_set_error_string(state, "Evaluate NULL expression");
 	}
@@ -1025,7 +1025,12 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 		sol_obj_free(key);
 	}
 	sol_state_push_scope(state, scope);
+	sol_list_insert(state, state->fnstack, 0, value);
 	sol_exec(state, AS(value->func, stmt_node));
+	key = sol_list_remove(state, state->fnstack, 0);
+	if(key != value) {
+		printf("ERROR: Function stack imbalanced\n");
+	}
 	sol_state_pop_scope(state);
 	sol_map_merge_existing(state, value->closure, scope);
 	if(state->ret) {

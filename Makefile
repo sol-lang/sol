@@ -1,6 +1,6 @@
-CFLAGS= -g $(BUILD_DEFINES)
-LDFLAGS= -lfl -lm -ldl -lreadline
-OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o sol_help.o
+override CFLAGS:= -g $(BUILD_DEFINES) $(CFLAGS)
+override LDFLAGS:= -lfl -lm -ldl -lreadline $(LDFLAGS)
+OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o
 
 ifndef CC
 	CC:= gcc
@@ -18,12 +18,22 @@ ifndef DESTDIR
 	DESTDIR:= /usr/local/
 endif
 
+ifdef NO_HELP
+	override CFLAGS+= -DNO_HELP
+else
+	OBJ+= sol_help.o
+endif
+
+ifndef STDOUT_FILENAME
+	STDOUT_FILENAME:=/dev/fd/1
+endif
+
 include VERSION_INFO
 include ARCH_INFO
 
 BUILD_DEFINES:= -DSOL_BUILD_HOST="\"$(shell uname -n)\"" -DSOL_BUILD_KERNEL="\"$(shell uname -s)\"" -DSOL_BUILD_ARCH="\"$(shell uname -m)\"" -DSOL_BUILD_REV="\"$(shell git rev-parse --short HEAD)$(shell git diff-index --quiet HEAD || echo '-dirty')\""
 
-SOL_VER:=$(MAJOR).$(MINOR)$(RELEASE)$(PATCH)
+SOL_VER:=$(MAJOR).$(MINOR)$(RELEASE)$(PATCH)$(SUFFIX)
 LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
 .PHONY: install install_bin install_bindir install_lib install_libdir uninstall uninstall_bin uninstall_lib all test clean docs
@@ -66,7 +76,30 @@ test_%: tests/%.sol
 	./sol r $?
 
 testcomp_%: tests/%.sol
-	./sol rc $? /dev/fd/1 | ./sol C
+	./sol rc $? $(STDOUT_FILENAME) | ./sol C
+
+profile: all prof profile-boot $(sort $(patsubst tests/%.sol,profile_%,$(wildcard tests/*.sol))) profilecomp-boot $(sort $(patsubst tests/%.sol,profilecomp_%,$(wildcard tests/*.sol)))
+
+prof:
+	mkdir prof
+
+profile-boot: programs/test.sol
+	LLVM_PROFILE_FILE=prof/boot.prof ./sol r $?
+
+profile_%: tests/%.sol
+	LLVM_PROFILE_FILE=prof/sol.$(basename $(notdir $?)).prof ./sol r $?
+
+profilecomp-boot: programs/test.sol
+	LLVM_PROFILE_FILE=prof/bootcomp.comp.prof ./sol rc $? $(STDOUT_FILENAME) | LLVM_PROFILE_FILE=prof/bootcomp.run.prof ./sol C
+
+profilecomp_%: tests/%.sol
+	LLVM_PROFILE_FILE=prof/solcomp.$(basename $(notdir $?)).comp.prof ./sol rc $? $(STDOUT_FILENAME) | LLVM_PROFILE_FILE=prof/solcomp.$(basename $(notdir $?)).run.prof ./sol C
+
+prof/sol.html: profile
+	llvm-profdata merge -sparse prof/*.prof -o prof/sol.prof.merged
+	llvm-cov show -instr-profile prof/sol.prof.merged ./sol -format=html > $@
+
+all-profile: prof/sol.html
 
 dsl:
 	git submodule init && git submodule sync && git submodule update

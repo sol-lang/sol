@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.3a2"
+#define SOL_VERSION "0.3a4"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -23,7 +23,7 @@
  * version shall be available in all versions numerically greater than it
  * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0003A02
+#define SOL_HEXVER 0x0003A04
 
 #ifndef SOL_BUILD_HOST
 #define SOL_BUILD_HOST "(unknown host)"
@@ -412,11 +412,12 @@ typedef struct sol_tag_state_t {
 	sol_object_t *scopes; ///< A list of scope maps, innermost out, ending at the global scope
 	sol_object_t *ret; ///< Return value of this function, for early return
 	sol_object_t *traceback; ///< The last stack of statement (nodes) in the last error, or NULL
+	sol_object_t *fnstack; ///< The stack of function objects (`SOL_FUNCTION`, `SOL_CFUNCTION`) in the current call stack
 	sol_state_flag_t sflag; ///< Used to implement break/continue
 	sol_object_t *error; ///< Some arbitrary error descriptor, `None` if no error
-	sol_object_t *stdout; ///< Standard output stream object (for print(), type `SOL_STREAM`)
-	sol_object_t *stdin; ///< Standard input stream object (type `SOL_STREAM`)
-	sol_object_t *stderr; ///< Standard error stream object (type `SOL_STREAM`)
+	sol_object_t *_stdout; ///< Standard output stream object (for print(), type `SOL_STREAM`)
+	sol_object_t *_stdin; ///< Standard input stream object (type `SOL_STREAM`)
+	sol_object_t *_stderr; ///< Standard error stream object (type `SOL_STREAM`)
 	sol_object_t *None; ///< The all-important `None` object
 	sol_object_t *OutOfMemory; ///< The semi-important `OutOfMemory` object
 	sol_ops_t NullOps; ///< Basic, initialized operations. Not used by any extant object type.
@@ -550,6 +551,8 @@ sol_object_t *sol_get_error(sol_state_t *);
 /** Set the current error.
  *
  * Sets the current error object. Clears the error if the object is `None`.
+ *
+ * Returns a new reference to `None`, suitable for returning elsewhere.
  */
 sol_object_t *sol_set_error(sol_state_t *, sol_object_t *);
 /** Set the current error to a string, given a C string.
@@ -814,6 +817,7 @@ sol_object_t *sol_f_list_remove(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_truncate(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_map(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_list_filter(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_list_reduce(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_map_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_map_index(sol_state_t *, sol_object_t *);
@@ -872,10 +876,12 @@ sol_object_t *sol_f_stream_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_stream_write(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_read(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_read_buffer(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_seek(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_tell(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_flush(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_eof(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_stream_ioctl(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 

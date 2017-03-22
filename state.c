@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 #include "ast.h"
 
 #define TMP_PATH_SZ 256
@@ -228,9 +230,9 @@ int sol_state_init(sol_state_t *state) {
 		goto cleanup;
 	}
 
-	state->stdin = sol_new_stream(state, stdin, MODE_READ);
-	state->stdout = sol_new_stream(state, stdout, MODE_WRITE);
-	state->stderr = sol_new_stream(state, stderr, MODE_WRITE);
+	state->_stdin = sol_new_stream(state, stdin, MODE_READ);
+	state->_stdout = sol_new_stream(state, stdout, MODE_WRITE);
+	state->_stderr = sol_new_stream(state, stderr, MODE_WRITE);
 
 	// NB: None is actually a keyword in the language--it doesn't need to be a
 	// global (see parser.y)
@@ -279,11 +281,13 @@ int sol_state_init(sol_state_t *state) {
 	sol_register_module_name(state, "iter", mod);
 	sol_obj_free(mod);
 
+#ifndef NO_READLINE
 	mod = sol_new_map(state);
 	sol_map_borrow_name(state, mod, "readline", sol_new_cfunc(state, sol_f_readline_readline, "readline.readline"));
 	sol_map_borrow_name(state, mod, "add_history", sol_new_cfunc(state, sol_f_readline_add_history, "readline.add_history"));
 	sol_register_module_name(state, "readline", mod);
 	sol_obj_free(mod);
+#endif
 
 	mod = sol_new_map(state);
 	sol_map_borrow_name(state, mod, "ST_EXPR", sol_new_int(state, ST_EXPR));
@@ -424,6 +428,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "SEEK_END", sol_new_int(state, SEEK_END));
 	sol_map_borrow_name(state, mod, "ALL", sol_new_string(state, "ALL"));
 	sol_map_borrow_name(state, mod, "LINE", sol_new_string(state, "LINE"));
+	sol_map_borrow_name(state, mod, "TIOCGWINSZ", sol_new_int(state, TIOCGWINSZ));
+	sol_map_borrow_name(state, mod, "TIOCSWINSZ", sol_new_int(state, TIOCSWINSZ));
 	sol_map_borrow_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open, "io.open"));
 	sol_map_borrow_name(state, mod, "__setindex", sol_new_cfunc(state, sol_f_io_setindex, "io.__setindex"));
 	sol_map_borrow_name(state, mod, "__index", sol_new_cfunc(state, sol_f_io_index, "io.__index"));
@@ -445,16 +451,19 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, meths, "truncate", sol_new_cfunc(state, sol_f_list_truncate, "list.truncate"));
 	sol_map_borrow_name(state, meths, "map", sol_new_cfunc(state, sol_f_list_map, "list.map"));
 	sol_map_borrow_name(state, meths, "filter", sol_new_cfunc(state, sol_f_list_filter, "list.filter"));
+	sol_map_borrow_name(state, meths, "reduce", sol_new_cfunc(state, sol_f_list_reduce, "list.reduce"));
 	sol_register_methods_name(state, "list", meths);
 	sol_obj_free(meths);
 
 	meths = sol_new_map(state);
 	sol_map_borrow_name(state, meths, "read", sol_new_cfunc(state, sol_f_stream_read, "stream.read"));
+	sol_map_borrow_name(state, meths, "read_buffer", sol_new_cfunc(state, sol_f_stream_read_buffer, "stream.read_buffer"));
 	sol_map_borrow_name(state, meths, "write", sol_new_cfunc(state, sol_f_stream_write, "stream.write"));
 	sol_map_borrow_name(state, meths, "seek", sol_new_cfunc(state, sol_f_stream_seek, "stream.seek"));
 	sol_map_borrow_name(state, meths, "tell", sol_new_cfunc(state, sol_f_stream_tell, "stream.tell"));
 	sol_map_borrow_name(state, meths, "flush", sol_new_cfunc(state, sol_f_stream_flush, "stream.flush"));
 	sol_map_borrow_name(state, meths, "eof", sol_new_cfunc(state, sol_f_stream_eof, "stream.eof"));
+	sol_map_borrow_name(state, meths, "ioctl", sol_new_cfunc(state, sol_f_stream_ioctl, "stream.ioctl"));
 	sol_register_methods_name(state, "stream", meths);
 	sol_obj_free(meths);
 
@@ -464,6 +473,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, meths, "find", sol_new_cfunc(state, sol_f_str_find, "str.find"));
 	sol_register_methods_name(state, "string", meths);
 	sol_obj_free(meths);
+
+	state->fnstack = sol_new_list(state);
 
 	if(sol_has_error(state)) {
 		goto cleanup;
@@ -547,9 +558,9 @@ void sol_state_cleanup(sol_state_t *state) {
 	sol_obj_free(state->error);
 	sol_obj_free(state->None);
 	sol_obj_free(state->OutOfMemory);
-	sol_obj_free(state->stdin);
-	sol_obj_free(state->stdout);
-	sol_obj_free(state->stderr);
+	sol_obj_free(state->_stdin);
+	sol_obj_free(state->_stdout);
+	sol_obj_free(state->_stderr);
 	if(state->ret) {
 		sol_obj_free(state->ret);
 	}
@@ -717,6 +728,13 @@ void sol_add_traceback(sol_state_t *state, sol_object_t *node) {
 	sol_list_insert(state, pair, 0, node);
 	sol_list_insert(state, pair, 1, scope);
 	sol_obj_free(scope);
+	if(sol_list_len(state, state->fnstack) > 0) {
+		scope = sol_list_get_index(state, state->fnstack, 0);
+		sol_list_insert(state, pair, 2, scope);
+		sol_obj_free(scope);
+	} else {
+		sol_list_insert(state, pair, 2, state->None);
+	}
 	sol_list_insert(state, state->traceback, 0, pair);
 	sol_obj_free(pair);
 }
@@ -765,17 +783,17 @@ sol_object_t *sol_f_io_index(sol_state_t *state, sol_object_t *args) {
 	if(sol_string_eq(state, namestr, "stdin")) {
 		sol_obj_free(name);
 		sol_obj_free(namestr);
-		return sol_incref(state->stdin);
+		return sol_incref(state->_stdin);
 	}
 	if(sol_string_eq(state, namestr, "stdout")) {
 		sol_obj_free(name);
 		sol_obj_free(namestr);
-		return sol_incref(state->stdout);
+		return sol_incref(state->_stdout);
 	}
 	if(sol_string_eq(state, namestr, "stderr")) {
 		sol_obj_free(name);
 		sol_obj_free(namestr);
-		return sol_incref(state->stderr);
+		return sol_incref(state->_stderr);
 	}
 	sol_obj_free(namestr);
 	res = sol_map_get(state, self, name);
@@ -788,18 +806,18 @@ sol_object_t *sol_f_io_setindex(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *name = sol_list_get_index(state, args, 1), *value = sol_list_get_index(state, args, 2);
 	sol_object_t *namestr = sol_cast_string(state, name), *io;
 	if(sol_string_eq(state, namestr, "stdin")) {
-		sol_obj_free(state->stdin);
-		state->stdin = sol_incref(value);
+		sol_obj_free(state->_stdin);
+		state->_stdin = sol_incref(value);
 		goto done;
 	}
 	if(sol_string_eq(state, namestr, "stdout")) {
-		sol_obj_free(state->stdout);
-		state->stdout = sol_incref(value);
+		sol_obj_free(state->_stdout);
+		state->_stdout = sol_incref(value);
 		goto done;
 	}
 	if(sol_string_eq(state, namestr, "stderr")) {
-		sol_obj_free(state->stderr);
-		state->stderr = sol_incref(value);
+		sol_obj_free(state->_stderr);
+		state->_stderr = sol_incref(value);
 		goto done;
 	}
 	io = sol_list_get_index(state, args, 0);
@@ -813,15 +831,15 @@ done:
 }
 
 sol_object_t *sol_get_stdin(sol_state_t *state) {
-	return sol_incref(state->stdin);
+	return sol_incref(state->_stdin);
 }
 
 sol_object_t *sol_get_stdout(sol_state_t *state) {
-	return sol_incref(state->stdout);
+	return sol_incref(state->_stdout);
 }
 
 sol_object_t *sol_get_stderr(sol_state_t *state) {
-	return sol_incref(state->stderr);
+	return sol_incref(state->_stderr);
 }
 
 void sol_ops_init(sol_ops_t *ops) {
