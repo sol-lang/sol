@@ -160,7 +160,7 @@ func new_state()
 		disp = new_disp(),
 		sys = new_sys(),
 		jumped = false,
-		trace = false,
+		trace = {},
 		jump = func(self, ip)
 			self.reg.IP = ip
 			self.jumped = true
@@ -308,7 +308,7 @@ insns = {
 	[13] = func insn13(state, ins)
 		x = state.reg.V[ins.nib[1]]
 		y = state.reg.V[ins.nib[2]]
-		n = ins.nib[2]
+		n = ins.nib[3]
 		i = state.reg.I
 		c = 0
 		for idx in range(n) do
@@ -319,6 +319,7 @@ insns = {
 			y += 1
 		end
 		state.reg.V[15] = c
+		if None != state.trace.draw then state:log(disas(state, ins) + '  ;; Drew sprite at ' + tostring(state.reg.I) + ' - ' + tostring(i) + ' to x=' + tostring(x) + ', y=' + tostring(state.reg.V[ins.nib[2]]) + '-' + y + ' in ' + tostring(n) + ' steps, changed=' + tostring(c)) end
 	end,
 	[14] = func insn14(state, ins)
 		if ins.byte.low == 158 then
@@ -509,7 +510,7 @@ disas = {
 		return bad_disas(state, ins)
 	end,
 	__call = func(self, state, ins)
-		return self[ins.nib[0]](state, ins)
+		return (for n in ins.nib do continue hex2chr_t[n] end):reduce(lambda(x, y) x + y end, '') + ': ' + (self[ins.nib[0]](state, ins))
 	end,
 }
 
@@ -533,7 +534,7 @@ func step_cpu(state, force)
 			end
 		end
 	end
-	if state.trace then state:log((for n in ins.nib do continue hex2chr_t[n] end):reduce(lambda(x, y) x + y end, '') + ': ' + disas(state, ins) + '  ;; ' + descr_state(state)) end
+	if None != state.trace.all then state:log(disas(state, ins) + '  ;; ' + descr_state(state)) end
 	insns[ins.nib[0]](state, ins)
 	if !(state.jumped) then
 		state.reg.IP += 2
