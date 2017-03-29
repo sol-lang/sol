@@ -1,4 +1,4 @@
-sol*
+/sol*
 !sol_help.txt
 *.o
 stdout
