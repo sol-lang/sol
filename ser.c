@@ -29,10 +29,12 @@ char *sol_BytecodeNames[] = {
 	"BC_LIT_INT",
 	"BC_LIT_FLOAT",
 	"BC_LIT_STRING",
+	"BC_LIT_BUFFER",
 	"BC_LIT_NONE",
 	"BC_INT",
 	"BC_FLOAT",
 	"BC_STRING",
+	"BC_BUFFER",
 	"BC_LIST_ST",
 	"BC_LIST_EX",
 	"BC_LIST_AS",
@@ -251,6 +253,11 @@ void sol_ser_lit(FILE *io, lit_node *lit) {
 			sol_ser_str(io, lit->str);
 			break;
 
+		case LIT_BUFFER:
+			fputc(BC_LIT_BUFFER, io);
+			sol_ser_buf(io, lit->buf);
+			break;
+
 		case LIT_NONE:
 			fputc(BC_LIT_NONE, io);
 			break;
@@ -271,6 +278,12 @@ void sol_ser_str(FILE *io, const char *s) {
 	len = strlen(s);
 	fwrite(&len, sizeof(size_t), 1, io);
 	fwrite(s, sizeof(char), len, io);
+}
+
+void sol_ser_buf(FILE *io, unsigned long *buf) {
+	fputc(BC_BUFFER, io);
+	fwrite(buf, sizeof(unsigned long), 1, io);
+	fwrite(BYTES_OF(buf), sizeof(char), LENGTH_OF(buf), io);
 }
 
 void sol_ser_int(FILE *io, long i) {
@@ -350,6 +363,7 @@ void *sol_deser_lit(FILE *io) {
 		case BC_LIT_INT:
 		case BC_LIT_FLOAT:
 		case BC_LIT_STRING:
+		case BC_LIT_BUFFER:
 		case BC_LIT_NONE:
 			;
 	}
@@ -540,6 +554,12 @@ void *sol_deser(FILE *io) {
 			AS(obj, lit_node)->str = sol_deser_checked(io, BC_STRING);
 			return obj;
 
+		case BC_LIT_BUFFER:
+			obj = NEW(lit_node);
+			AS(obj, lit_node)->type = LIT_BUFFER;
+			AS(obj, lit_node)->buf = sol_deser_checked(io, BC_BUFFER);
+			return obj;
+
 		case BC_LIT_NONE:
 			obj = NEW(lit_node);
 			AS(obj, lit_node)->type = LIT_NONE;
@@ -561,6 +581,15 @@ void *sol_deser(FILE *io) {
 			obj = malloc(*AS(node, size_t) + 1);
 			fread(obj, sizeof(char), *AS(node, size_t), io);
 			AS(obj, char)[*AS(node, size_t)] = 0;
+			free(node);
+			return obj;
+
+		case BC_BUFFER:
+			node = NEW(unsigned long);
+			fread(node, sizeof(unsigned long), 1, io);
+			obj = malloc(sizeof(unsigned long) + sizeof(char) * (*AS(node, unsigned long)));
+			LENGTH_OF(obj) = *AS(node, unsigned long);
+			fread(BYTES_OF(obj), sizeof(char), LENGTH_OF(obj), io);
 			free(node);
 			return obj;
 

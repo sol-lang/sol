@@ -82,6 +82,10 @@ void prex(sol_state_t *state, expr_node *node, int lev) {
 					prlev(state, lev, "String: %s", node->lit->str);
 					break;
 
+				case LIT_BUFFER:
+					prlev(state, lev, "Buffer of %lu bytes:", LENGTH_OF(node->lit->buf));
+					prlev(state, lev + 1, "%s", BYTES_OF(node->lit->buf));
+
 				case LIT_NONE:
 					prlev(state, lev, "None");
 					break;

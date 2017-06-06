@@ -88,9 +88,8 @@ IDENT [a-zA-Z_][a-zA-Z0-9_]*
 
 {DIGIT}+ { *yylval = malloc(sizeof(long)); *((long *) *yylval) = atol(yytext); return INT; }
 
-\"[^"]*\" { *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
-
-\'[^']*\' { *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
+\"[^"]*\"	|
+\'[^']*\' { *yylval = malloc(sizeof(unsigned long) + (yyleng - 2) * sizeof(char)); *((unsigned long *) *yylval) = yyleng - 2; memcpy(((char *) *yylval) + sizeof(unsigned long), yytext + 1, yyleng - 2); return STRING; }
 
 if { return IF; }
 

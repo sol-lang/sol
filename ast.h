@@ -24,7 +24,7 @@ typedef struct tag_stmt_node stmt_node;
  *
  * Defines the types of literals that may appear in a source program.
  */
-typedef enum {LIT_INT=1024, LIT_FLOAT, LIT_STRING, LIT_NONE} lit_t;
+typedef enum {LIT_INT=1024, LIT_FLOAT, LIT_STRING, LIT_BUFFER, LIT_NONE} lit_t;
 /** Literal node
  *
  * Represents a literal in a source program.
@@ -35,8 +35,14 @@ typedef struct {
 		long ival; ///< Integer value for `LIT_INT`.
 		double fval; ///< Floating-point value for `LIT_FLOAT`.
 		char *str; ///< String value for `LIT_STRING`.
+		unsigned long *buf; ///< Buffer value for `LIT_BUFFER`; points to. (char *)(buf + 1) points to the first byte in the buffer. There are *buf bytes starting there. See also LENGTH_OF and BYTES_OF.
 	};
 } lit_node;
+
+/** Returns the length (as an unsigned long) of the buffer in bytes, not including the length itself. */
+#define LENGTH_OF(buf) (*((unsigned long *) (buf)))
+/** Returns a (char *) pointing to the first byte in the buffer. */
+#define BYTES_OF(buf) ((char *) (((unsigned long *) (buf)) + 1))
 
 /** Binary operation type
  *
@@ -237,10 +243,12 @@ typedef enum {
 	BC_LIT_INT,
 	BC_LIT_FLOAT,
 	BC_LIT_STRING,
+	BC_LIT_BUFFER,
 	BC_LIT_NONE,
 	BC_INT,
 	BC_FLOAT,
 	BC_STRING,
+	BC_BUFFER,
 	BC_LIST_ST,
 	BC_LIST_EX,
 	BC_LIST_AS,
@@ -333,6 +341,7 @@ void sol_ser_lit(FILE *, lit_node *);
 void sol_ser_int(FILE *, long);
 void sol_ser_float(FILE *, double);
 void sol_ser_str(FILE *, const char *);
+void sol_ser_buf(FILE *, unsigned long *);
 
 void *sol_deser(FILE *);
 void *sol_deser_checked(FILE *, bytecode);

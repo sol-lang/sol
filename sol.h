@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.3a4"
+#define SOL_VERSION "0.4a0"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -23,7 +23,7 @@
  * version shall be available in all versions numerically greater than it
  * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0003A04
+#define SOL_HEXVER 0x0004A00
 
 #ifndef SOL_BUILD_HOST
 #define SOL_BUILD_HOST "(unknown host)"
@@ -160,6 +160,8 @@ typedef struct {
 	sol_cfunc_t tofloat;
 	/** Called with [this] to cast "this" to a string object. This generally shouldn't raise an error, and usually falls back to a simple representation. */
 	sol_cfunc_t tostring;
+	/** Called with [this] to cast "this" to a buffer object. This generally shouldn't raise an error, and usually falls back to converting the tostring to a buffer (which might be lossy if the string has embedded NULs). */
+	sol_cfunc_t tobuffer;
 	/** Called with [this] to provide a representation of "this", in the sense that it is human-readable and informative. This usually falls back to tostring. */
 	sol_cfunc_t repr;
 	/** Called with this (*not a list*) as a result of calling `sol_init_object`. Since this is usually called from a constructor anyway, it's usually fairly useless. It should return this. */
@@ -704,6 +706,11 @@ sol_object_t *sol_f_default_tostring(sol_state_t *, sol_object_t *);
  * Returns tostring(object).
  */
 sol_object_t *sol_f_default_repr(sol_state_t *, sol_object_t *);
+/** Default tobuffer handler.
+ *
+ * Returns buffer.fromstring(tostring(object)).
+ */
+sol_object_t *sol_f_default_tobuffer(sol_state_t *, sol_object_t *);
 
 /// Built-in function toint
 sol_object_t *sol_f_toint(sol_state_t *, sol_object_t *);
@@ -711,6 +718,8 @@ sol_object_t *sol_f_toint(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_tofloat(sol_state_t *, sol_object_t *);
 /// Built-in function tostring
 sol_object_t *sol_f_tostring(sol_state_t *, sol_object_t *);
+/// Built-in function tobuffer
+sol_object_t *sol_f_tobuffer(sol_state_t *, sol_object_t *);
 /// Built-in function try
 sol_object_t *sol_f_try(sol_state_t *, sol_object_t *);
 /// Built-in function apply
@@ -748,8 +757,10 @@ sol_object_t *sol_f_debug_closure(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_globals(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_locals(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_debug_getops(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_iter_buffer(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_list(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_map(sol_state_t *, sol_object_t *);
 
@@ -759,6 +770,7 @@ sol_object_t *sol_f_readline_add_history(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_ast_print(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_singlet_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_singlet_tobuffer(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_int_add(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_int_sub(sol_state_t *, sol_object_t *);
@@ -796,6 +808,7 @@ sol_object_t *sol_f_str_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_toint(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tofloat(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_str_tobuffer(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_repr(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_str_sub(sol_state_t *, sol_object_t *);
@@ -844,12 +857,24 @@ sol_object_t *sol_f_astnode_setindex(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_astnode_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_buffer_index(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_add(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_mul(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_cmp(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_len(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_iter(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_tostring(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_repr(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_toint(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_tofloat(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_tobuffer(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_buffer_get(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_set(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_address(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_size(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_sub(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_split(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_buffer_find(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_buffer_new(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_buffer_fromstring(sol_state_t *, sol_object_t *);
@@ -875,7 +900,7 @@ sol_object_t *sol_f_stream_index(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_tostring(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_stream_write(sol_state_t *, sol_object_t *);
-sol_object_t *sol_f_stream_read(sol_state_t *, sol_object_t *);
+/*sol_object_t *sol_f_stream_read(sol_state_t *, sol_object_t *);*/
 sol_object_t *sol_f_stream_read_buffer(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_seek(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_stream_tell(sol_state_t *, sol_object_t *);
@@ -902,6 +927,9 @@ sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 #define sol_is_astnode(obj) (sol_is_aststmt(obj) || sol_is_astexpr(obj))
 #define sol_is_buffer(obj) ((obj)->type == SOL_BUFFER)
 #define sol_is_cdata(obj) ((obj)->type == SOL_CDATA)
+
+#define sol_is_name(obj) (sol_is_string(obj) || sol_is_buffer(obj))
+#define sol_name_eq(state, obj, cstr) (sol_is_string(obj) ? sol_string_eq((state), (obj), (cstr)) : (sol_is_buffer(obj) ? sol_buffer_eq((state), (obj), (cstr)) : 0))
 
 #define sol_has_error(state) (!sol_is_none((state), (state)->error))
 
@@ -1064,6 +1092,11 @@ sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t, char *);
 sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
 
 sol_object_t *sol_new_buffer(sol_state_t *, void *, ssize_t, sol_owntype_t, sol_freefunc_t, sol_movefunc_t);
+int sol_buffer_cmp(sol_state_t *, sol_object_t *, const char *);
+#define sol_buffer_eq(state, buffer, cstr) (sol_buffer_cmp((state), (buffer), (cstr)) == 0)
+sol_object_t *sol_buffer_concat(sol_state_t *, sol_object_t *, sol_object_t *);
+sol_object_t *sol_buffer_concat_cstr(sol_state_t *, sol_object_t *, char *);
+char *sol_buffer_strdup(sol_object_t *);
 
 sol_object_t *sol_new_dylib(sol_state_t *, void *);
 
@@ -1099,6 +1132,7 @@ sol_object_t *sol_cast_int(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_float(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_string(sol_state_t *, sol_object_t *);
 sol_object_t *sol_cast_repr(sol_state_t *, sol_object_t *);
+sol_object_t *sol_cast_buffer(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_singlet_free(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_str_free(sol_state_t *, sol_object_t *);

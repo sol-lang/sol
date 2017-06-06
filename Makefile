@@ -67,7 +67,7 @@ $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
 	
 sol$(SOL_VER): $(OBJ)
-	$(CC) $(CFLAGS) $? $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol))) $(sort $(patsubst tests/%.sol,testcomp_%,$(wildcard tests/*.sol)))
 

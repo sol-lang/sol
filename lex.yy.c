@@ -8,96 +8,34 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 3
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
 
-    #define yy_create_buffer yy_create_buffer
+#ifdef yyget_lval
+#define yyget_lval_ALREADY_DEFINED
+#else
+#define yyget_lval yyget_lval
+#endif
 
-    #define yy_delete_buffer yy_delete_buffer
+#ifdef yyset_lval
+#define yyset_lval_ALREADY_DEFINED
+#else
+#define yyset_lval yyset_lval
+#endif
 
-    #define yy_scan_buffer yy_scan_buffer
+#ifdef yyget_lloc
+#define yyget_lloc_ALREADY_DEFINED
+#else
+#define yyget_lloc yyget_lloc
+#endif
 
-    #define yy_scan_string yy_scan_string
-
-    #define yy_scan_bytes yy_scan_bytes
-
-    #define yy_init_buffer yy_init_buffer
-
-    #define yy_flush_buffer yy_flush_buffer
-
-    #define yy_load_buffer_state yy_load_buffer_state
-
-    #define yy_switch_to_buffer yy_switch_to_buffer
-
-    #define yypush_buffer_state yypush_buffer_state
-
-    #define yypop_buffer_state yypop_buffer_state
-
-    #define yyensure_buffer_stack yyensure_buffer_stack
-
-    #define yylex yylex
-
-    #define yyrestart yyrestart
-
-    #define yylex_init yylex_init
-
-    #define yylex_init_extra yylex_init_extra
-
-    #define yylex_destroy yylex_destroy
-
-    #define yyget_debug yyget_debug
-
-    #define yyset_debug yyset_debug
-
-    #define yyget_extra yyget_extra
-
-    #define yyset_extra yyset_extra
-
-    #define yyget_in yyget_in
-
-    #define yyset_in yyset_in
-
-    #define yyget_out yyget_out
-
-    #define yyset_out yyset_out
-
-    #define yyget_leng yyget_leng
-
-    #define yyget_text yyget_text
-
-    #define yyget_lineno yyget_lineno
-
-    #define yyset_lineno yyset_lineno
-
-    #define yywrap yywrap
-
-    #define yyget_lval yyget_lval
-
-    #define yyset_lval yyset_lval
-
-    #define yyget_lloc yyget_lloc
-
-    #define yyset_lloc yyset_lloc
-
-    #define yyalloc yyalloc
-
-    #define yyrealloc yyrealloc
-
-    #define yyfree yyfree
-
-    #define yytext yytext
-
-    #define yyleng yyleng
-
-    #define yyin yyin
-
-    #define yyout yyout
-
-    #define yy_flex_debug yy_flex_debug
-
-    #define yylineno yylineno
+#ifdef yyset_lloc
+#define yyset_lloc_ALREADY_DEFINED
+#else
+#define yyset_lloc yyset_lloc
+#endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
 
@@ -169,9 +107,15 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
+
+/* begin standard C++ headers. */
 
 /* TODO: this is always defined, so inline it */
 #define yyconst const
@@ -204,7 +148,7 @@ typedef unsigned int flex_uint32_t;
 /* Action number for EOF rule of a given start state. */
 #define YY_STATE_EOF(state) (YY_END_OF_BUFFER + state + 1)
 /* Special action meaning "start processing a new file". */
-#define YY_NEW_FILE yyrestart(yyin  )
+#define YY_NEW_FILE yyrestart( yyin  )
 #define YY_END_OF_BUFFER_CHAR 0
 
 /* Size of default input buffer. */
@@ -370,7 +314,7 @@ void yypop_buffer_state ( void );
 static void yyensure_buffer_stack ( void );
 static void yy_load_buffer_state ( void );
 static void yy_init_buffer ( YY_BUFFER_STATE b, FILE *file  );
-#define YY_FLUSH_BUFFER yy_flush_buffer(YY_CURRENT_BUFFER )
+#define YY_FLUSH_BUFFER yy_flush_buffer( YY_CURRENT_BUFFER )
 
 YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size  );
 YY_BUFFER_STATE yy_scan_string ( const char *yy_str  );
@@ -386,7 +330,7 @@ void yyfree ( void *  );
 	if ( ! YY_CURRENT_BUFFER ){ \
         yyensure_buffer_stack (); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            yy_create_buffer(yyin,YY_BUF_SIZE ); \
+            yy_create_buffer( yyin, YY_BUF_SIZE ); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_is_interactive = is_interactive; \
 	}
@@ -395,7 +339,7 @@ void yyfree ( void *  );
 	if ( ! YY_CURRENT_BUFFER ){\
         yyensure_buffer_stack (); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            yy_create_buffer(yyin,YY_BUF_SIZE ); \
+            yy_create_buffer( yyin, YY_BUF_SIZE ); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_at_bol = at_bol; \
 	}
@@ -677,7 +621,7 @@ static void update_loc(YYLTYPE *yylloc, char *yytext){
 
 #define YY_USER_ACTION update_loc(yylloc, yytext);
 
-#line 680 "lex.yy.c"
+#line 624 "lex.yy.c"
 /* This is the right way to do it, but it keeps generating token $undefined.
 
 %x STRING
@@ -693,7 +637,7 @@ static void update_loc(YYLTYPE *yylloc, char *yytext){
 <STRING>. { str_putc(*yytext); }
 
 */
-#line 696 "lex.yy.c"
+#line 640 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -924,17 +868,17 @@ YY_DECL
 		if ( ! YY_CURRENT_BUFFER ) {
 			yyensure_buffer_stack ();
 			YY_CURRENT_BUFFER_LVALUE =
-				yy_create_buffer(yyin,YY_BUF_SIZE );
+				yy_create_buffer( yyin, YY_BUF_SIZE );
 		}
 
-		yy_load_buffer_state( );
+		yy_load_buffer_state(  );
 		}
 
 	{
 #line 85 "tokenizer.lex"
 
 
-#line 937 "lex.yy.c"
+#line 881 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1004,369 +948,366 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
-YY_RULE_SETUP
-#line 91 "tokenizer.lex"
-{ *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
-	YY_BREAK
+#line 92 "tokenizer.lex"
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 93 "tokenizer.lex"
-{ *yylval = strdup(yytext+1); ((char *) *yylval)[yyleng-2] = 0; return STRING; }
+#line 92 "tokenizer.lex"
+{ *yylval = malloc(sizeof(unsigned long) + (yyleng - 2) * sizeof(char)); *((unsigned long *) *yylval) = yyleng - 2; memcpy(((char *) *yylval) + sizeof(unsigned long), yytext + 1, yyleng - 2); return STRING; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 95 "tokenizer.lex"
+#line 94 "tokenizer.lex"
 { return IF; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 97 "tokenizer.lex"
+#line 96 "tokenizer.lex"
 { return THEN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 99 "tokenizer.lex"
+#line 98 "tokenizer.lex"
 { return ELSE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 101 "tokenizer.lex"
+#line 100 "tokenizer.lex"
 { return ELSEIF; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 103 "tokenizer.lex"
+#line 102 "tokenizer.lex"
 { return WHILE; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 105 "tokenizer.lex"
+#line 104 "tokenizer.lex"
 { return FOR; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 107 "tokenizer.lex"
+#line 106 "tokenizer.lex"
 { return IN; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 109 "tokenizer.lex"
+#line 108 "tokenizer.lex"
 { return DO; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 111 "tokenizer.lex"
+#line 110 "tokenizer.lex"
 { return FUNC; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 113 "tokenizer.lex"
+#line 112 "tokenizer.lex"
 { return LAMBDA; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 115 "tokenizer.lex"
+#line 114 "tokenizer.lex"
 { return RETURN; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 117 "tokenizer.lex"
+#line 116 "tokenizer.lex"
 { return BREAK; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 119 "tokenizer.lex"
+#line 118 "tokenizer.lex"
 { return CONTINUE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 121 "tokenizer.lex"
+#line 120 "tokenizer.lex"
 { return END; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 123 "tokenizer.lex"
+#line 122 "tokenizer.lex"
 { return NONE; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 125 "tokenizer.lex"
+#line 124 "tokenizer.lex"
 { return PLUS; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 127 "tokenizer.lex"
+#line 126 "tokenizer.lex"
 { return MINUS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 129 "tokenizer.lex"
+#line 128 "tokenizer.lex"
 { return STAR; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 131 "tokenizer.lex"
+#line 130 "tokenizer.lex"
 { return SLASH; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 133 "tokenizer.lex"
+#line 132 "tokenizer.lex"
 { return PERCENT; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 135 "tokenizer.lex"
+#line 134 "tokenizer.lex"
 { return PERCENT; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 137 "tokenizer.lex"
+#line 136 "tokenizer.lex"
 { return DSTAR; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 139 "tokenizer.lex"
+#line 138 "tokenizer.lex"
 { return BAND; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 141 "tokenizer.lex"
+#line 140 "tokenizer.lex"
 { return BOR; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 143 "tokenizer.lex"
+#line 142 "tokenizer.lex"
 { return BXOR; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 145 "tokenizer.lex"
+#line 144 "tokenizer.lex"
 { return BNOT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 147 "tokenizer.lex"
+#line 146 "tokenizer.lex"
 { return LAND; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 149 "tokenizer.lex"
+#line 148 "tokenizer.lex"
 { return LAND; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 151 "tokenizer.lex"
+#line 150 "tokenizer.lex"
 { return LOR; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 153 "tokenizer.lex"
+#line 152 "tokenizer.lex"
 { return LOR; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 155 "tokenizer.lex"
+#line 154 "tokenizer.lex"
 { return LNOT; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 157 "tokenizer.lex"
+#line 156 "tokenizer.lex"
 { return LNOT; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 159 "tokenizer.lex"
+#line 158 "tokenizer.lex"
 { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 1; return INT;  }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 161 "tokenizer.lex"
+#line 160 "tokenizer.lex"
 { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 1; return INT;  }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 163 "tokenizer.lex"
+#line 162 "tokenizer.lex"
 { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 0; return INT;  }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 165 "tokenizer.lex"
+#line 164 "tokenizer.lex"
 { *yylval = malloc(sizeof(long)); *((long *) *yylval) = 0; return INT;  }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 167 "tokenizer.lex"
+#line 166 "tokenizer.lex"
 { return ASSIGN; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 169 "tokenizer.lex"
+#line 168 "tokenizer.lex"
 { return ASSIGNPLUS; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 171 "tokenizer.lex"
+#line 170 "tokenizer.lex"
 { return ASSIGNMINUS; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 173 "tokenizer.lex"
+#line 172 "tokenizer.lex"
 { return ASSIGNSTAR; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 175 "tokenizer.lex"
+#line 174 "tokenizer.lex"
 { return ASSIGNSLASH; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 177 "tokenizer.lex"
+#line 176 "tokenizer.lex"
 { return ASSIGNDSTAR; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 179 "tokenizer.lex"
+#line 178 "tokenizer.lex"
 { return ASSIGNBAND; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 181 "tokenizer.lex"
+#line 180 "tokenizer.lex"
 { return ASSIGNBOR; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 183 "tokenizer.lex"
+#line 182 "tokenizer.lex"
 { return ASSIGNBXOR; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 185 "tokenizer.lex"
+#line 184 "tokenizer.lex"
 { return EQUAL; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 187 "tokenizer.lex"
+#line 186 "tokenizer.lex"
 { return NEQUAL; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 189 "tokenizer.lex"
+#line 188 "tokenizer.lex"
 { return LESS; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 191 "tokenizer.lex"
+#line 190 "tokenizer.lex"
 { return GREATER; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 193 "tokenizer.lex"
+#line 192 "tokenizer.lex"
 { return LESSEQ; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 195 "tokenizer.lex"
+#line 194 "tokenizer.lex"
 { return GREATEREQ; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 197 "tokenizer.lex"
+#line 196 "tokenizer.lex"
 { return RSHIFT; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 199 "tokenizer.lex"
+#line 198 "tokenizer.lex"
 { return LSHIFT; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 201 "tokenizer.lex"
+#line 200 "tokenizer.lex"
 { return LBRACE; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 203 "tokenizer.lex"
+#line 202 "tokenizer.lex"
 { return RBRACE; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 205 "tokenizer.lex"
+#line 204 "tokenizer.lex"
 { return LBRACKET; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 207 "tokenizer.lex"
+#line 206 "tokenizer.lex"
 { return RBRACKET; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 209 "tokenizer.lex"
+#line 208 "tokenizer.lex"
 { return BLPAREN; } /* "Breaking" paren, not allowed to introduce a call_expr */
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 211 "tokenizer.lex"
+#line 210 "tokenizer.lex"
 { return LPAREN; } 
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 213 "tokenizer.lex"
+#line 212 "tokenizer.lex"
 { return RPAREN; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 215 "tokenizer.lex"
+#line 214 "tokenizer.lex"
 { return DOT; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 217 "tokenizer.lex"
+#line 216 "tokenizer.lex"
 { return COLON; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 219 "tokenizer.lex"
+#line 218 "tokenizer.lex"
 { return SEMICOLON; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 221 "tokenizer.lex"
+#line 220 "tokenizer.lex"
 { return COMMA; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 223 "tokenizer.lex"
+#line 222 "tokenizer.lex"
 { return POUND; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 225 "tokenizer.lex"
+#line 224 "tokenizer.lex"
 { return TBANG; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 227 "tokenizer.lex"
+#line 226 "tokenizer.lex"
 { *yylval = (void *) strdup(yytext); return IDENT; }
 	YY_BREAK
 case 72:
 /* rule 72 can match eol */
 YY_RULE_SETUP
-#line 229 "tokenizer.lex"
+#line 228 "tokenizer.lex"
 /* Skip comments */
 	YY_BREAK
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 231 "tokenizer.lex"
+#line 230 "tokenizer.lex"
 /* Skip whitespace */
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 233 "tokenizer.lex"
+#line 232 "tokenizer.lex"
 ECHO;
 	YY_BREAK
-#line 1369 "lex.yy.c"
+#line 1310 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1444,7 +1385,7 @@ case YY_STATE_EOF(INITIAL):
 				{
 				(yy_did_buffer_switch_on_eof) = 0;
 
-				if ( yywrap( ) )
+				if ( yywrap(  ) )
 					{
 					/* Note: because we've taken care in
 					 * yy_get_next_buffer() to have set up
@@ -1576,7 +1517,8 @@ static int yy_get_next_buffer (void)
 
 				b->yy_ch_buf = (char *)
 					/* Include room in for 2 EOB chars. */
-					yyrealloc((void *) b->yy_ch_buf,(yy_size_t) (b->yy_buf_size + 2)  );
+					yyrealloc( (void *) b->yy_ch_buf,
+							 (yy_size_t) (b->yy_buf_size + 2)  );
 				}
 			else
 				/* Can't grow it, we don't own it. */
@@ -1608,7 +1550,7 @@ static int yy_get_next_buffer (void)
 		if ( number_to_move == YY_MORE_ADJ )
 			{
 			ret_val = EOB_ACT_END_OF_FILE;
-			yyrestart(yyin  );
+			yyrestart( yyin  );
 			}
 
 		else
@@ -1625,9 +1567,12 @@ static int yy_get_next_buffer (void)
 	if (((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
 		int new_size = (yy_n_chars) + number_to_move + ((yy_n_chars) >> 1);
-		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) yyrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,(yy_size_t) new_size  );
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) yyrealloc(
+			(void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf, (yy_size_t) new_size  );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
+		/* "- 2" to take care of EOB's */
+		YY_CURRENT_BUFFER_LVALUE->yy_buf_size = (int) (new_size - 2);
 	}
 
 	(yy_n_chars) += number_to_move;
@@ -1779,13 +1724,13 @@ static int yy_get_next_buffer (void)
 					 */
 
 					/* Reset buffer status. */
-					yyrestart(yyin );
+					yyrestart( yyin );
 
 					/*FALLTHROUGH*/
 
 				case EOB_ACT_END_OF_FILE:
 					{
-					if ( yywrap( ) )
+					if ( yywrap(  ) )
 						return 0;
 
 					if ( ! (yy_did_buffer_switch_on_eof) )
@@ -1825,11 +1770,11 @@ static int yy_get_next_buffer (void)
 	if ( ! YY_CURRENT_BUFFER ){
         yyensure_buffer_stack ();
 		YY_CURRENT_BUFFER_LVALUE =
-            yy_create_buffer(yyin,YY_BUF_SIZE );
+            yy_create_buffer( yyin, YY_BUF_SIZE );
 	}
 
-	yy_init_buffer(YY_CURRENT_BUFFER,input_file );
-	yy_load_buffer_state( );
+	yy_init_buffer( YY_CURRENT_BUFFER, input_file );
+	yy_load_buffer_state(  );
 }
 
 /** Switch to a different input buffer.
@@ -1857,7 +1802,7 @@ static int yy_get_next_buffer (void)
 		}
 
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
-	yy_load_buffer_state( );
+	yy_load_buffer_state(  );
 
 	/* We don't actually know whether we did this switch during
 	 * EOF (yywrap()) processing, but the only time this flag
@@ -1885,7 +1830,7 @@ static void yy_load_buffer_state  (void)
 {
 	YY_BUFFER_STATE b;
     
-	b = (YY_BUFFER_STATE) yyalloc(sizeof( struct yy_buffer_state )  );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state )  );
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
@@ -1894,13 +1839,13 @@ static void yy_load_buffer_state  (void)
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
 	 */
-	b->yy_ch_buf = (char *) yyalloc((yy_size_t) (b->yy_buf_size + 2)  );
+	b->yy_ch_buf = (char *) yyalloc( (yy_size_t) (b->yy_buf_size + 2)  );
 	if ( ! b->yy_ch_buf )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_is_our_buffer = 1;
 
-	yy_init_buffer(b,file );
+	yy_init_buffer( b, file );
 
 	return b;
 }
@@ -1919,9 +1864,9 @@ static void yy_load_buffer_state  (void)
 		YY_CURRENT_BUFFER_LVALUE = (YY_BUFFER_STATE) 0;
 
 	if ( b->yy_is_our_buffer )
-		yyfree((void *) b->yy_ch_buf  );
+		yyfree( (void *) b->yy_ch_buf  );
 
-	yyfree((void *) b  );
+	yyfree( (void *) b  );
 }
 
 /* Initializes or reinitializes a buffer.
@@ -1933,7 +1878,7 @@ static void yy_load_buffer_state  (void)
 {
 	int oerrno = errno;
     
-	yy_flush_buffer(b );
+	yy_flush_buffer( b );
 
 	b->yy_input_file = file;
 	b->yy_fill_buffer = 1;
@@ -1976,7 +1921,7 @@ static void yy_load_buffer_state  (void)
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
 	if ( b == YY_CURRENT_BUFFER )
-		yy_load_buffer_state( );
+		yy_load_buffer_state(  );
 }
 
 /** Pushes the new state onto the stack. The new state becomes
@@ -2007,7 +1952,7 @@ void yypush_buffer_state (YY_BUFFER_STATE new_buffer )
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
 
 	/* copied from yy_switch_to_buffer. */
-	yy_load_buffer_state( );
+	yy_load_buffer_state(  );
 	(yy_did_buffer_switch_on_eof) = 1;
 }
 
@@ -2026,7 +1971,7 @@ void yypop_buffer_state (void)
 		--(yy_buffer_stack_top);
 
 	if (YY_CURRENT_BUFFER) {
-		yy_load_buffer_state( );
+		yy_load_buffer_state(  );
 		(yy_did_buffer_switch_on_eof) = 1;
 	}
 }
@@ -2093,7 +2038,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 		/* They forgot to leave room for the EOB's. */
 		return NULL;
 
-	b = (YY_BUFFER_STATE) yyalloc(sizeof( struct yy_buffer_state )  );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state )  );
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_buffer()" );
 
@@ -2107,7 +2052,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 	b->yy_fill_buffer = 0;
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
-	yy_switch_to_buffer(b  );
+	yy_switch_to_buffer( b  );
 
 	return b;
 }
@@ -2123,7 +2068,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 YY_BUFFER_STATE yy_scan_string (const char * yystr )
 {
     
-	return yy_scan_bytes(yystr,(int) strlen(yystr) );
+	return yy_scan_bytes( yystr, (int) strlen(yystr) );
 }
 
 /** Setup the input buffer state to scan the given bytes. The next call to yylex() will
@@ -2142,7 +2087,7 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = (yy_size_t) (_yybytes_len + 2);
-	buf = (char *) yyalloc(n  );
+	buf = (char *) yyalloc( n  );
 	if ( ! buf )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
 
@@ -2151,7 +2096,7 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 
 	buf[_yybytes_len] = buf[_yybytes_len+1] = YY_END_OF_BUFFER_CHAR;
 
-	b = yy_scan_buffer(buf,n );
+	b = yy_scan_buffer( buf, n );
 	if ( ! b )
 		YY_FATAL_ERROR( "bad buffer in yy_scan_bytes()" );
 
@@ -2169,7 +2114,7 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 
 static void yynoreturn yy_fatal_error (const char* msg )
 {
-			(void) fprintf( stderr, "%s\n", msg );
+			fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -2304,7 +2249,7 @@ int yylex_destroy  (void)
     
     /* Pop the buffer stack, destroying each element. */
 	while(YY_CURRENT_BUFFER){
-		yy_delete_buffer(YY_CURRENT_BUFFER  );
+		yy_delete_buffer( YY_CURRENT_BUFFER  );
 		YY_CURRENT_BUFFER_LVALUE = NULL;
 		yypop_buffer_state();
 	}
@@ -2370,7 +2315,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 233 "tokenizer.lex"
+#line 232 "tokenizer.lex"
 
 
 int yywrap(void) {

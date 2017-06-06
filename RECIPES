@@ -6,3 +6,6 @@ make CC=clang CFLAGS="-fprofile-instr-generate -fcoverage-mapping"
 
 use Boehm GC where available:
 make LDFLAGS=-lgc
+
+AFL fuzzing (use afl-fuzz on the resulting instrumented binary):
+make CC=afl-gcc

@@ -79,6 +79,7 @@ int sol_state_init(sol_state_t *state) {
 
 	state->SingletOps.tname = "singlet";
 	state->SingletOps.tostring = sol_f_singlet_tostring;
+	state->SingletOps.tobuffer = sol_f_singlet_tobuffer;
 	state->SingletOps.free = sol_f_singlet_free;
 
 	state->IntOps.tname = "int";
@@ -119,6 +120,7 @@ int sol_state_init(sol_state_t *state) {
 	state->StringOps.toint = sol_f_str_toint;
 	state->StringOps.tofloat = sol_f_str_tofloat;
 	state->StringOps.tostring = sol_f_str_tostring;
+	state->StringOps.tobuffer = sol_f_str_tobuffer;
 	state->StringOps.repr = sol_f_str_repr;
 	state->StringOps.free = sol_f_str_free;
 
@@ -169,8 +171,17 @@ int sol_state_init(sol_state_t *state) {
 	state->ASTNodeOps.free = sol_f_astnode_free;
 
 	state->BufferOps.tname = "buffer";
+	state->BufferOps.add = sol_f_buffer_add;
+	state->BufferOps.mul = sol_f_buffer_mul;
+	state->BufferOps.cmp = sol_f_buffer_cmp;
+	state->BufferOps.len = sol_f_buffer_len;
+	state->BufferOps.iter = sol_f_buffer_iter;
 	state->BufferOps.index = sol_f_buffer_index;
 	state->BufferOps.tostring = sol_f_buffer_tostring;
+	state->BufferOps.repr = sol_f_buffer_repr;
+	state->BufferOps.toint = sol_f_buffer_toint;
+	state->BufferOps.tofloat = sol_f_buffer_tofloat;
+	state->BufferOps.tobuffer = sol_f_buffer_tobuffer;
 	state->BufferOps.free = sol_f_buffer_free;
 
 	state->DyLibOps.tname = "dylib";
@@ -242,6 +253,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, globals, "toint", sol_new_cfunc(state, sol_f_toint, "toint"));
 	sol_map_borrow_name(state, globals, "tofloat", sol_new_cfunc(state, sol_f_tofloat, "tofloat"));
 	sol_map_borrow_name(state, globals, "tostring", sol_new_cfunc(state, sol_f_tostring, "tostring"));
+	sol_map_borrow_name(state, globals, "tobuffer", sol_new_cfunc(state, sol_f_tobuffer, "tobuffer"));
 	sol_map_borrow_name(state, globals, "try", sol_new_cfunc(state, sol_f_try, "try"));
 	sol_map_borrow_name(state, globals, "apply", sol_new_cfunc(state, sol_f_apply, "apply"));
 	sol_map_borrow_name(state, globals, "error", sol_new_cfunc(state, sol_f_error, "error"));
@@ -265,17 +277,21 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "globals", sol_new_cfunc(state, sol_f_debug_globals, "debug.globals"));
 	sol_map_borrow_name(state, mod, "locals", sol_new_cfunc(state, sol_f_debug_locals, "debug.locals"));
 	sol_map_borrow_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes, "debug.scopes"));
-	sol_map_borrow_name(state, mod, "version", sol_new_string(state, SOL_VERSION));
+	sol_map_borrow_name(state, mod, "version", sol_new_buffer(state, SOL_VERSION, strlen(SOL_VERSION), OWN_NONE, NULL, NULL));
 	sol_map_borrow_name(state, mod, "hexversion", sol_new_int(state, SOL_HEXVER));
 #ifdef SOL_ICACHE
 	sol_map_borrow_name(state, mod, "icache_min", sol_new_int(state, SOL_ICACHE_MIN));
 	sol_map_borrow_name(state, mod, "icache_max", sol_new_int(state, SOL_ICACHE_MAX));
 #endif
+	sol_map_borrow_name(state, mod, "modules", state->modules);
+	sol_map_borrow_name(state, mod, "methods", state->methods);
+	sol_map_borrow_name(state, mod, "getops", sol_new_cfunc(state, sol_f_debug_getops, "debug.getops"));
 	sol_register_module_name(state, "debug", mod);
 	sol_obj_free(mod);
 
 	mod = sol_new_map(state);
 	sol_map_borrow_name(state, mod, "str", sol_new_cfunc(state, sol_f_iter_str, "iter.str"));
+	sol_map_borrow_name(state, mod, "buffer", sol_new_cfunc(state, sol_f_iter_buffer, "iter.buffer"));
 	sol_map_borrow_name(state, mod, "list", sol_new_cfunc(state, sol_f_iter_list, "iter.list"));
 	sol_map_borrow_name(state, mod, "map", sol_new_cfunc(state, sol_f_iter_map, "iter.map"));
 	sol_register_module_name(state, "iter", mod);
@@ -426,8 +442,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "SEEK_SET", sol_new_int(state, SEEK_SET));
 	sol_map_borrow_name(state, mod, "SEEK_CUR", sol_new_int(state, SEEK_CUR));
 	sol_map_borrow_name(state, mod, "SEEK_END", sol_new_int(state, SEEK_END));
-	sol_map_borrow_name(state, mod, "ALL", sol_new_string(state, "ALL"));
-	sol_map_borrow_name(state, mod, "LINE", sol_new_string(state, "LINE"));
+	sol_map_borrow_name(state, mod, "ALL", sol_new_buffer(state, "ALL", 3, OWN_NONE, NULL, NULL));
+	sol_map_borrow_name(state, mod, "LINE", sol_new_buffer(state, "LINE", 4, OWN_NONE, NULL, NULL));
 	sol_map_borrow_name(state, mod, "TIOCGWINSZ", sol_new_int(state, TIOCGWINSZ));
 	sol_map_borrow_name(state, mod, "TIOCSWINSZ", sol_new_int(state, TIOCSWINSZ));
 	sol_map_borrow_name(state, mod, "open", sol_new_cfunc(state, sol_f_stream_open, "io.open"));
@@ -441,6 +457,9 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, meths, "set", sol_new_cfunc(state, sol_f_buffer_set, "buffer.set"));
 	sol_map_borrow_name(state, meths, "address", sol_new_cfunc(state, sol_f_buffer_address, "buffer.address"));
 	sol_map_borrow_name(state, meths, "size", sol_new_cfunc(state, sol_f_buffer_size, "buffer.size"));
+	sol_map_borrow_name(state, meths, "sub", sol_new_cfunc(state, sol_f_buffer_sub, "buffer.sub"));
+	sol_map_borrow_name(state, meths, "split", sol_new_cfunc(state, sol_f_buffer_split, "buffer.split"));
+	sol_map_borrow_name(state, meths, "find", sol_new_cfunc(state, sol_f_buffer_find, "buffer.find"));
 	sol_register_methods_name(state, "buffer", meths);
 	sol_obj_free(meths);
 
@@ -456,7 +475,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_obj_free(meths);
 
 	meths = sol_new_map(state);
-	sol_map_borrow_name(state, meths, "read", sol_new_cfunc(state, sol_f_stream_read, "stream.read"));
+	sol_map_borrow_name(state, meths, "read", sol_new_cfunc(state, sol_f_stream_read_buffer, "stream.read_buffer"));
 	sol_map_borrow_name(state, meths, "read_buffer", sol_new_cfunc(state, sol_f_stream_read_buffer, "stream.read_buffer"));
 	sol_map_borrow_name(state, meths, "write", sol_new_cfunc(state, sol_f_stream_write, "stream.write"));
 	sol_map_borrow_name(state, meths, "seek", sol_new_cfunc(state, sol_f_stream_seek, "stream.seek"));
@@ -604,7 +623,7 @@ sol_object_t *sol_state_resolve(sol_state_t *state, sol_object_t *key) {
 }
 
 sol_object_t *sol_state_resolve_name(sol_state_t *state, const char *name) {
-	sol_object_t *key = sol_new_string(state, name), *temp;
+	sol_object_t *key = sol_new_buffer(state, (char *) name, strlen(name), OWN_NONE, NULL, NULL), *temp;
 
 	if(sol_has_error(state)) {
 		return sol_incref(state->None);
@@ -639,7 +658,7 @@ void sol_state_assign(sol_state_t *state, sol_object_t *key, sol_object_t *val) 
 }
 
 void sol_state_assign_name(sol_state_t *state, const char *name, sol_object_t *val) {
-	sol_object_t *key = sol_new_string(state, name);
+	sol_object_t *key = sol_new_buffer(state, (char *) name, strlen(name), OWN_NONE, NULL, NULL);
 
 	if(sol_has_error(state)) {
 		return;
@@ -668,7 +687,7 @@ void sol_state_assign_l(sol_state_t *state, sol_object_t *key, sol_object_t *val
 }
 
 void sol_state_assign_l_name(sol_state_t *state, const char *name, sol_object_t *val) {
-	sol_object_t *key = sol_new_string(state, name);
+	sol_object_t *key = sol_new_buffer(state, (char *) name, strlen(name), OWN_NONE, NULL, NULL);
 
 	if(sol_has_error(state)) {
 		return;
@@ -697,9 +716,10 @@ sol_object_t *sol_set_error(sol_state_t *state, sol_object_t *err) {
 }
 
 sol_object_t *sol_set_error_string(sol_state_t *state, const char *serr) {
-	sol_object_t *err = sol_new_string(state, serr), *res;
+	sol_object_t *err = sol_new_buffer(state, strdup(serr), strlen(serr), OWN_FREE, NULL, NULL), *res;
 
 	if(sol_has_error(state)) {
+		sol_obj_free(err);
 		return sol_incref(state->None);
 	}
 
@@ -866,6 +886,7 @@ void sol_ops_init(sol_ops_t *ops) {
 	ops->toint = sol_f_not_impl;
 	ops->tofloat = sol_f_not_impl;
 	ops->tostring = sol_f_default_tostring;
+	ops->tobuffer = sol_f_default_tobuffer;
 	ops->repr = sol_f_default_repr;
 	ops->init = sol_f_no_op;
 	ops->free = sol_f_no_op;

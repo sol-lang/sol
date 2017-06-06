@@ -331,9 +331,9 @@ print('(buffer.sizeof.ptr = ', buffer.sizeof.ptr, ')')
 print('(buffer.sizeof.int = ', buffer.sizeof.int, ')')
 print('(buffer.sizeof.int*2 = ', buffer.sizeof.int*2, ')')
 print('(buffer.sizeof.int*2 + buffer.sizeof.ptr = ', buffer.sizeof.int*2 + (buffer.sizeof.ptr), ')')
-bs = b:get(buffer.type.ptr, buffer.sizeof.int*2 + (buffer.sizeof.ptr))
-print('...string buffer:', bs)
-print('...with value:', bs:get(buffer.type.cstr))
+--bs = b:get(buffer.type.ptr, buffer.sizeof.int*2 + (buffer.sizeof.ptr))
+--print('...string buffer:', bs)
+--print('...with value:', bs:get(buffer.type.cstr))
 
 print('--- IO redirection')
 

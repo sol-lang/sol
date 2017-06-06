@@ -108,6 +108,12 @@ expr_node *ex_copy(expr_node *old) {
 					new->lit->str = strdup(old->lit->str);
 					break;
 
+				case LIT_BUFFER:
+					new->lit->buf = malloc(sizeof(unsigned long) + LENGTH_OF(old->lit->buf) * sizeof(char));
+					LENGTH_OF(new->lit->buf) = LENGTH_OF(old->lit->buf);
+					memcpy(BYTES_OF(new->lit->buf), BYTES_OF(old->lit->buf), LENGTH_OF(old->lit->buf) * sizeof(char));
+					break;
+
 				case LIT_NONE:
 					break;
 
@@ -358,6 +364,9 @@ void ex_free(expr_node *expr) {
 			if(expr->lit->type == LIT_STRING) {
 				free(expr->lit->str);
 			}
+			if(expr->lit->type == LIT_BUFFER) {
+				free(expr->lit->buf);
+			}
 			free(expr->lit);
 			break;
 
@@ -497,6 +506,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 	exprlist_node *cure = NULL;
 	assoclist_node *cura = NULL;
 	identlist_node *curi = NULL;
+	char *buf;
 	if(!expr) {
 		return sol_set_error_string(state, "Evaluate NULL expression");
 	}
@@ -515,6 +525,11 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 				case LIT_STRING:
 					return sol_new_string(state, expr->lit->str);
 					break;
+
+				case LIT_BUFFER:
+					buf = malloc(LENGTH_OF(expr->lit->buf));
+					memcpy(buf, BYTES_OF(expr->lit->buf), LENGTH_OF(expr->lit->buf));
+					return sol_new_buffer(state, buf, LENGTH_OF(expr->lit->buf), OWN_FREE, NULL, NULL);
 
 				case LIT_NONE:
 					return sol_incref(state->None);

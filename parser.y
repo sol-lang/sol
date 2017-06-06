@@ -453,7 +453,7 @@ lit_expr:
   INT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_INT; AS_EX($$)->lit->ival = *AS($1, long); free($1); }
 | MINUS INT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_INT; AS_EX($$)->lit->ival = -(*AS($2, long)); free($2); }
 | FLOAT { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_FLOAT; AS_EX($$)->lit->fval = *AS($1, double); free($1); }
-| STRING { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_STRING; AS_EX($$)->lit->str = $1; }
+| STRING { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_BUFFER; AS_EX($$)->lit->buf = $1; }
 | NONE { $$ = NEW_EX(); AS_EX($$)->type = EX_LIT; AS_EX($$)->lit = NEW(lit_node); AS_EX($$)->lit->type = LIT_NONE; }
 | gen_expr { $$ = $1; }
 ;
@@ -478,12 +478,19 @@ expr_list:
 | expr_list COMMA { $$ = $1; }
 | expr_list expr {
 	exprlist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(exprlist_node);
-	cur = cur->next;
-	cur->expr = $2;
-	cur->next = NULL;
-	$$ = $1;
+	if(!cur) {
+		cur = NEW(exprlist_node);
+		cur->expr = $2;
+		cur->next = NULL;
+		$$ = cur;
+	} else {
+		while(cur->next) cur = cur->next;
+		cur->next = NEW(exprlist_node);
+		cur = cur->next;
+		cur->expr = $2;
+		cur->next = NULL;
+		$$ = $1;
+	}
 }
 ;
 
@@ -497,12 +504,19 @@ ident_list:
 | ident_list COMMA { $$ = $1; }
 | ident_list IDENT {
 	identlist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(identlist_node);
-	cur = cur->next;
-	cur->ident = $2;
-	cur->next = NULL;
-	$$ = $1;
+	if(!cur) {
+		cur = NEW(identlist_node);
+		cur->ident = $2;
+		cur->next = NULL;
+		$$ = cur;
+	} else {
+		while(cur->next) cur = cur->next;
+		cur->next = NEW(identlist_node);
+		cur = cur->next;
+		cur->ident = $2;
+		cur->next = NULL;
+		$$ = $1;
+	}
 }
 ;
 
@@ -604,12 +618,19 @@ assoc_list:
 | assoc_list COMMA { $$ = $1; }
 | assoc_list assoc_item {
 	assoclist_node *cur = $1;
-	while(cur->next) cur = cur->next;
-	cur->next = NEW(assoclist_node);
-	cur = cur->next;
-	cur->item = $2;
-	cur->next = NULL;
-	$$ = $1;
+	if(!cur) {
+		cur = NEW(assoclist_node);
+		cur->item = $2;
+		cur->next = NULL;
+		$$ = cur;
+	} else {
+		while(cur->next) cur = cur->next;
+		cur->next = NEW(assoclist_node);
+		cur = cur->next;
+		cur->item = $2;
+		cur->next = NULL;
+		$$ = $1;
+	}
 }
 ;
 

@@ -31,6 +31,18 @@ sol_object_t *sol_cast_float(sol_state_t *state, sol_object_t *obj) {
 	return res;
 }
 
+sol_object_t *sol_cast_buffer(sol_state_t *state, sol_object_t *obj) {
+	sol_object_t *res, *ls;
+	if(sol_is_buffer(obj)) {
+		return sol_incref(obj);
+	}
+	ls = sol_new_list(state);
+	sol_list_insert(state, ls, 0, obj);
+	res = CALL_METHOD(state, obj, tobuffer, ls);
+	sol_obj_free(ls);
+	return res;
+}
+
 sol_object_t *sol_cast_string(sol_state_t *state, sol_object_t *obj) {
 	sol_object_t *res, *ls;
 	if(sol_is_string(obj)) {
@@ -375,7 +387,7 @@ sol_object_t *sol_map_get(sol_state_t *state, sol_object_t *map, sol_object_t *k
 }
 
 sol_object_t *sol_map_get_name(sol_state_t *state, sol_object_t *map, char *name) {
-	sol_object_t *key = sol_new_string(state, name);
+	sol_object_t *key = sol_new_buffer(state, name, strlen(name), OWN_NONE, NULL, NULL);
 	sol_object_t *res = sol_map_get(state, map, key);
 	sol_obj_free(key);
 	return res;
@@ -414,7 +426,7 @@ void sol_map_set(sol_state_t *state, sol_object_t *map, sol_object_t *key, sol_o
 }
 
 void sol_map_set_name(sol_state_t *state, sol_object_t *map, char *name, sol_object_t *val) {
-	sol_object_t *key = sol_new_string(state, name);
+	sol_object_t *key = sol_new_buffer(state, name, strlen(name), OWN_NONE, NULL, NULL);
 	sol_map_set(state, map, key, val);
 	sol_obj_free(key);
 }
@@ -552,6 +564,52 @@ sol_object_t *sol_new_buffer(sol_state_t *state, void *buffer, ssize_t sz, sol_o
 	res->movef = movef;
 	sol_init_object(state, res);
 	return res;
+}
+
+int sol_buffer_cmp(sol_state_t *state, sol_object_t *buf, const char *s) {
+	size_t len = strlen(s);
+	if(buf->sz != -1 && buf->sz < len) len = buf->sz;
+	return memcmp(buf->buffer, s, len);
+}
+
+sol_object_t *sol_buffer_concat(sol_state_t *state, sol_object_t *a, sol_object_t *b) {
+	sol_object_t *ba = sol_cast_buffer(state, a), *bb = sol_cast_buffer(state, b);
+	char *buf;
+	size_t total;
+	if(ba->sz < 0 || bb->sz < 0) {
+		sol_obj_free(ba);
+		sol_obj_free(bb);
+		return sol_set_error_string(state, "Concatenate unsized buffer");
+	}
+	total = ba->sz + bb->sz;
+	buf = malloc(sizeof(char) * total);
+	if(!buf) {
+		sol_obj_free(ba);
+		sol_obj_free(bb);
+		return sol_incref(state->OutOfMemory);
+	}
+	memcpy(buf, ba->buffer, ba->sz);
+	memcpy(buf + ba->sz, bb->buffer, bb->sz);
+	sol_obj_free(ba);
+	sol_obj_free(bb);
+	return sol_new_buffer(state, buf, total, OWN_FREE, NULL, NULL);
+}
+
+sol_object_t *sol_buffer_concat_cstr(sol_state_t *state, sol_object_t *a, char *b) {
+	sol_object_t *buf = sol_new_buffer(state, b, strlen(b), OWN_NONE, NULL, NULL);
+	sol_object_t *res = sol_buffer_concat(state, a, buf);
+	sol_obj_free(buf);
+	return res;
+}
+
+char *sol_buffer_strdup(sol_object_t *a) {
+	char *b;
+	if(a->sz < 0) return NULL;
+	b = malloc(a->sz + 1);
+	if(!b) return NULL;
+	strncpy(b, a->buffer, a->sz);
+	b[a->sz] = '\0';
+	return b;
 }
 
 sol_object_t *sol_f_buffer_free(sol_state_t *state, sol_object_t *buf) {
