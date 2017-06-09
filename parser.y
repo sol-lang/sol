@@ -37,6 +37,10 @@ void yyerror(loc_t *, stmt_node **, char *);
 
 %debug
 %locations
+%initial-action {
+	@$.first_line = 1; @$.first_column = 0;
+	@$.last_line = 1; @$.last_column = 1;
+}
 
 %%
 

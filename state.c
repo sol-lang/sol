@@ -263,8 +263,8 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, globals, "rawget", sol_new_cfunc(state, sol_f_rawget, "rawget"));
 	sol_map_borrow_name(state, globals, "rawset", sol_new_cfunc(state, sol_f_rawset, "rawset"));
 	sol_map_borrow_name(state, globals, "range", sol_new_cfunc(state, sol_f_range, "range"));
-	sol_map_borrow_name(state, globals, "exec", sol_new_cfunc(state, sol_f_exec, "exec"));
-	sol_map_borrow_name(state, globals, "eval", sol_new_cfunc(state, sol_f_eval, "eval"));
+	//sol_map_borrow_name(state, globals, "exec", sol_new_cfunc(state, sol_f_exec, "exec"));
+	//sol_map_borrow_name(state, globals, "eval", sol_new_cfunc(state, sol_f_eval, "eval"));
 	sol_map_borrow_name(state, globals, "execfile", sol_new_cfunc(state, sol_f_execfile, "execfile"));
 	sol_map_borrow_name(state, globals, "parse", sol_new_cfunc(state, sol_f_parse, "parse"));
 	sol_map_borrow_name(state, globals, "ord", sol_new_cfunc(state, sol_f_ord, "ord"));

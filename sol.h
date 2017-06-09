@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.4a0"
+#define SOL_VERSION "0.4a1"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -739,9 +739,9 @@ sol_object_t *sol_f_rawset(sol_state_t *, sol_object_t *);
 /// Built-in function range
 sol_object_t *sol_f_range(sol_state_t *, sol_object_t *);
 /// Built-in function exec
-sol_object_t *sol_f_exec(sol_state_t *, sol_object_t *);
+//sol_object_t *sol_f_exec(sol_state_t *, sol_object_t *);
 /// Built-in function eval
-sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *);
+//sol_object_t *sol_f_eval(sol_state_t *, sol_object_t *);
 /// Built-in function execfile
 sol_object_t *sol_f_execfile(sol_state_t *, sol_object_t *);
 /// Built-in function parse

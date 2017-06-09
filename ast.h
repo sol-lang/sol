@@ -301,6 +301,7 @@ sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 // runtime.c
 
 stmt_node *sol_compile(const char *);
+stmt_node *sol_compile_buffer(const char *, size_t);
 stmt_node *sol_compile_file(FILE *);
 expr_node *sol_comp_as_expr(stmt_node *);
 void sol_compile_free(stmt_node *);

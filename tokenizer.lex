@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 
-void yyerror(YYLTYPE *, char *);
+void yyerror(YYLTYPE *, stmt_node **, char *);
 int yywrap(void);
 
 char *str, *curptr;
@@ -36,11 +36,11 @@ void str_putc(char c) {
 /* Many thanks to hugomg and David Elson! */
 
 static void update_loc(YYLTYPE *yylloc, char *yytext){
-  static int curr_line = 1;
-  static int curr_col  = 1;
+ int curr_line;
+ int curr_col;
 
-  yylloc->first_line   = curr_line;
-  yylloc->first_column = curr_col;
+  curr_line = yylloc->first_line   = yylloc->last_line;
+  curr_col = yylloc->first_column = yylloc->last_column;
 
   {char * s; for(s = yytext; *s != '\0'; s++){
     if(*s == '\n'){
@@ -235,9 +235,12 @@ int yywrap(void) {
 	return 1;
 }
 
-void yyerror(YYLTYPE *locp, char *err) {
-	puts(err);
-	printf("(at lines %d-%d, cols %d-%d)\n", locp->first_line, locp->last_line, locp->first_column, locp->last_column);
+void yyerror(YYLTYPE *locp, stmt_node **prog, char *err) {
+	fputs(err, stderr);
+	fprintf(stderr, "\n(at lines %d-%d, cols %d-%d)\n", locp->first_line, locp->last_line, locp->first_column, locp->last_column);
+	if(prog && *prog) {
+		fprintf(stderr, "(while building a stmt of type %d)\n", (*prog)->type);
+	}
 }
 
 stmt_node *sol_compile(const char *prgstr) {
@@ -246,6 +249,14 @@ stmt_node *sol_compile(const char *prgstr) {
     yyparse(&program);
     yy_delete_buffer(buf);
     return program;
+}
+
+stmt_node *sol_compile_buffer(const char *prgbuf, size_t sz) {
+	stmt_node *program = NULL;
+	YY_BUFFER_STATE buf = yy_scan_bytes(prgbuf, sz);
+	yyparse(&program);
+	yy_delete_buffer(buf);
+	return program;
 }
 
 stmt_node *sol_compile_file(FILE *prgfile) {

@@ -15,4 +15,4 @@ doxyxml
 valgrind.log
 *_INFO
 prof
-/afl
+/afl*
