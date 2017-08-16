@@ -12,3 +12,6 @@ macro stupid(ex)
 end
 
 assert_eq(stupid(this_var_does_not_exist - 7), 70, "macro 2")
+
+stuff = macro lambda(n) n({q = 3}) end
+assert_eq(stuff(q), 3, "macro lambda 1")

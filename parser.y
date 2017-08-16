@@ -437,6 +437,19 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->body->ret->ret = $6;
 	AS_EX($$)->funcdecl->flags = 0;
 }
+| MACRO LAMBDA any_lparen param_list RPAREN maybe_anno expr END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_FUNCDECL;
+	AS_EX($$)->funcdecl = NEW(funcdecl_node);
+	AS_EX($$)->funcdecl->name = NULL;
+	AS_EX($$)->funcdecl->params = $4;
+	AS_EX($$)->funcdecl->anno = $6;
+	AS_EX($$)->funcdecl->body = NEW_ST();
+	AS_EX($$)->funcdecl->body->type = ST_RET;
+	AS_EX($$)->funcdecl->body->ret = NEW(ret_node);
+	AS_EX($$)->funcdecl->body->ret->ret = $7;
+	AS_EX($$)->funcdecl->flags = FUNC_IS_MACRO;
+}
 | index_expr { $$ = $1; }
 ;
 
