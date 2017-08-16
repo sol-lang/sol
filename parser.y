@@ -23,7 +23,7 @@ void yyerror(loc_t *, stmt_node **, char *);
 
 %token IF THEN ELSEIF ELSE
 %token WHILE FOR IN DO
-%token FUNC LAMBDA RETURN BREAK CONTINUE
+%token FUNC MACRO LAMBDA RETURN BREAK CONTINUE
 %token END NONE
 %token IDENT
 %token INT FLOAT STRING
@@ -392,6 +392,7 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->params = $4;
 	AS_EX($$)->funcdecl->anno = $6;
 	AS_EX($$)->funcdecl->body = $7;
+	AS_EX($$)->funcdecl->flags = 0;
 }
 | FUNC any_lparen param_list RPAREN maybe_anno stmt_list END {
 	$$ = NEW_EX();
@@ -401,6 +402,27 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->params = $3;
 	AS_EX($$)->funcdecl->anno = $5;
 	AS_EX($$)->funcdecl->body = $6;
+	AS_EX($$)->funcdecl->flags = 0;
+}
+| MACRO IDENT any_lparen param_list RPAREN maybe_anno stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_FUNCDECL;
+	AS_EX($$)->funcdecl = NEW(funcdecl_node);
+	AS_EX($$)->funcdecl->name = $2;
+	AS_EX($$)->funcdecl->params = $4;
+	AS_EX($$)->funcdecl->anno = $6;
+	AS_EX($$)->funcdecl->body = $7;
+	AS_EX($$)->funcdecl->flags = FUNC_IS_MACRO;
+}
+| MACRO any_lparen param_list RPAREN maybe_anno stmt_list END {
+	$$ = NEW_EX();
+	AS_EX($$)->type = EX_FUNCDECL;
+	AS_EX($$)->funcdecl = NEW(funcdecl_node);
+	AS_EX($$)->funcdecl->name = NULL;
+	AS_EX($$)->funcdecl->params = $3;
+	AS_EX($$)->funcdecl->anno = $5;
+	AS_EX($$)->funcdecl->body = $6;
+	AS_EX($$)->funcdecl->flags = FUNC_IS_MACRO;
 }
 | LAMBDA any_lparen param_list RPAREN maybe_anno expr END {
 	$$ = NEW_EX();
@@ -413,6 +435,7 @@ funcdecl_expr:
 	AS_EX($$)->funcdecl->body->type = ST_RET;
 	AS_EX($$)->funcdecl->body->ret = NEW(ret_node);
 	AS_EX($$)->funcdecl->body->ret->ret = $6;
+	AS_EX($$)->funcdecl->flags = 0;
 }
 | index_expr { $$ = $1; }
 ;

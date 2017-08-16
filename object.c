@@ -526,6 +526,16 @@ sol_object_t *sol_new_cfunc(sol_state_t *state, sol_cfunc_t cfunc, char *name) {
 	return res;
 }
 
+sol_object_t *sol_new_cmacro(sol_state_t *state, sol_cfunc_t cfunc, char *name) {
+	sol_object_t *res = sol_alloc_object(state);
+	res->type = SOL_CMACRO;
+	res->ops = &(state->CMacroOps);
+	res->cfunc = cfunc;
+	res->cfname = name ? strdup(name) : NULL;
+	sol_init_object(state, res);
+	return res;
+}
+
 sol_object_t *sol_f_cfunc_free(sol_state_t *state, sol_object_t *cfunc) {
 	free(cfunc->cfname);
 	return cfunc;

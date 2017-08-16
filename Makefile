@@ -1,5 +1,5 @@
-override CFLAGS:= -g $(BUILD_DEFINES) $(CFLAGS)
-override LDFLAGS:= -lfl -lm -ldl -lreadline $(LDFLAGS)
+_CFLAGS= -g $(BUILD_DEFINES) $(CFLAGS)
+_LDFLAGS= -lfl -lm -ldl -lreadline $(LDFLAGS)
 OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o
 
 ifndef CC
@@ -19,7 +19,7 @@ ifndef DESTDIR
 endif
 
 ifdef NO_HELP
-	override CFLAGS+= -DNO_HELP
+	_CFLAGS+= -DNO_HELP
 else
 	OBJ+= sol_help.o
 endif
@@ -38,7 +38,7 @@ LINKED_VERS:=sol sol$(MAJOR) sol$(MAJOR).$(MINOR)
 
 .PHONY: install install_bin install_bindir install_lib install_libdir uninstall uninstall_bin uninstall_lib all test clean docs
 
-all: dsl $(LINKED_VERS)
+all: dsl libsol.a $(LINKED_VERS)
 
 install: install_bindir install_libdir install_bin install_lib
 
@@ -67,9 +67,12 @@ $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
 	
 sol$(SOL_VER): $(OBJ)
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+	$(CC) $(_CFLAGS) $^ $(_LDFLAGS) -o $@
 
-test: all $(sort $(patsubst tests/%.sol,test_%,$(wildcard tests/*.sol))) $(sort $(patsubst tests/%.sol,testcomp_%,$(wildcard tests/*.sol)))
+libsol.a: $(OBJ)
+	$(AR) rcs $@ $^
+
+test: all $(sort $(patsubst tests/%.sol,test_%,$(filter-out tests/_%,$(wildcard tests/*.sol)))) $(sort $(patsubst tests/%.sol,testcomp_%,$(filter-out tests/_%,$(wildcard tests/*.sol))))
 
 
 test_%: tests/%.sol
@@ -111,7 +114,7 @@ ARCH_INFO: gc.o
 	$(OBJDUMP) -f $? | perl -n -e '/file format ([^-]+-(.+))$$/ && print "HOST_ARCH:=$$2\nHOST_ELF:=$$1\n"' > $@
 
 %.o: %.c
-	$(CC) -c -o $@ $? $(CFLAGS)
+	$(CC) -c -o $@ $? $(_CFLAGS)
 
 %.o: %.txt | ARCH_INFO
 	$(OBJCOPY) -B i386 -I binary -O $(HOST_ELF) $? $@

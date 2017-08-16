@@ -187,6 +187,7 @@ expr_node *ex_copy(expr_node *old) {
 			new->funcdecl->params = pl_copy(old->funcdecl->params);
 			new->funcdecl->anno = ex_copy(old->funcdecl->anno);
 			new->funcdecl->body = st_copy(old->funcdecl->body);
+			new->funcdecl->flags = old->funcdecl->flags;
 			break;
 
 		case EX_IFELSE:
@@ -807,7 +808,11 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			cure = expr->call->args;
 			while(cure) {
 				if(cure->expr) {
-					sol_list_insert(state, list, sol_list_len(state, list), sol_eval_inner(state, cure->expr, jmp));
+					if(value->ops->tflags & SOL_TF_NO_EVAL_CALL_ARGS) {
+						sol_list_insert(state, list, sol_list_len(state, list), sol_new_exprnode(state, cure->expr));
+					} else {
+						sol_list_insert(state, list, sol_list_len(state, list), sol_eval_inner(state, cure->expr, jmp));
+					}
 				}
 				ERR_CHECK(state);
 				cure = cure->next;
@@ -820,7 +825,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			break;
 
 		case EX_FUNCDECL:
-			res = sol_new_func(state, expr->funcdecl->params ? expr->funcdecl->params->args : NULL, expr->funcdecl->body, expr->funcdecl->name, expr->funcdecl->params, expr->funcdecl->anno);
+			res = sol_new_func(state, expr->funcdecl->params ? expr->funcdecl->params->args : NULL, expr->funcdecl->body, expr->funcdecl->name, expr->funcdecl->params, expr->funcdecl->anno, expr->funcdecl->flags);
 			ERR_CHECK(state);
 			if(expr->funcdecl->name) {
 				sol_state_assign_l_name(state, expr->funcdecl->name, res);
@@ -847,13 +852,14 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			break;
 
 		case EX_LOOP:
-			sol_obj_free(state->loopvalue);
-			state->loopvalue = sol_new_list(state);
+			left = state->loopvalue;
+			res = sol_new_list(state);
 			value = sol_eval_inner(state, expr->loop->cond, jmp);
 			vint = sol_cast_int(state, value);
 			while(vint->ival) {
 				sol_obj_free(value);
 				sol_obj_free(vint);
+				state->loopvalue = res;
 				sol_exec(state, expr->loop->loop);
 				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
 					value = sol_incref(state->None);
@@ -867,12 +873,13 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			state->sflag = SF_NORMAL;
 			sol_obj_free(value);
 			sol_obj_free(vint);
-			return sol_incref(state->loopvalue);
+			state->loopvalue = left;
+			return sol_incref(res);
 			break;
 
 		case EX_ITER:
-			sol_obj_free(state->loopvalue);
-			state->loopvalue = sol_new_list(state);
+			left = state->loopvalue;
+			res = sol_new_list(state);
 			value = sol_eval_inner(state, expr->iter->iter, jmp);
 			if(value->ops->iter && value->ops->iter != sol_f_not_impl) {
 				list = sol_new_list(state);
@@ -893,6 +900,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			item = CALL_METHOD(state, iter, call, list);
 			while(item != state->None) {
 				sol_state_assign_l_name(state, expr->iter->var, item);
+				state->loopvalue = res;
 				sol_exec(state, expr->iter->loop);
 				sol_obj_free(item);
 				if(state->ret || state->sflag == SF_BREAKING || sol_has_error(state)) {
@@ -902,12 +910,16 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 				state->sflag = SF_NORMAL;
 				item = CALL_METHOD(state, iter, call, list);
 			}
+			if(state->sflag == SF_BREAKING) {
+				res = state->loopvalue;
+			}
 			state->sflag = SF_NORMAL;
 			sol_obj_free(iter);
 			sol_obj_free(value);
 			sol_obj_free(list);
 			sol_obj_free(item);
-			return sol_incref(state->loopvalue);
+			state->loopvalue = left;
+			return sol_incref(res);
 			break;
 	}
 	printf("WARNING: Unhandled expression (type %d) returning None\n", expr->type);
@@ -993,7 +1005,7 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 }
 
 sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *res, *scope, *value, *key;
+	sol_object_t *res, *scope, *value, *key, *tmp;
 	identlist_node *curi;
 	dsl_seq_iter *iter;
 	int argcnt = 0;
@@ -1003,7 +1015,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 		return sol_incref(state->None);
 	}
 	value = dsl_seq_iter_at(iter);
-	if(!value || !sol_is_func(value)) {
+	if(!value || !(sol_is_func(value) || sol_is_macro(value))) {
 		printf("WARNING: Function call without function as first parameter\n");
 		return sol_incref(state->None);
 	}
@@ -1058,7 +1070,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
-sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name, paramlist_node *params, expr_node *func_anno) {
+sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_node *body, char *name, paramlist_node *params, expr_node *func_anno, unsigned short flags) {
 	identlist_node *cura;
 	exprlist_node *cure;
 	sol_object_t *obj = sol_alloc_object(state);
@@ -1069,8 +1081,8 @@ sol_object_t *sol_new_func(sol_state_t *state, identlist_node *identlist, stmt_n
 	obj->udata = sol_new_map(state);
 	obj->rest = NULL;
 	obj->annos = sol_new_map(state);
-	obj->type = SOL_FUNCTION;
-	obj->ops = &(state->FuncOps);
+	obj->type = (flags & FUNC_IS_MACRO ? SOL_MACRO : SOL_FUNCTION);
+	obj->ops = (flags & FUNC_IS_MACRO ? &(state->MacroOps) : &(state->FuncOps));
 	if(params) {
 		obj->rest = params->rest ? strdup(params->rest) : NULL;
 		cura = params->clkeys;

@@ -1,6 +1,7 @@
 /sol*
 !sol_help.txt
 *.o
+*.a
 stdout
 .submodule_stamp
 *.orig

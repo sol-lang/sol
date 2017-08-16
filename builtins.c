@@ -535,6 +535,8 @@ sol_object_t *sol_f_debug_scopes(sol_state_t *state, sol_object_t *args) {
 
 sol_object_t *sol_f_debug_getops(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj = sol_list_get_index(state, args, 0), *res = sol_new_map(state);
+	sol_map_borrow_name(state, res, "name", sol_new_buffer(state, obj->ops->tname, strlen(obj->ops->tname), OWN_NONE, NULL, NULL));
+	sol_map_borrow_name(state, res, "flags", sol_new_int(state, obj->ops->tflags));
 	sol_map_borrow_name(state, res, "add", sol_new_cfunc(state, obj->ops->add, "add"));
 	sol_map_borrow_name(state, res, "sub", sol_new_cfunc(state, obj->ops->sub, "sub"));
 	sol_map_borrow_name(state, res, "mul", sol_new_cfunc(state, obj->ops->mul, "mul"));

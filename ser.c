@@ -160,6 +160,7 @@ void sol_ser_expr(FILE *io, expr_node *ex) {
 			sol_ser_pl(io, ex->funcdecl->params);
 			sol_ser_expr(io, ex->funcdecl->anno);
 			sol_ser_stmt(io, ex->funcdecl->body);
+			fwrite(&ex->funcdecl->flags, sizeof(unsigned short), 1, io);
 			break;
 
 		case EX_IFELSE:
@@ -504,6 +505,8 @@ void *sol_deser(FILE *io) {
 			AS_EX(obj)->funcdecl->params = sol_deser_checked(io, BC_LIST_PM);
 			AS_EX(obj)->funcdecl->anno = sol_deser_expr(io);
 			AS_EX(obj)->funcdecl->body = sol_deser_stmt(io);
+			fread(&node, sizeof(unsigned short), 1, io);
+			AS_EX(obj)->funcdecl->flags = (unsigned short) node;
 			return obj;
 
 		case BC_EX_IFELSE:

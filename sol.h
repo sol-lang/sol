@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.4a1"
+#define SOL_VERSION "0.5a0"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -116,6 +116,8 @@ typedef void (*sol_printfunc_t)(sol_object_t *);
 typedef struct {
 	/** A C-string naming the type, for use by the built-in `type` function. */
 	char *tname;
+	/** Some type-specific flags for this type. */
+	unsigned short tflags;
 	/** Called with [this, rhs] to perform binary addition ("+"). */
 	sol_cfunc_t add;
 	/** Called with [this, rhs] to perform binary subtraction ("-"). */
@@ -170,6 +172,11 @@ typedef struct {
 	sol_cfunc_t free;
 } sol_ops_t;
 
+/** Don't eval arguments passed to ops->call; you will get AST expr_nodes
+ *  instead (wrapped up in SOL_EXPR objects). Call sol_eval to evaluate them when
+ *  desired. */
+#define SOL_TF_NO_EVAL_CALL_ARGS 1
+
 /** Object types known to Sol.
  *
  * This is rarely checked and generally only used where necessary, as there is
@@ -195,8 +202,12 @@ typedef enum {
 	SOL_MCELL,
 	/** The function type, the type of all user-defined functions in Sol. */
 	SOL_FUNCTION,
+	/** The macro type, the type of all user-defined macros in Sol. */
+	SOL_MACRO,
 	/** The cfunction type, the type of objects wrapping a `sol_cfunc_t`. */
 	SOL_CFUNCTION,
+	/** The cfunction type, the type of objects wrapping a `sol_cfunc_t` without evaluating their arguments. */
+	SOL_CMACRO,
 	/** The statement type, the type of objects wrapping a `stmt_node`. */
 	SOL_STMT,
 	/** The expression type, the type of objects wrapping an `expr_node`. */
@@ -431,7 +442,9 @@ typedef struct sol_tag_state_t {
 	sol_ops_t MapOps; ///< Operations on maps
 	sol_ops_t MCellOps; ///< Operations on map cells (rarely used)
 	sol_ops_t FuncOps; ///< Operations on functions
+	sol_ops_t MacroOps; ///< Operations on macros
 	sol_ops_t CFuncOps; ///< Operations on C functions
+	sol_ops_t CMacroOps; ///< Operations on C macros
 	sol_ops_t ASTNodeOps; ///< Operations on AST nodes
 	sol_ops_t BufferOps; ///< Operations on buffers
 	sol_ops_t DyLibOps; ///< Operations on dynamic library objects
@@ -921,6 +934,7 @@ sol_object_t *sol_f_stream_open(sol_state_t *, sol_object_t *);
 #define sol_is_list(obj) ((obj)->type == SOL_LIST)
 #define sol_is_map(obj) ((obj)->type == SOL_MAP || (obj)->type == SOL_MCELL)
 #define sol_is_func(obj) ((obj)->type == SOL_FUNCTION)
+#define sol_is_macro(obj) ((obj)->type == SOL_MACRO)
 #define sol_is_cfunc(obj) ((obj)->type == SOL_CFUNCTION)
 #define sol_is_aststmt(obj) ((obj)->type == SOL_STMT)
 #define sol_is_astexpr(obj) ((obj)->type == SOL_EXPR)
@@ -1089,6 +1103,7 @@ void sol_map_invert(sol_state_t *, sol_object_t *);
 // sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 
 sol_object_t *sol_new_cfunc(sol_state_t *, sol_cfunc_t, char *);
+sol_object_t *sol_new_cmacro(sol_state_t *, sol_cfunc_t, char *);
 sol_object_t *sol_new_cdata(sol_state_t *, void *, sol_ops_t *);
 
 sol_object_t *sol_new_buffer(sol_state_t *, void *, ssize_t, sol_owntype_t, sol_freefunc_t, sol_movefunc_t);

@@ -109,6 +109,8 @@ do { return DO; }
 
 func { return FUNC; }
 
+macro { return MACRO; }
+
 lambda { return LAMBDA; }
 
 return { return RETURN; }

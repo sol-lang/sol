@@ -70,6 +70,7 @@ int sol_state_init(sol_state_t *state) {
 	state->MapOps = state->NullOps;
 	state->MCellOps = state->NullOps;
 	state->FuncOps = state->NullOps;
+	state->MacroOps = state->NullOps;
 	state->CFuncOps = state->NullOps;
 	state->ASTNodeOps = state->NullOps;
 	state->BufferOps = state->NullOps;
@@ -158,10 +159,18 @@ int sol_state_init(sol_state_t *state) {
 	state->FuncOps.tostring = sol_f_func_tostring;
 	state->FuncOps.free = sol_f_func_free;
 
+	state->MacroOps = state->FuncOps;  // XXX Hack
+	state->MacroOps.tname = "macro";
+	state->MacroOps.tflags = SOL_TF_NO_EVAL_CALL_ARGS;
+
 	state->CFuncOps.tname = "cfunction";
 	state->CFuncOps.call = sol_f_cfunc_call;
 	state->CFuncOps.tostring = sol_f_cfunc_tostring;
 	state->CFuncOps.free = sol_f_cfunc_free;
+
+	state->CMacroOps = state->CFuncOps;
+	state->CMacroOps.tname = "cmacro";
+	state->CMacroOps.tflags = SOL_TF_NO_EVAL_CALL_ARGS;
 
 	state->ASTNodeOps.tname = "astnode";
 	state->ASTNodeOps.call = sol_f_astnode_call;
@@ -864,6 +873,7 @@ sol_object_t *sol_get_stderr(sol_state_t *state) {
 
 void sol_ops_init(sol_ops_t *ops) {
 	ops->tname = "unknown";
+	ops->tflags = 0;
 	ops->add = sol_f_not_impl;
 	ops->sub = sol_f_not_impl;
 	ops->mul = sol_f_not_impl;

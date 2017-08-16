@@ -3,6 +3,8 @@
 
 #include "sol.h"
 
+#define FUNC_IS_MACRO 1
+
 #include <stdio.h>
 
 /** Locator structure.
@@ -148,6 +150,7 @@ typedef struct {
 	paramlist_node *params;
 	expr_node *anno;
 	stmt_node *body;
+	unsigned short flags;  // FUNC_IS_MACRO
 } funcdecl_node;
 
 typedef struct {
@@ -294,7 +297,7 @@ typedef enum {
 		res;\
 })
 
-sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *, paramlist_node *, expr_node *);
+sol_object_t *sol_new_func(sol_state_t *, identlist_node *, stmt_node *, char *, paramlist_node *, expr_node *, unsigned short);
 sol_object_t *sol_new_stmtnode(sol_state_t *, stmt_node *);
 sol_object_t *sol_new_exprnode(sol_state_t *, expr_node *);
 
