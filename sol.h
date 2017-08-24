@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.5a0"
+#define SOL_VERSION "0.5a1"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version

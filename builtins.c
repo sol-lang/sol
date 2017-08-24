@@ -1403,9 +1403,11 @@ sol_object_t *sol_f_list_truncate(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_map(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *olist = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *list = sol_list_copy(state, olist);
 	sol_object_t *fargs = sol_new_list(state), *item;
 	int idx = 0, len = sol_list_len(state, list);
+	sol_obj_free(olist);
 	sol_list_insert(state, fargs, 0, func);
 	while(idx < len) {
 		item = sol_list_get_index(state, list, idx);
@@ -1426,9 +1428,11 @@ sol_object_t *sol_f_list_map(sol_state_t *state, sol_object_t *args) {
 }
 
 sol_object_t *sol_f_list_filter(sol_state_t *state, sol_object_t *args) {
-	sol_object_t *list = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *olist = sol_list_get_index(state, args, 0), *func = sol_list_get_index(state, args, 1);
+	sol_object_t *list = sol_list_copy(state, olist);
 	sol_object_t *fargs = sol_new_list(state), *item, *ival;
 	int idx = 0, len = sol_list_len(state, list);
+	sol_obj_free(olist);
 	sol_list_insert(state, fargs, 0, func);
 	while(idx < len) {
 		item = sol_list_get_index(state, list, idx);
