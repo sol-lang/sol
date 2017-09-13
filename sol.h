@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.5a1"
+#define SOL_VERSION "0.5a2"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -23,7 +23,7 @@
  * version shall be available in all versions numerically greater than it
  * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0004A00
+#define SOL_HEXVER 0x0005A02
 
 #ifndef SOL_BUILD_HOST
 #define SOL_BUILD_HOST "(unknown host)"
@@ -41,7 +41,7 @@
 #define SOL_BUILD_REV "(unknown rev)"
 #endif
 
-#define SOL_BUILD_ID "sol-" SOL_BUILD_REV " " __DATE__ " " __TIME__ " on " SOL_BUILD_HOST " " SOL_BUILD_KERNEL " " SOL_BUILD_ARCH
+#define SOL_BUILD_ID "sol " SOL_VERSION "-" SOL_BUILD_REV " " __DATE__ " " __TIME__ " on " SOL_BUILD_HOST " " SOL_BUILD_KERNEL " " SOL_BUILD_ARCH
 
 #ifndef SOL_ICACHE_MIN
 /** The smallest integer to cache. */

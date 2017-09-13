@@ -764,10 +764,10 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			res = CALL_METHOD(state, left, setindex, list);
 			sol_obj_free(left);
 			sol_obj_free(right);
-			sol_obj_free(value);
+			sol_obj_free(res);
 			sol_obj_free(list);
 			ERR_CHECK(state);
-			return res;
+			return value;
 			break;
 
 		case EX_ASSIGN:
