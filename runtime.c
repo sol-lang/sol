@@ -873,6 +873,7 @@ sol_object_t *sol_eval_inner(sol_state_t *state, expr_node *expr, jmp_buf jmp) {
 			state->sflag = SF_NORMAL;
 			sol_obj_free(value);
 			sol_obj_free(vint);
+			res = state->loopvalue;
 			state->loopvalue = left;
 			return sol_incref(res);
 			break;
