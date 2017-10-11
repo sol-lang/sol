@@ -1,4 +1,4 @@
-./sol [<options> [<arg> [<arg> ...]]]
+sol [<options> [<arg> [<arg> ...]]]
 
 Sol Executive - compiles and/or runs a Sol program.
 
@@ -12,13 +12,8 @@ Sol currently recognizes the following options:
 -d: Sets yydebug=1, which enables debug tracing of the parser/lexer.
 -D: Sets debugging within the language runtime itself.
 -t: Prints the Sol syntax tree after program loading.
--i: Ignore any initialization files. By default, Sol executes any of these
- files, if they exist and are readable, in the initial environment in this
- order:
- - /etc/sol/init.sol
- - /opt/sol/init.sol
- - $HOME/.config/sol/init.sol
- These may be overridden during compilation.
+-i: Ignore any initialization files. See the information below for the
+ initialization files this version of Sol is compiled to use.
 -r <file>: Read the program from the file, instead of the default (stdin).
  Programs run this way have access to stdin via `io.stdin` in the global
  environment.

@@ -10,7 +10,7 @@
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.5a2"
+#define SOL_VERSION "0.5a3"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -23,7 +23,7 @@
  * version shall be available in all versions numerically greater than it
  * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0005A02
+#define SOL_HEXVER 0x0005A03
 
 #ifndef SOL_BUILD_HOST
 #define SOL_BUILD_HOST "(unknown host)"
@@ -470,6 +470,10 @@ typedef struct sol_tag_state_t {
 #define SOL_FT_DEBUG       0x0002
 
 // state.c
+
+#define SOL_PATH_ARRAY_SIZE 8
+extern char *sol_AbsInitPaths[SOL_PATH_ARRAY_SIZE];
+extern char *sol_HomeInitPaths[SOL_PATH_ARRAY_SIZE];
 
 /** Initializes the state.
  *
