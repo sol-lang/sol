@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	char *c;
 	int printtree = 0, clean = 1, argidx = 2;
 	FILE *prgstream = stdin, *compstream = NULL;
-	int result = 0, compile = 0, compiled = 0;
+	int result = 0, compile = 0, compiled = 0, html = 0;
 
 	state.features = 0;
 
@@ -79,6 +79,10 @@ int main(int argc, char **argv) {
 							printf("- $HOME%s\n", sol_HomeInitPaths[i]);
 					return 0;
 					break;
+
+				case 'H':
+					html = 1;
+					break;
 			}
 			c++;
 		}
@@ -92,6 +96,10 @@ int main(int argc, char **argv) {
 	if(compiled) {
 		program = sol_deser_stmt(prgstream);
 	} else {
+		if(html) {
+			sol_write_html(prgstream);
+			return;
+		}
 		program = sol_compile_file(prgstream);
 	}
 	

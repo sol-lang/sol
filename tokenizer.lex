@@ -14,6 +14,7 @@ int yywrap(void);
 char *str, *curptr;
 int cursz, chars;
 #define SZMUL 128
+int writing_html = 0;
 
 void str_init(void) {
 	str = malloc(SZMUL);
@@ -55,7 +56,81 @@ static void update_loc(YYLTYPE *yylloc, char *yytext){
   yylloc->last_column = curr_col-1;
 }
 
-#define YY_USER_ACTION update_loc(yylloc, yytext);
+char *FONTS[] = {
+	"Adobe Courier",
+	"Adobe Helvetica",
+	"Adobe New Century Schoolbook",
+	"Adobe Times",
+	"Andale Mono",
+	"Arial",
+	"Arial Black",
+	"C059",
+	"Cantarell",
+	"Century Schoolbook L",
+	"Comic Sans MS",
+	"Courier New",
+	"cursor.pcf",
+	"D050000L",
+	"DejaVu Math TeX Gyre",
+	"DejaVu Sans",
+	"DejaVu Sans,DejaVu Sans Condensed",
+	"DejaVu Sans,DejaVu Sans Light",
+	"DejaVu Sans Mono",
+	"DejaVu Serif",
+	"DejaVu Serif,DejaVu Serif Condensed",
+	"Denemo",
+	"Dingbats",
+	"Emmentaler",
+	"feta26",
+	"Georgia",
+	"GNU Unifont",
+	"GNU Unifont CSUR",
+	"GNU Unifont Sample",
+	"Impact",
+	"Misc Fixed",
+	"Misc Fixed Wide",
+	"Nimbus Mono L",
+	"Nimbus Mono PS",
+	"Nimbus Roman",
+	"Nimbus Roman No9 L",
+	"NimbusSans",
+	"Nimbus Sans",
+	"Nimbus Sans L",
+	"Nimbus Sans Narrow",
+	"P052",
+	"Standard Symbols L",
+	"Standard Symbols PS",
+	"Times New Roman",
+	"Trebuchet MS",
+	"Unifont",
+	"Unifont CSUR",
+	"Unifont Sample",
+	"Unifont Upper",
+	"URW Bookman",
+	"URW Bookman L",
+	"URW Chancery L",
+	"URW Gothic",
+	"URW Gothic L",
+	"URW Palladio L",
+	"Verdana",
+	"Webdings",
+	"Z003",
+};
+
+static void write_html(char *yytext) {
+	if(writing_html) {
+		printf("<span style=\"font-family: %s;%s%s%s%s\">%s</span>",
+			FONTS[rand() % (sizeof(FONTS) / sizeof(*FONTS))],
+			rand() & 1 ? "font-weight: bold;" : "",
+			rand() & 1 ? "font-style: italic;" : "",
+			rand() & 1 ? "text-decoration: underline;" : "",
+			rand() & 1 ? "font-variant: small-caps;" : "",
+			yytext
+		);
+	}
+}
+
+#define YY_USER_ACTION update_loc(yylloc, yytext); write_html(yytext);
 
 %}
 
@@ -268,4 +343,16 @@ stmt_node *sol_compile_file(FILE *prgfile) {
     yyparse(&program);
     yy_delete_buffer(buf);
     return program;
+}
+
+void sol_write_html(FILE *prgfile) {
+	stmt_node *program = NULL;
+	YY_BUFFER_STATE buf = yy_create_buffer(prgfile, YY_BUF_SIZE);
+	writing_html = 1;
+	printf("<html><head><title>Sol Source File</title></head><body style=\"white-space: pre-wrap;\">\n");
+	yy_switch_to_buffer(buf);
+	yyparse(&program);
+	yy_delete_buffer(buf);
+	//stmt_free(program);
+	printf("</body></html>\n");
 }
