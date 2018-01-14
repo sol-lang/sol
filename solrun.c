@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
 	int printtree = 0, clean = 1, argidx = 2;
 	FILE *prgstream = stdin, *compstream = NULL;
 	int result = 0, compile = 0, compiled = 0, html = 0;
+	unsigned i;
 
 	state.features = 0;
 
@@ -71,10 +72,10 @@ int main(int argc, char **argv) {
 					printf("Sorry, no help in this version (-DNO_HELP)!\n");
 #endif
 					printf("\nThis Sol is configured to use the following initialization files (it is never an\nerror if these files cannot be read, but errors propagate normally):\n");
-					for(unsigned i = 0; i < sizeof(sol_AbsInitPaths) / sizeof(sol_AbsInitPaths[0]); i++)
+					for(i = 0; i < sizeof(sol_AbsInitPaths) / sizeof(sol_AbsInitPaths[0]); i++)
 						if(sol_AbsInitPaths[i])
 							printf("- %s\n", sol_AbsInitPaths[i]);
-					for(unsigned i = 0; i < sizeof(sol_HomeInitPaths) / sizeof(sol_HomeInitPaths[0]); i++)
+					for(i = 0; i < sizeof(sol_HomeInitPaths) / sizeof(sol_HomeInitPaths[0]); i++)
 						if(sol_HomeInitPaths[i])
 							printf("- $HOME%s\n", sol_HomeInitPaths[i]);
 					return 0;
