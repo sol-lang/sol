@@ -567,6 +567,10 @@ sol_object_t *sol_f_debug_getops(sol_state_t *state, sol_object_t *args) {
 	return res;
 }
 
+sol_object_t *sol_f_debug_fnstack(sol_state_t *state, sol_object_t *args) {
+	return sol_incref(state->fnstack);
+}
+
 #ifndef NO_READLINE
 sol_object_t *sol_f_readline_readline(sol_state_t *state, sol_object_t *args) {
 	sol_object_t *obj, *objstr, *res;

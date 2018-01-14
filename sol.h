@@ -7,10 +7,11 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <setjmp.h>
 #include "dsl/dsl.h"
 
 /** The version of the project, as made available through `debug.version`. */
-#define SOL_VERSION "0.5a3"
+#define SOL_VERSION "0.5a4"
 /** The hexadecimal version of the project, formatted 0xAAIIRPP where:
  * 
  * - AA is the two-digit major version
@@ -23,7 +24,7 @@
  * version shall be available in all versions numerically greater than it
  * (unless they are later deprecated or removed).
  */
-#define SOL_HEXVER 0x0005A03
+#define SOL_HEXVER 0x0005A04
 
 #ifndef SOL_BUILD_HOST
 #define SOL_BUILD_HOST "(unknown host)"
@@ -426,6 +427,8 @@ typedef struct sol_tag_state_t {
 	sol_object_t *ret; ///< Return value of this function, for early return
 	sol_object_t *traceback; ///< The last stack of statement (nodes) in the last error, or NULL
 	sol_object_t *fnstack; ///< The stack of function objects (`SOL_FUNCTION`, `SOL_CFUNCTION`) in the current call stack
+	jmp_buf topfunc; ///< A jump buffer pointing to the most recent `SOL_FUNCTION` call, used for tail calls
+	sol_object_t *topargs; ///< The new arguments passed before jumping in a tail call
 	sol_state_flag_t sflag; ///< Used to implement break/continue
 	sol_object_t *error; ///< Some arbitrary error descriptor, `None` if no error
 	sol_object_t *_stdout; ///< Standard output stream object (for print(), type `SOL_STREAM`)
@@ -775,6 +778,7 @@ sol_object_t *sol_f_debug_globals(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_locals(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_scopes(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_debug_getops(sol_state_t *, sol_object_t *);
+sol_object_t *sol_f_debug_fnstack(sol_state_t *, sol_object_t *);
 
 sol_object_t *sol_f_iter_str(sol_state_t *, sol_object_t *);
 sol_object_t *sol_f_iter_buffer(sol_state_t *, sol_object_t *);

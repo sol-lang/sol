@@ -939,6 +939,7 @@ sol_object_t *sol_eval(sol_state_t *state, expr_node *expr) {
 void sol_exec(sol_state_t *state, stmt_node *stmt) {
 	sol_object_t *value = NULL, *vint = NULL, *list, *iter, *item;
 	stmtlist_node *curs;
+	exprlist_node *cure;
 	if(!stmt) {
 		sol_obj_free(sol_set_error_string(state, "Execute NULL statement"));
 		return;
@@ -969,7 +970,47 @@ void sol_exec(sol_state_t *state, stmt_node *stmt) {
 
 		case ST_RET:
 			if(stmt->ret->ret) {
-				state->ret = sol_eval(state, stmt->ret->ret);
+				if(stmt->ret->ret->type == EX_CALL) {
+					value = sol_eval(state, stmt->ret->ret->call->expr);
+					iter = sol_new_list(state);
+					if(stmt->ret->ret->call->method) {
+						list = sol_new_list(state);
+						sol_list_insert(state, list, 0, value);
+						item = sol_new_string(state, stmt->ret->ret->call->method);
+						sol_list_insert(state, list, 1, item);
+						sol_obj_free(item);
+						item = CALL_METHOD(state, value, index, list);
+						sol_obj_free(value);
+						sol_list_insert(state, iter, 0, value);
+						value = item;
+					}
+					cure = stmt->ret->ret->call->args;
+					while(cure) {
+						if(cure->expr) {
+							if(value->ops->tflags & SOL_TF_NO_EVAL_CALL_ARGS) {
+								sol_list_insert(state, iter, sol_list_len(state, iter), sol_new_exprnode(state, cure->expr));
+							} else {
+								sol_list_insert(state, iter, sol_list_len(state, iter), sol_eval(state, cure->expr));
+							}
+						}
+						cure = cure->next;
+					}
+					sol_list_insert(state, iter, 0, value);
+					vint = sol_list_get_index(state, state->fnstack, 0);
+					if(vint == value) {
+						sol_obj_free(vint);
+						sol_obj_free(value);
+						state->topargs = iter;
+						longjmp(state->topfunc, 1);
+					}
+					sol_obj_free(vint);
+					vint = CALL_METHOD(state, value, call, iter);
+					sol_obj_free(value);
+					sol_obj_free(iter);
+					state->ret = vint;
+				} else {
+					state->ret = sol_eval(state, stmt->ret->ret);
+				}
 			} else {
 				state->ret = sol_incref(state->None);
 			}
@@ -1010,6 +1051,12 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 	identlist_node *curi;
 	dsl_seq_iter *iter;
 	int argcnt = 0;
+	char was_jumped = 0;
+	if(setjmp(state->topfunc)) {
+		//sol_obj_free(args);
+		args = state->topargs;
+		was_jumped = 1;
+	}
 	iter = dsl_new_seq_iter(args->seq);
 	if(!args || dsl_seq_iter_is_invalid(iter) || sol_is_none(state, args)) {
 		printf("WARNING: No parameters to function call (expecting function)\n");
@@ -1018,6 +1065,7 @@ sol_object_t *sol_f_func_call(sol_state_t *state, sol_object_t *args) {
 	value = dsl_seq_iter_at(iter);
 	if(!value || !(sol_is_func(value) || sol_is_macro(value))) {
 		printf("WARNING: Function call without function as first parameter\n");
+		ob_print(value);
 		return sol_incref(state->None);
 	}
 	if(!value->func) {

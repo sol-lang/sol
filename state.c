@@ -286,6 +286,7 @@ int sol_state_init(sol_state_t *state) {
 	sol_map_borrow_name(state, mod, "globals", sol_new_cfunc(state, sol_f_debug_globals, "debug.globals"));
 	sol_map_borrow_name(state, mod, "locals", sol_new_cfunc(state, sol_f_debug_locals, "debug.locals"));
 	sol_map_borrow_name(state, mod, "scopes", sol_new_cfunc(state, sol_f_debug_scopes, "debug.scopes"));
+	sol_map_borrow_name(state, mod, "fnstack", sol_new_cfunc(state, sol_f_debug_fnstack, "debug.fnstack"));
 	sol_map_borrow_name(state, mod, "version", sol_new_buffer(state, SOL_VERSION, strlen(SOL_VERSION), OWN_NONE, NULL, NULL));
 	sol_map_borrow_name(state, mod, "hexversion", sol_new_int(state, SOL_HEXVER));
 #ifdef SOL_ICACHE
