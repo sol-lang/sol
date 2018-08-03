@@ -1,6 +1,6 @@
 _CFLAGS= -g $(BUILD_DEFINES) $(CFLAGS)
 _LDFLAGS= -lfl -lm -ldl -lreadline $(LDFLAGS)
-OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o
+OBJ= lex.yy.o parser.tab.o dsl/seq.o dsl/list.o dsl/array.o dsl/generic.o astprint.o runtime.o gc.o object.o state.o builtins.o solrun.o ser.o sol_help.o
 
 ifndef CC
 	CC:= gcc
@@ -18,14 +18,16 @@ ifndef DESTDIR
 	DESTDIR:= /usr/local/
 endif
 
-ifdef NO_HELP
-	_CFLAGS+= -DNO_HELP
-else
-	OBJ+= sol_help.o
-endif
-
 ifndef STDOUT_FILENAME
 	STDOUT_FILENAME:=/dev/fd/1
+endif
+
+ifneq (,$(findstring -DNO_READLINE,$(_CFLAGS)))
+	_LDFLAGS := $(filter-out -lreadline,$(_LDFLAGS))
+endif
+
+ifneq (,$(findstring -DNO_HELP,$(_CFLAGS)))
+	OBJ := $(filter-out sol_help.o,$(OBJ))
 endif
 
 include VERSION_INFO
@@ -67,7 +69,7 @@ $(LINKED_VERS): sol$(SOL_VER)
 	rm $@; ln -s $? $@
 	
 sol$(SOL_VER): $(OBJ)
-	$(CC) $(_CFLAGS) $^ $(_LDFLAGS) -o $@
+	$(CC) $(_CFLAGS) $(_LDFLAGS) $^ -o $@
 
 libsol.a: $(OBJ)
 	$(AR) rcs $@ $^

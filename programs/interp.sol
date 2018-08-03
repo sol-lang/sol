@@ -27,6 +27,8 @@ while __interp.running do
 		__interp.line = readline.readline(__interp.prompt)
 		if #__interp.line then readline.add_history(__interp.line) end
 	else
+		io.stdout:write(__interp.prompt)
+		io.stdout:flush()
 		__interp.line = io.stdin:read(io.LINE):sub(0, -1)
 	end
 	7

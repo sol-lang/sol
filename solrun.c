@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 	} else {
 		if(html) {
 			sol_write_html(prgstream);
-			return;
+			return 0;
 		}
 		program = sol_compile_file(prgstream);
 	}
