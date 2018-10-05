@@ -141,7 +141,7 @@ Most of what needs to be done is addressing these issues:
 
 **The API is unstable.** There will definitely be some changes to the API, mostly to *help* with integration. At present, some operations on behalf of Sol embedders are a little messy and require intrinsic knowledge of the language specifics. The refcounting scheme, as mentioned previously, requires about four lines of code per function that should be a one-liner, for example.
 
-**C-strings are deprecated.** At some point, Sol will move over to Pascal-ish strings (length/pointer to buffer). This will allow embedded NUL characters.
+**C-strings are deprecated.** At some point, Sol will move over to Pascal-ish strings (length/pointer to buffer). This will allow embedded NULL characters.
 
 **The parser is broken.** Bison (Yacc) reports "reduce/reduce" conflicts (a lot of them, actually). This is not a good thing, though things appear to work somehow. Also, this code is responsible for the pointer clone problem which needs to be addressed. Finally, the tokenizer does not properly interpret escapes (doing it the "right" way somehow breaks the parser), making it difficult to embed things like double quotes.
 
